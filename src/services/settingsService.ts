@@ -1,6 +1,7 @@
 
-import { db } from '@/lib/firebase';
+import { db, storage } from '@/lib/firebase';
 import { doc, getDoc, setDoc, DocumentData } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export interface HomepageSettings {
   heroImageUrl: string;
@@ -28,4 +29,11 @@ export const updateHomepageSettings = async (settings: Partial<HomepageSettings>
     const docRef = doc(db, settingsCollectionName, homepageDocName);
     // Use setDoc with merge: true to create or update the document
     await setDoc(docRef, settings, { merge: true });
+};
+
+export const uploadHeroImage = async (file: File): Promise<string> => {
+  const storageRef = ref(storage, `hero-images/${file.name}`);
+  const snapshot = await uploadBytes(storageRef, file);
+  const downloadURL = await getDownloadURL(snapshot.ref);
+  return downloadURL;
 };

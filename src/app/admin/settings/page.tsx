@@ -13,12 +13,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { getHomepageSettings, updateHomepageSettings } from "@/services/settingsService";
+import { getHomepageSettings, updateHomepageSettings, uploadHeroImage } from "@/services/settingsService";
 import { useToast } from "@/hooks/use-toast";
+import Image from "next/image";
 
 export default function SettingsPage() {
   const [heroImageUrl, setHeroImageUrl] = useState("");
+  const [newImageFile, setNewImageFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -34,9 +37,27 @@ export default function SettingsPage() {
     fetchSettings();
   }, []);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setNewImageFile(file);
+      // Create a temporary URL to preview the image
+      setHeroImageUrl(URL.createObjectURL(file));
+    }
+  };
+
   const handleSave = async () => {
+    setIsSaving(true);
+    let newHeroUrl = heroImageUrl;
+
     try {
-      await updateHomepageSettings({ heroImageUrl });
+      if (newImageFile) {
+        newHeroUrl = await uploadHeroImage(newImageFile);
+        setHeroImageUrl(newHeroUrl);
+        setNewImageFile(null); // Clear the file after upload
+      }
+      
+      await updateHomepageSettings({ heroImageUrl: newHeroUrl });
       toast({
         title: "Success",
         description: "Homepage settings updated successfully.",
@@ -48,6 +69,8 @@ export default function SettingsPage() {
         description: "Failed to update settings.",
       });
       console.error(error);
+    } finally {
+      setIsSaving(false);
     }
   };
   
@@ -62,20 +85,35 @@ export default function SettingsPage() {
         <CardDescription>Manage the content displayed on your homepage.</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-4">
+        <div className="grid gap-6">
           <div className="grid gap-2">
-            <Label htmlFor="hero-image-url">Hero Image URL</Label>
+            <Label htmlFor="hero-image">Hero Image</Label>
             <Input
-              id="hero-image-url"
-              value={heroImageUrl}
-              onChange={(e) => setHeroImageUrl(e.target.value)}
-              placeholder="https://example.com/hero-image.png"
+              id="hero-image"
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
             />
           </div>
+          {heroImageUrl && (
+            <div>
+              <Label>Current Hero Image</Label>
+              <div className="mt-2 relative w-full h-64 rounded-md overflow-hidden border">
+                <Image 
+                  src={heroImageUrl} 
+                  alt="Hero Image Preview" 
+                  layout="fill"
+                  objectFit="cover"
+                />
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
       <CardFooter className="border-t px-6 py-4">
-        <Button onClick={handleSave}>Save</Button>
+        <Button onClick={handleSave} disabled={isSaving}>
+          {isSaving ? "Saving..." : "Save"}
+        </Button>
       </CardFooter>
     </Card>
   );
