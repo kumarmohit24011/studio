@@ -65,15 +65,16 @@ export default function AdminLayout({
           <SidebarMenu>
             {menuItems.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <Link href={item.href} legacyBehavior passHref>
-                  <SidebarMenuButton
-                    isActive={pathname === item.href}
-                    tooltip={{ children: item.label, side: "right" }}
-                  >
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === item.href}
+                  tooltip={{ children: item.label, side: "right" }}
+                >
+                  <Link href={item.href}>
                     <item.icon />
                     <span>{item.label}</span>
-                  </SidebarMenuButton>
-                </Link>
+                  </Link>
+                </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
           </SidebarMenu>
@@ -81,12 +82,12 @@ export default function AdminLayout({
         <SidebarFooter>
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <Link href="/admin/settings" legacyBehavior passHref>
-                        <SidebarMenuButton isActive={pathname === '/admin/settings'} tooltip={{children: 'Settings', side: 'right'}}>
+                    <SidebarMenuButton asChild isActive={pathname === '/admin/settings'} tooltip={{children: 'Settings', side: 'right'}}>
+                        <Link href="/admin/settings">
                             <Settings />
                             <span>Settings</span>
-                        </SidebarMenuButton>
-                    </Link>
+                        </Link>
+                    </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarFooter>
