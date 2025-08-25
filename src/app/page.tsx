@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -9,19 +10,25 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getProducts } from "@/services/productService";
+import { getHomepageSettings, HomepageSettings } from "@/services/settingsService";
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [homepageSettings, setHomepageSettings] = useState<HomepageSettings | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchProductsAndSettings = async () => {
       setLoading(true);
-      const allProducts = await getProducts();
+      const [allProducts, settings] = await Promise.all([
+          getProducts(),
+          getHomepageSettings()
+      ]);
       setProducts(allProducts);
+      setHomepageSettings(settings);
       setLoading(false);
     };
-    fetchProducts();
+    fetchProductsAndSettings();
   }, []);
 
   const featuredProducts = products.filter(p => p.tags?.includes('featured')).slice(0, 4);
@@ -35,7 +42,7 @@ export default function Home() {
     <div className="flex flex-col">
       <section className="relative h-[60vh] md:h-[80vh] w-full">
         <Image
-          src="https://placehold.co/1800x1200.png"
+          src={homepageSettings?.heroImageUrl || "https://placehold.co/1800x1200.png"}
           alt="Elegant jewelry on display"
           layout="fill"
           objectFit="cover"

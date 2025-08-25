@@ -96,8 +96,7 @@ export default function AdminLayout({
         <header className="flex items-center justify-between p-4 border-b">
           <SidebarTrigger />
           <h1 className="text-2xl font-headline">
-            {menuItems.find((item) => item.href === pathname)?.label ||
-              "Dashboard"}
+            {menuItems.find((item) => item.href === pathname)?.label || "Dashboard"}
           </h1>
           <div>
             {/* User profile can go here */}
