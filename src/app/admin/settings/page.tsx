@@ -48,13 +48,27 @@ export default function SettingsPage() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    let newHeroUrl = heroImageUrl;
-
     try {
+      let newHeroUrl = heroImageUrl;
+
       if (newImageFile) {
-        newHeroUrl = await uploadHeroImage(newImageFile);
-        setHeroImageUrl(newHeroUrl);
-        setNewImageFile(null); // Clear the file after upload
+         try {
+            newHeroUrl = await uploadHeroImage(newImageFile);
+            setHeroImageUrl(newHeroUrl);
+            setNewImageFile(null); // Clear the file after successful upload
+         } catch (uploadError) {
+             console.error("Image upload failed:", uploadError);
+             toast({
+                variant: "destructive",
+                title: "Image Upload Failed",
+                description: "Could not upload the new hero image. Please try again.",
+             });
+             // Revert to the old image URL if the upload fails
+             const settings = await getHomepageSettings();
+             if (settings) setHeroImageUrl(settings.heroImageUrl);
+             setIsSaving(false);
+             return;
+         }
       }
       
       await updateHomepageSettings({ heroImageUrl: newHeroUrl });
@@ -93,6 +107,7 @@ export default function SettingsPage() {
               type="file"
               accept="image/*"
               onChange={handleFileChange}
+              disabled={isSaving}
             />
           </div>
           {heroImageUrl && (
@@ -104,6 +119,7 @@ export default function SettingsPage() {
                   alt="Hero Image Preview" 
                   layout="fill"
                   objectFit="cover"
+                  unoptimized={newImageFile ? true : false} // Prevents Next.js from trying to optimize a local blob URL
                 />
               </div>
             </div>
