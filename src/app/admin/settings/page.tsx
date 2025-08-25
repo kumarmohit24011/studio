@@ -47,13 +47,17 @@ export default function SettingsPage() {
   };
 
   const handleSave = async () => {
+    console.log("handleSave called");
     setIsSaving(true);
     try {
       let finalHeroUrl = heroImageUrl;
+      console.log("Initial hero URL:", finalHeroUrl);
 
       if (newImageFile) {
+        console.log("New image file detected, starting upload:", newImageFile.name);
         try {
           const downloadURL = await uploadHeroImage(newImageFile);
+          console.log("Image uploaded successfully, download URL:", downloadURL);
           finalHeroUrl = downloadURL; // Use the URL from storage
           setHeroImageUrl(downloadURL); // Update preview with final URL
           setNewImageFile(null); // Clear the file after successful upload
@@ -72,21 +76,24 @@ export default function SettingsPage() {
         }
       }
 
+      console.log("Updating homepage settings with URL:", finalHeroUrl);
       await updateHomepageSettings({ heroImageUrl: finalHeroUrl });
 
       toast({
         title: "Success",
         description: "Homepage settings updated successfully.",
       });
+      console.log("Homepage settings updated successfully.");
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
         description: "Failed to update settings.",
       });
-      console.error(error);
+      console.error("An error occurred during the save process:", error);
     } finally {
       setIsSaving(false);
+      console.log("handleSave finished, isSaving set to false.");
     }
   };
 
