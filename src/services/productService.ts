@@ -14,7 +14,7 @@ const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): Product =
         images: data.images,
         category: data.category,
         metal: data.metal,
-        gemstone: data.gemstone,
+        gemstone: data.gemstone === null ? undefined : data.gemstone,
         sku: data.sku,
         stock: data.stock,
         tags: data.tags,
@@ -30,7 +30,7 @@ export const getProduct = async (id: string): Promise<Product | null> => {
     const productDoc = doc(db, 'products', id);
     const docSnap = await getDoc(productDoc);
     if (docSnap.exists()) {
-        return fromFirestore(docSnap);
+        return fromFirestore(docSnap as QueryDocumentSnapshot<DocumentData>);
     } else {
         return null;
     }

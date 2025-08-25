@@ -38,6 +38,7 @@ const emptyProduct: Omit<Product, 'id'> = {
   metal: "Gold",
   sku: "",
   stock: 0,
+  gemstone: undefined,
 };
 
 export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialogProps) {
@@ -66,10 +67,15 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
   }
 
   const handleSubmit = async () => {
+    const dataToSave = {
+      ...formData,
+      gemstone: formData.gemstone || null,
+    };
+
     if (product) {
-      await updateProduct(product.id, formData);
+      await updateProduct(product.id, dataToSave);
     } else {
-      await addProduct(formData);
+      await addProduct(dataToSave);
     }
     onSave();
     onClose();
