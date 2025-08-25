@@ -36,6 +36,7 @@ export default function ProfilePage() {
   }, [user, loading, router]);
 
   const orders = [
+    // Mock data, will be connected to db later
     {
       id: "ORD001",
       date: "June 23, 2024",

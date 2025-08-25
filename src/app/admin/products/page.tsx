@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Table,
   TableHeader,
@@ -8,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { products } from "@/lib/placeholder-data";
+import { Product } from "@/lib/placeholder-data";
 import { MoreHorizontal, PlusCircle } from "lucide-react";
 import Image from "next/image";
 import {
@@ -19,9 +21,50 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { getProducts, deleteProduct } from "@/services/productService";
+import { ProductDialog } from "./ProductDialog";
 
 export default function AdminProductsPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  const fetchProducts = async () => {
+    setLoading(true);
+    const products = await getProducts();
+    setProducts(products);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const handleAddProduct = () => {
+    setSelectedProduct(null);
+    setIsDialogOpen(true);
+  };
+
+  const handleEditProduct = (product: Product) => {
+    setSelectedProduct(product);
+    setIsDialogOpen(true);
+  };
+  
+  const handleDeleteProduct = async (id: string) => {
+    if(confirm('Are you sure you want to delete this product?')) {
+      await deleteProduct(id);
+      fetchProducts();
+    }
+  }
+
+  if(loading) {
+    return <div>Loading...</div>
+  }
+
   return (
+    <>
     <Card>
         <CardHeader>
             <div className="flex justify-between items-center">
@@ -29,7 +72,7 @@ export default function AdminProductsPage() {
                     <CardTitle>Products</CardTitle>
                     <CardDescription>Manage your products and view their sales performance.</CardDescription>
                 </div>
-                <Button>
+                <Button onClick={handleAddProduct}>
                     <PlusCircle className="mr-2 h-4 w-4" /> Add Product
                 </Button>
             </div>
@@ -83,8 +126,8 @@ export default function AdminProductsPage() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem>Edit</DropdownMenuItem>
-                      <DropdownMenuItem>Delete</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleEditProduct(product)}>Edit</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleDeleteProduct(product.id)}>Delete</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
@@ -94,5 +137,12 @@ export default function AdminProductsPage() {
         </Table>
       </CardContent>
     </Card>
+    <ProductDialog 
+      isOpen={isDialogOpen}
+      onClose={() => setIsDialogOpen(false)}
+      onSave={fetchProducts}
+      product={selectedProduct}
+    />
+    </>
   );
 }

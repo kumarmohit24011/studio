@@ -1,14 +1,35 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ProductCard } from "@/components/ProductCard";
-import { products } from "@/lib/placeholder-data";
+import { Product } from "@/lib/placeholder-data";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getProducts } from "@/services/productService";
 
 export default function Home() {
-  const featuredProducts = products.slice(0, 4);
-  const trendingProducts = products.slice(4, 8);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      const allProducts = await getProducts();
+      setProducts(allProducts);
+      setLoading(false);
+    };
+    fetchProducts();
+  }, []);
+
+  const featuredProducts = products.filter(p => p.tags?.includes('featured')).slice(0, 4);
+  const trendingProducts = products.slice(4, 8); // This can be a more complex logic
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="flex flex-col">

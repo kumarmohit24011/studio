@@ -1,4 +1,6 @@
-import { products } from "@/lib/placeholder-data";
+"use client";
+
+import { Product } from "@/lib/placeholder-data";
 import { ProductCard } from "@/components/ProductCard";
 import {
   Select,
@@ -17,8 +19,23 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { getProducts } from "@/services/productService";
 
 export default function ProductsPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      const allProducts = await getProducts();
+      setProducts(allProducts);
+      setLoading(false);
+    };
+    fetchProducts();
+  }, []);
+  
   const filters = [
     {
       name: "Category",
@@ -33,6 +50,10 @@ export default function ProductsPage() {
       options: ["Diamond", "Ruby", "Sapphire", "Emerald"],
     },
   ];
+  
+  if (loading) {
+    return <div>Loading...</div>
+  }
 
   return (
     <div className="container mx-auto px-4 py-12">

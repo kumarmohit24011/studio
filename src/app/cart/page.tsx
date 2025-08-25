@@ -6,6 +6,7 @@ import Image from 'next/image';
 
 export default function CartPage() {
   const cartItems = [
+    // Mock data, will be connected to db later
     { ...products[0], quantity: 1 },
     { ...products[2], quantity: 2 },
   ];

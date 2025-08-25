@@ -1,7 +1,9 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ProductCard } from "@/components/ProductCard";
-import { products } from "@/lib/placeholder-data";
+import { Product } from "@/lib/placeholder-data";
 import Image from "next/image";
 import {
   Carousel,
@@ -21,15 +23,36 @@ import {
 import { Star, Truck, ShieldCheck, Heart } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { useEffect, useState } from "react";
+import { getProduct, getProducts } from "@/services/productService";
 
 export default function ProductDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const product = products.find((p) => p.id === params.id) || products[0];
-  const relatedProducts = products.filter((p) => p.id !== product.id).slice(0, 4);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const fetchProduct = async () => {
+      setLoading(true);
+      const p = await getProduct(params.id);
+      setProduct(p);
+      if (p) {
+        const allProducts = await getProducts();
+        setRelatedProducts(allProducts.filter(rp => rp.id !== p.id && rp.category === p.category).slice(0, 4));
+      }
+      setLoading(false);
+    };
+    fetchProduct();
+  }, [params.id]);
+
+  if (loading || !product) {
+    return <div>Loading...</div>;
+  }
+  
   const stockStatus =
     product.stock > 10
       ? { text: "In Stock", color: "bg-green-600" }
