@@ -49,29 +49,31 @@ export default function SettingsPage() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      let newHeroUrl = heroImageUrl;
+      let finalHeroUrl = heroImageUrl;
 
       if (newImageFile) {
-         try {
-            newHeroUrl = await uploadHeroImage(newImageFile);
-            setHeroImageUrl(newHeroUrl);
-            setNewImageFile(null); // Clear the file after successful upload
-         } catch (uploadError) {
-             console.error("Image upload failed:", uploadError);
-             toast({
-                variant: "destructive",
-                title: "Image Upload Failed",
-                description: "Could not upload the new hero image. Please try again.",
-             });
-             // Revert to the old image URL if the upload fails
-             const settings = await getHomepageSettings();
-             if (settings) setHeroImageUrl(settings.heroImageUrl);
-             setIsSaving(false);
-             return;
-         }
+        try {
+          const downloadURL = await uploadHeroImage(newImageFile);
+          finalHeroUrl = downloadURL; // Use the URL from storage
+          setHeroImageUrl(downloadURL); // Update preview with final URL
+          setNewImageFile(null); // Clear the file after successful upload
+        } catch (uploadError) {
+          console.error("Image upload failed:", uploadError);
+          toast({
+            variant: "destructive",
+            title: "Image Upload Failed",
+            description: "Could not upload the new hero image. Please try again.",
+          });
+          // Revert to the old image URL if the upload fails
+          const settings = await getHomepageSettings();
+          if (settings) setHeroImageUrl(settings.heroImageUrl || "");
+          setIsSaving(false);
+          return;
+        }
       }
-      
-      await updateHomepageSettings({ heroImageUrl: newHeroUrl });
+
+      await updateHomepageSettings({ heroImageUrl: finalHeroUrl });
+
       toast({
         title: "Success",
         description: "Homepage settings updated successfully.",
@@ -87,7 +89,7 @@ export default function SettingsPage() {
       setIsSaving(false);
     }
   };
-  
+
   if (loading) {
     return <div>Loading settings...</div>
   }
@@ -114,12 +116,12 @@ export default function SettingsPage() {
             <div>
               <Label>Current Hero Image</Label>
               <div className="mt-2 relative w-full h-64 rounded-md overflow-hidden border">
-                <Image 
-                  src={heroImageUrl} 
-                  alt="Hero Image Preview" 
-                  layout="fill"
-                  objectFit="cover"
-                  unoptimized={newImageFile ? true : false} // Prevents Next.js from trying to optimize a local blob URL
+                <Image
+                  src={heroImageUrl}
+                  alt="Hero Image Preview"
+                  fill
+                  style={{objectFit: 'cover'}}
+                  unoptimized={!!newImageFile} // Prevents Next.js from trying to optimize a local blob URL
                 />
               </div>
             </div>
