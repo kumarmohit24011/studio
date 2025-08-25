@@ -39,6 +39,7 @@ const emptyProduct: Omit<Product, 'id'> = {
   sku: "",
   stock: 0,
   gemstone: undefined,
+  tags: [],
 };
 
 export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialogProps) {
@@ -70,6 +71,7 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
     const dataToSave = {
       ...formData,
       gemstone: formData.gemstone || null,
+      tags: formData.tags || null,
     };
 
     if (product) {
