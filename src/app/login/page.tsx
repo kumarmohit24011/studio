@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,6 +11,10 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/hooks/use-auth";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 function GoogleIcon() {
     return (
@@ -19,6 +25,40 @@ function GoogleIcon() {
 }
 
 export default function LoginPage() {
+  const { signInWithGoogle, signInWithEmail } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { toast } = useToast();
+  const router = useRouter();
+
+  const handleLogin = async () => {
+    try {
+      await signInWithEmail(email, password);
+      toast({ title: "Logged in successfully!" });
+      router.push("/profile");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error logging in",
+        description: error.message,
+      });
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await signInWithGoogle();
+      toast({ title: "Logged in successfully!" });
+      router.push("/profile");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error with Google sign-in",
+        description: error.message,
+      });
+    }
+  };
+
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-200px)] bg-background p-4">
       <Card className="mx-auto max-w-sm w-full shadow-xl">
@@ -37,6 +77,8 @@ export default function LoginPage() {
                 type="email"
                 placeholder="m@example.com"
                 required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div className="grid gap-2">
@@ -49,12 +91,18 @@ export default function LoginPage() {
                   Forgot your password?
                 </Link>
               </div>
-              <Input id="password" type="password" required />
+              <Input
+                id="password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </div>
-            <Button type="submit" className="w-full">
+            <Button onClick={handleLogin} className="w-full">
               Login
             </Button>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
               <GoogleIcon />
               <span className="ml-2">Login with Google</span>
             </Button>

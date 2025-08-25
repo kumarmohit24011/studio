@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Tabs,
   TabsContent,
@@ -18,8 +20,21 @@ import { Label } from "@/components/ui/label";
 import { products } from "@/lib/placeholder-data";
 import { ProductCard } from "@/components/ProductCard";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function ProfilePage() {
+  const { user, loading, signOut } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
+
   const orders = [
     {
       id: "ORD001",
@@ -37,9 +52,23 @@ export default function ProfilePage() {
     },
   ];
 
+  if (loading || !user) {
+    return <div className="container mx-auto px-4 py-12 md:py-20 text-center">Loading...</div>
+  }
+
   return (
     <div className="container mx-auto px-4 py-12 md:py-20">
-      <h1 className="text-4xl font-headline mb-8">My Account</h1>
+      <div className="flex flex-col md:flex-row items-center gap-6 mb-8">
+        <Avatar className="w-24 h-24">
+            <AvatarImage src={user.photoURL || ''} alt={user.displayName || 'User'}/>
+            <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
+        </Avatar>
+        <div>
+            <h1 className="text-4xl font-headline">{user.displayName || 'My Account'}</h1>
+            <p className="text-muted-foreground">{user.email}</p>
+        </div>
+        <Button onClick={signOut} variant="outline" className="md:ml-auto">Logout</Button>
+      </div>
       <Tabs defaultValue="profile" className="w-full">
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
           <TabsTrigger value="profile">Profile</TabsTrigger>
@@ -58,11 +87,11 @@ export default function ProfilePage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
-                <Input id="name" defaultValue="Jane Doe" />
+                <Input id="name" defaultValue={user.displayName || ""} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number</Label>
-                <Input id="phone" defaultValue="+1 234 567 890" />
+                <Input id="phone" defaultValue={user.phoneNumber || ""} />
               </div>
             </CardContent>
             <CardFooter>

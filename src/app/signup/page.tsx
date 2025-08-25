@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,6 +11,10 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/hooks/use-auth";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 function GoogleIcon() {
     return (
@@ -19,6 +25,42 @@ function GoogleIcon() {
 }
 
 export default function SignupPage() {
+  const { signUpWithEmail, signInWithGoogle } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const { toast } = useToast();
+  const router = useRouter();
+
+  const handleSignUp = async () => {
+    try {
+      await signUpWithEmail(email, password, fullName);
+      toast({ title: "Account created successfully!" });
+      router.push("/profile");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error creating account",
+        description: error.message,
+      });
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    try {
+      await signInWithGoogle();
+      toast({ title: "Account created successfully!" });
+      router.push("/profile");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error with Google sign-up",
+        description: error.message,
+      });
+    }
+  };
+
+
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-200px)] bg-background p-4">
       <Card className="mx-auto max-w-sm w-full shadow-xl">
@@ -32,7 +74,13 @@ export default function SignupPage() {
           <div className="grid gap-4">
             <div className="grid gap-2">
                 <Label htmlFor="full-name">Full name</Label>
-                <Input id="full-name" placeholder="Jane Doe" required />
+                <Input
+                  id="full-name"
+                  placeholder="Jane Doe"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
@@ -41,16 +89,23 @@ export default function SignupPage() {
                 type="email"
                 placeholder="m@example.com"
                 required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" />
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </div>
-            <Button type="submit" className="w-full">
+            <Button onClick={handleSignUp} className="w-full">
               Create an account
             </Button>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full" onClick={handleGoogleSignUp}>
               <GoogleIcon />
               <span className="ml-2">Sign up with Google</span>
             </Button>

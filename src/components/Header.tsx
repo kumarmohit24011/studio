@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -6,6 +8,8 @@ import {
   Search,
   ShoppingCart,
   UserCircle,
+  LogOut,
+  LayoutDashboard,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -15,8 +19,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/hooks/use-auth";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 export function Header() {
+  const { user, signOut } = useAuth();
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 flex h-16 items-center">
@@ -36,6 +44,7 @@ export function Header() {
           <Link href="/products" className="transition-colors hover:text-primary">Products</Link>
           <Link href="/#offers" className="transition-colors hover:text-primary">Offers</Link>
           <Link href="/#trending" className="transition-colors hover:text-primary">Trending</Link>
+          <Link href="/admin" className="transition-colors hover:text-primary">Admin</Link>
         </nav>
         <div className="flex flex-1 items-center justify-end space-x-4">
           <div className="hidden lg:flex flex-1 max-w-xs relative">
@@ -50,18 +59,35 @@ export function Header() {
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <UserCircle className="h-5 w-5" />
+              <Button variant="ghost" size="icon" className="rounded-full">
+                {user ? (
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.photoURL || ''} alt={user.displayName || 'User'}/>
+                        <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                ) : (
+                    <UserCircle className="h-5 w-5" />
+                )}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild><Link href="/profile">Profile</Link></DropdownMenuItem>
-              <DropdownMenuItem asChild><Link href="/profile?tab=orders">Orders</Link></DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild><Link href="/login">Login</Link></DropdownMenuItem>
-              <DropdownMenuItem asChild><Link href="/signup">Sign Up</Link></DropdownMenuItem>
+              {user ? (
+                <>
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild><Link href="/profile"><UserCircle className="mr-2"/>Profile</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link href="/admin"><LayoutDashboard className="mr-2"/>Admin</Link></DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={signOut}><LogOut className="mr-2"/>Logout</DropdownMenuItem>
+                </>
+              ) : (
+                <>
+                  <DropdownMenuLabel>Guest</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild><Link href="/login">Login</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link href="/signup">Sign Up</Link></DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
