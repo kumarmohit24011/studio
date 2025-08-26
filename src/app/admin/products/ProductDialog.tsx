@@ -21,7 +21,9 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Product } from "@/lib/placeholder-data";
 import { useState, useEffect } from "react";
-import { addProduct, updateProduct } from "@/services/productService";
+import { addProduct, updateProduct, uploadProductImage } from "@/services/productService";
+import Image from "next/image";
+import { X } from "lucide-react";
 
 interface ProductDialogProps {
   isOpen: boolean;
@@ -34,7 +36,7 @@ const emptyProduct: Omit<Product, 'id'> = {
   name: "",
   description: "",
   price: 0,
-  images: ["https://placehold.co/600x600.png"],
+  images: [],
   category: "Rings",
   metal: "Gold",
   sku: "",
@@ -47,6 +49,8 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
   const [formData, setFormData] = useState<Omit<Product, 'id'>>(emptyProduct);
   const [isFeatured, setIsFeatured] = useState(false);
   const [isTrending, setIsTrending] = useState(false);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (product) {
@@ -58,6 +62,7 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
       setIsFeatured(false);
       setIsTrending(false);
     }
+    setImageFiles([]); // Reset files on open/close
   }, [product, isOpen]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -74,15 +79,29 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
     setFormData((prev) => ({ ...prev, [id]: Number(value) }));
   }
   
-  const handleFeaturedChange = (checked: boolean) => {
-    setIsFeatured(checked);
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setImageFiles(Array.from(e.target.files));
+    }
   }
 
-  const handleTrendingChange = (checked: boolean) => {
-    setIsTrending(checked);
+  const handleRemoveImage = (index: number) => {
+    setFormData(prev => ({
+        ...prev,
+        images: prev.images.filter((_, i) => i !== index)
+    }));
   }
 
   const handleSubmit = async () => {
+    setIsUploading(true);
+
+    const imageUrls = [...formData.images];
+    if (imageFiles.length > 0) {
+      const uploadPromises = imageFiles.map(file => uploadProductImage(file));
+      const uploadedUrls = await Promise.all(uploadPromises);
+      imageUrls.push(...uploadedUrls);
+    }
+
     // Start with existing tags, filtering out any managed by switches
     const otherTags = formData.tags?.filter(tag => tag !== 'featured' && tag !== 'trending' && tag !== 'new' && tag !== 'sale') || [];
     
@@ -92,6 +111,7 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
 
     const dataToSave = {
       ...formData,
+      images: imageUrls,
       gemstone: formData.gemstone || null,
       tags: newTags,
     };
@@ -101,6 +121,8 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
     } else {
       await addProduct(dataToSave);
     }
+
+    setIsUploading(false);
     onSave();
     onClose();
   };
@@ -111,7 +133,7 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
         <DialogHeader>
           <DialogTitle>{product ? "Edit Product" : "Add Product"}</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-4 py-4 max-h-[80vh] overflow-y-auto pr-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">Name</Label>
             <Input id="name" value={formData.name} onChange={handleChange} className="col-span-3" />
@@ -120,6 +142,30 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
             <Label htmlFor="description" className="text-right">Description</Label>
             <Textarea id="description" value={formData.description} onChange={handleChange} className="col-span-3" />
           </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="images" className="text-right">Images</Label>
+            <Input id="images" type="file" multiple onChange={handleImageChange} className="col-span-3" />
+          </div>
+          {formData.images.length > 0 && (
+             <div className="grid grid-cols-4 items-start gap-4">
+                <Label className="text-right pt-2">Current</Label>
+                <div className="col-span-3 grid grid-cols-4 gap-2">
+                    {formData.images.map((url, index) => (
+                        <div key={index} className="relative">
+                            <Image src={url} alt="product image" width={100} height={100} className="rounded-md object-cover"/>
+                            <Button
+                                variant="destructive"
+                                size="icon"
+                                className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                                onClick={() => handleRemoveImage(index)}
+                            >
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    ))}
+                </div>
+            </div>
+          )}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="price" className="text-right">Price</Label>
             <Input id="price" type="number" value={formData.price} onChange={handleNumberChange} className="col-span-3" />
@@ -178,7 +224,7 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
             <Switch
                 id="featured"
                 checked={isFeatured}
-                onCheckedChange={handleFeaturedChange}
+                onCheckedChange={setIsFeatured}
             />
            </div>
            <div className="grid grid-cols-4 items-center gap-4">
@@ -186,13 +232,15 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
             <Switch
                 id="trending"
                 checked={isTrending}
-                onCheckedChange={handleTrendingChange}
+                onCheckedChange={setIsTrending}
             />
            </div>
         </div>
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-          <Button type="submit" onClick={handleSubmit}>Save</Button>
+          <Button type="button" variant="outline" onClick={onClose} disabled={isUploading}>Cancel</Button>
+          <Button type="submit" onClick={handleSubmit} disabled={isUploading}>
+            {isUploading ? 'Saving...' : 'Save'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

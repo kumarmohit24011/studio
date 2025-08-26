@@ -1,6 +1,7 @@
-import { db } from '@/lib/firebase';
+import { db, storage } from '@/lib/firebase';
 import { Product } from '@/lib/placeholder-data';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const productCollection = collection(db, 'products');
 
@@ -49,4 +50,11 @@ export const updateProduct = async (id: string, product: Partial<Product>): Prom
 export const deleteProduct = async (id: string): Promise<void> => {
     const productDoc = doc(db, 'products', id);
     await deleteDoc(productDoc);
+};
+
+export const uploadProductImage = async (file: File): Promise<string> => {
+  const storageRef = ref(storage, `products/${Date.now()}-${file.name}`);
+  await uploadBytes(storageRef, file);
+  const downloadURL = await getDownloadURL(storageRef);
+  return downloadURL;
 };
