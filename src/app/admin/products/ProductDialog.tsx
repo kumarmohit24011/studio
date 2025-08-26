@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Product } from "@/lib/placeholder-data";
 import { useState, useEffect } from "react";
 import { addProduct, updateProduct } from "@/services/productService";
@@ -44,12 +45,15 @@ const emptyProduct: Omit<Product, 'id'> = {
 
 export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialogProps) {
   const [formData, setFormData] = useState<Omit<Product, 'id'>>(emptyProduct);
+  const [isFeatured, setIsFeatured] = useState(false);
 
   useEffect(() => {
     if (product) {
       setFormData(product);
+      setIsFeatured(product.tags?.includes('featured') || false);
     } else {
       setFormData(emptyProduct);
+      setIsFeatured(false);
     }
   }, [product, isOpen]);
 
@@ -66,12 +70,29 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: Number(value) }));
   }
+  
+  const handleFeaturedChange = (checked: boolean) => {
+    setIsFeatured(checked);
+    setFormData(prev => {
+        const currentTags = prev.tags?.filter(tag => tag !== 'featured' && tag !== 'new' && tag !== 'sale') || [];
+        if(checked) {
+            return { ...prev, tags: [...currentTags, 'featured']};
+        } else {
+            return { ...prev, tags: currentTags };
+        }
+    });
+  }
 
   const handleSubmit = async () => {
+    const currentTags = formData.tags || [];
+    const otherTags = currentTags.filter(tag => tag !== 'featured');
+    
+    const newTags = isFeatured ? [...otherTags, 'featured'] : otherTags;
+
     const dataToSave = {
       ...formData,
       gemstone: formData.gemstone || null,
-      tags: formData.tags || null,
+      tags: newTags,
     };
 
     if (product) {
@@ -151,6 +172,15 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
                 </SelectContent>
             </Select>
           </div>
+           <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="featured" className="text-right">Featured</Label>
+            <Switch
+                id="featured"
+                checked={isFeatured}
+                onCheckedChange={handleFeaturedChange}
+                className="col-span-3"
+            />
+           </div>
         </div>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
