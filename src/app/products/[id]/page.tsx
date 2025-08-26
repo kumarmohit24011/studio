@@ -75,8 +75,8 @@ export default function ProductDetailPage({
       ? { text: "Low Stock", color: "bg-yellow-500" }
       : { text: "Sold Out", color: "bg-red-600" };
   
-  const formattedPrice = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(product.price);
-  const discountedPrice = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(product.price * 0.8);
+  const formattedPrice = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(product.price);
+  const discountedPrice = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(product.price * 0.8);
 
 
   return (

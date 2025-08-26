@@ -125,7 +125,7 @@ export default function AdminProductsPage() {
                     <Flame className="h-5 w-5 text-orange-500 fill-orange-500" />
                   )}
                 </TableCell>
-                <TableCell>${product.price.toFixed(2)}</TableCell>
+                <TableCell>₹{product.price.toFixed(2)}</TableCell>
                 <TableCell className="hidden md:table-cell">{product.stock}</TableCell>
                 <TableCell className="hidden md:table-cell">{product.sku}</TableCell>
                 <TableCell>

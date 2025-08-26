@@ -41,14 +41,14 @@ export default function ProfilePage() {
       id: "ORD001",
       date: "June 23, 2024",
       status: "Delivered",
-      total: 1250.0,
+      total: 125000.0,
       items: [products[0], products[1]],
     },
     {
       id: "ORD002",
       date: "May 15, 2024",
       status: "Processing",
-      total: 899.0,
+      total: 89900.0,
       items: [products[2]],
     },
   ];
@@ -130,7 +130,7 @@ export default function ProfilePage() {
                             <CardDescription>Date: {order.date}</CardDescription>
                         </div>
                         <div className="text-right">
-                           <p className="font-bold">${order.total.toFixed(2)}</p>
+                           <p className="font-bold">₹{order.total.toFixed(2)}</p>
                            <p className="text-sm text-muted-foreground">{order.status}</p>
                         </div>
                     </CardHeader>
@@ -142,7 +142,7 @@ export default function ProfilePage() {
                                 <img src={item.images[0]} alt={item.name} className="w-16 h-16 rounded-md object-cover" />
                                 <div>
                                     <p className="font-semibold">{item.name}</p>
-                                    <p className="text-sm text-muted-foreground">${item.price.toFixed(2)}</p>
+                                    <p className="text-sm text-muted-foreground">₹{item.price.toFixed(2)}</p>
                                 </div>
                             </div>
                         ))}

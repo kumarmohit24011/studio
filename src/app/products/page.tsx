@@ -91,13 +91,13 @@ export default function ProductsPage() {
                   <AccordionContent>
                     <div className="p-2">
                         <Slider
-                            defaultValue={[500]}
-                            max={5000}
-                            step={100}
+                            defaultValue={[10000]}
+                            max={500000}
+                            step={1000}
                         />
                         <div className="flex justify-between text-sm text-muted-foreground mt-2">
-                            <span>$0</span>
-                            <span>$5000</span>
+                            <span>₹0</span>
+                            <span>₹500,000</span>
                         </div>
                     </div>
                   </AccordionContent>

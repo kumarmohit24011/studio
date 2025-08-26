@@ -28,7 +28,7 @@ export default function CartPage() {
   };
   
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const shipping = 20.0;
+  const shipping = 150.0;
   const total = subtotal + shipping;
 
   if(loading) {
@@ -48,7 +48,7 @@ export default function CartPage() {
                     <Image src={item.images[0]} alt={item.name} width={80} height={80} className="rounded-md object-cover" />
                     <div>
                       <h2 className="font-semibold text-lg">{item.name}</h2>
-                      <p className="text-muted-foreground">${item.price.toFixed(2)}</p>
+                      <p className="text-muted-foreground">₹{item.price.toFixed(2)}</p>
                        <div className="flex items-center gap-2 mt-2">
                             <label htmlFor={`quantity-${item.id}`} className="text-sm">Qty:</label>
                             <Input 
@@ -75,16 +75,16 @@ export default function CartPage() {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span>₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span>${shipping.toFixed(2)}</span>
+                  <span>₹{shipping.toFixed(2)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>₹{total.toFixed(2)}</span>
                 </div>
               </div>
               <Button className="w-full mt-6">Proceed to Checkout</Button>

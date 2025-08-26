@@ -18,9 +18,9 @@ export function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
   const { toast } = useToast();
 
-  const formattedPrice = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(product.price);
+  const formattedPrice = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(product.price);
   const discountedPrice = product.tags?.includes('sale') 
-    ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(product.price * 0.8)
+    ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(product.price * 0.8)
     : null;
 
   const handleAddToCart = () => {
