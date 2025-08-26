@@ -9,7 +9,7 @@ export interface Product {
   gemstone?: "Diamond" | "Ruby" | "Sapphire" | "Emerald";
   sku: string;
   stock: number;
-  tags?: ("new" | "sale" | "featured")[];
+  tags?: ("new" | "sale" | "featured" | "trending")[];
 }
 
 export const products: Product[] = [
@@ -63,7 +63,7 @@ export const products: Product[] = [
     gemstone: "Emerald",
     sku: "RB-ER-004",
     stock: 5,
-    tags: ["featured"],
+    tags: ["featured", "trending"],
   },
   {
     id: "5",
@@ -75,6 +75,7 @@ export const products: Product[] = [
     metal: "Platinum",
     sku: "RB-RG-005",
     stock: 30,
+    tags: ["trending"],
   },
   {
     id: "6",
@@ -87,7 +88,7 @@ export const products: Product[] = [
     gemstone: "Ruby",
     sku: "RB-NK-006",
     stock: 8,
-    tags: ["new"],
+    tags: ["new", "trending"],
   },
   {
     id: "7",
@@ -111,6 +112,6 @@ export const products: Product[] = [
     metal: "Gold",
     sku: "RB-BR-008",
     stock: 0,
-    tags: ["sale"],
+    tags: ["sale", "trending"],
   },
 ];

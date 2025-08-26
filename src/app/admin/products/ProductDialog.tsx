@@ -46,14 +46,17 @@ const emptyProduct: Omit<Product, 'id'> = {
 export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialogProps) {
   const [formData, setFormData] = useState<Omit<Product, 'id'>>(emptyProduct);
   const [isFeatured, setIsFeatured] = useState(false);
+  const [isTrending, setIsTrending] = useState(false);
 
   useEffect(() => {
     if (product) {
       setFormData(product);
       setIsFeatured(product.tags?.includes('featured') || false);
+      setIsTrending(product.tags?.includes('trending') || false);
     } else {
       setFormData(emptyProduct);
       setIsFeatured(false);
+      setIsTrending(false);
     }
   }, [product, isOpen]);
 
@@ -73,21 +76,19 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
   
   const handleFeaturedChange = (checked: boolean) => {
     setIsFeatured(checked);
-    setFormData(prev => {
-        const currentTags = prev.tags?.filter(tag => tag !== 'featured' && tag !== 'new' && tag !== 'sale') || [];
-        if(checked) {
-            return { ...prev, tags: [...currentTags, 'featured']};
-        } else {
-            return { ...prev, tags: currentTags };
-        }
-    });
+  }
+
+  const handleTrendingChange = (checked: boolean) => {
+    setIsTrending(checked);
   }
 
   const handleSubmit = async () => {
-    const currentTags = formData.tags || [];
-    const otherTags = currentTags.filter(tag => tag !== 'featured');
+    // Start with existing tags, filtering out any managed by switches
+    const otherTags = formData.tags?.filter(tag => tag !== 'featured' && tag !== 'trending' && tag !== 'new' && tag !== 'sale') || [];
     
-    const newTags = isFeatured ? [...otherTags, 'featured'] : otherTags;
+    const newTags = [...otherTags];
+    if (isFeatured) newTags.push('featured');
+    if (isTrending) newTags.push('trending');
 
     const dataToSave = {
       ...formData,
@@ -178,7 +179,14 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
                 id="featured"
                 checked={isFeatured}
                 onCheckedChange={handleFeaturedChange}
-                className="col-span-3"
+            />
+           </div>
+           <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="trending" className="text-right">Trending</Label>
+            <Switch
+                id="trending"
+                checked={isTrending}
+                onCheckedChange={handleTrendingChange}
             />
            </div>
         </div>

@@ -32,7 +32,7 @@ export default function Home() {
   }, []);
 
   const featuredProducts = products.filter(p => p.tags?.includes('featured')).slice(0, 4);
-  const trendingProducts = products.slice(4, 8); // This can be a more complex logic
+  const trendingProducts = products.filter(p => p.tags?.includes('trending')).slice(0, 4);
 
   if (loading) {
     return <div>Loading...</div>;

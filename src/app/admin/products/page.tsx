@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Product } from "@/lib/placeholder-data";
-import { MoreHorizontal, PlusCircle, Star } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Star, Flame } from "lucide-react";
 import Image from "next/image";
 import {
   DropdownMenu,
@@ -87,6 +87,7 @@ export default function AdminProductsPage() {
               <TableHead>Name</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Featured</TableHead>
+              <TableHead>Trending</TableHead>
               <TableHead>Price</TableHead>
               <TableHead className="hidden md:table-cell">Stock</TableHead>
               <TableHead className="hidden md:table-cell">SKU</TableHead>
@@ -117,6 +118,11 @@ export default function AdminProductsPage() {
                 <TableCell>
                   {product.tags?.includes('featured') && (
                     <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
+                  )}
+                </TableCell>
+                 <TableCell>
+                  {product.tags?.includes('trending') && (
+                    <Flame className="h-5 w-5 text-orange-500 fill-orange-500" />
                   )}
                 </TableCell>
                 <TableCell>${product.price.toFixed(2)}</TableCell>
