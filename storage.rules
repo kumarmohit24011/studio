@@ -2,14 +2,18 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // Allow anyone to read images, but only authenticated users to write them.
-    match /hero-images/{allPaths=**} {
+    // Public read access for all files is generally safe for media.
+    match /{allPaths=**} {
       allow read;
+    }
+
+    // Allow authenticated users to write to the 'products' directory.
+    match /products/{allPaths=**} {
       allow write: if request.auth != null;
     }
 
-    match /products/{allPaths=**} {
-      allow read;
+    // Allow authenticated users to write to the 'hero-images' directory.
+    match /hero-images/{allPaths=**} {
       allow write: if request.auth != null;
     }
   }
