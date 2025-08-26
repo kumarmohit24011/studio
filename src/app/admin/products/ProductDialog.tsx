@@ -75,7 +75,7 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
   }
 
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
+    const { id, value }.target;
     setFormData((prev) => ({ ...prev, [id]: Number(value) }));
   }
   
