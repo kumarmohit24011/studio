@@ -1,19 +1,35 @@
+
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { Card, CardContent, CardFooter, CardTitle, CardDescription } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { type Product } from "@/lib/placeholder-data";
+import { useCart } from "@/hooks/use-cart";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProductCardProps {
   product: Product;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const { addToCart } = useCart();
+  const { toast } = useToast();
+
   const formattedPrice = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(product.price);
   const discountedPrice = product.tags?.includes('sale') 
     ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(product.price * 0.8)
     : null;
+
+  const handleAddToCart = () => {
+    addToCart(product);
+    toast({
+      title: "Added to Cart",
+      description: `${product.name} has been added to your cart.`,
+    });
+  }
 
   return (
     <Card className="w-full max-w-sm overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col">
@@ -47,7 +63,7 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
       </div>
       <CardFooter className="p-4 pt-0">
-        <Button className="w-full" disabled={product.stock === 0}>
+        <Button className="w-full" disabled={product.stock === 0} onClick={handleAddToCart}>
           {product.stock > 0 ? "Add to Cart" : "Sold Out"}
         </Button>
       </CardFooter>

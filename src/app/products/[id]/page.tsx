@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
 import { getProduct, getProducts } from "@/services/productService";
+import { useCart } from "@/hooks/use-cart";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ProductDetailPage({
   params,
@@ -34,6 +37,8 @@ export default function ProductDetailPage({
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const { addToCart } = useCart();
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -49,8 +54,18 @@ export default function ProductDetailPage({
     fetchProduct();
   }, [params.id]);
 
+  const handleAddToCart = () => {
+    if(product) {
+      addToCart(product);
+      toast({
+        title: "Added to Cart",
+        description: `${product.name} has been added to your cart.`,
+      });
+    }
+  }
+
   if (loading || !product) {
-    return <div>Loading...</div>;
+    return <div className="container mx-auto px-4 py-12 text-center">Loading...</div>;
   }
   
   const stockStatus =
@@ -129,7 +144,7 @@ export default function ProductDetailPage({
           </div>
           
           <div className="flex items-center gap-4 mt-4">
-            <Button size="lg" className="flex-1" disabled={product.stock === 0}>
+            <Button size="lg" className="flex-1" disabled={product.stock === 0} onClick={handleAddToCart}>
               Add to Cart
             </Button>
             <Button size="lg" variant="outline" className="p-3">

@@ -1,18 +1,39 @@
+
+"use client";
+
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { products } from '@/lib/placeholder-data';
-import Image from 'next/image';
+import { useCart } from '@/hooks/use-cart';
+import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
+import { Trash2 } from 'lucide-react';
 
 export default function CartPage() {
-  const cartItems = [
-    // Mock data, will be connected to db later
-    { ...products[0], quantity: 1 },
-    { ...products[2], quantity: 2 },
-  ];
+  const { cartItems, removeFromCart, updateQuantity, loading } = useCart();
+  const { toast } = useToast();
+
+  const handleRemove = (productId: string) => {
+    removeFromCart(productId);
+    toast({ title: 'Item removed from cart' });
+  };
+
+  const handleQuantityChange = (productId: string, newQuantity: number) => {
+    if (newQuantity > 0) {
+      updateQuantity(productId, newQuantity);
+    } else {
+        removeFromCart(productId);
+    }
+  };
+  
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const shipping = 20.0;
   const total = subtotal + shipping;
+
+  if(loading) {
+    return <div className="container mx-auto px-4 py-12 text-center">Loading cart...</div>
+  }
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -28,18 +49,28 @@ export default function CartPage() {
                     <div>
                       <h2 className="font-semibold text-lg">{item.name}</h2>
                       <p className="text-muted-foreground">${item.price.toFixed(2)}</p>
-                      <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
+                       <div className="flex items-center gap-2 mt-2">
+                            <label htmlFor={`quantity-${item.id}`} className="text-sm">Qty:</label>
+                            <Input 
+                                type="number" 
+                                id={`quantity-${item.id}`}
+                                value={item.quantity}
+                                onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value, 10))}
+                                className="w-20 h-8"
+                                min="1"
+                            />
+                       </div>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon">
-                    <p className='text-xl'>&times;</p>
+                  <Button variant="ghost" size="icon" onClick={() => handleRemove(item.id)}>
+                    <Trash2 className="h-5 w-5 text-destructive" />
                   </Button>
                 </div>
               ))}
             </div>
           </div>
           <div className="md:col-span-1">
-            <div className="p-6 border rounded-lg bg-secondary/30">
+            <div className="p-6 border rounded-lg bg-secondary/30 sticky top-24">
               <h2 className="text-xl font-headline mb-4">Order Summary</h2>
               <div className="space-y-2">
                 <div className="flex justify-between">

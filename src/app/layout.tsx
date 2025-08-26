@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next";
 import { cn } from "@/lib/utils";
 import "./globals.css";
@@ -5,6 +6,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/use-auth";
+import { CartProvider } from "@/hooks/use-cart";
 
 export const metadata: Metadata = {
   title: "Redbow - Exquisite Jewelry",
@@ -32,12 +34,14 @@ export default function RootLayout({
         )}
       >
         <AuthProvider>
-          <div className="relative flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
-          <Toaster />
+          <CartProvider>
+            <div className="relative flex min-h-screen flex-col">
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+            <Toaster />
+          </CartProvider>
         </AuthProvider>
       </body>
     </html>

@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -21,9 +22,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { useCart } from "@/hooks/use-cart";
+import { Badge } from "./ui/badge";
 
 export function Header() {
   const { user, signOut } = useAuth();
+  const { cartCount } = useCart();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -55,7 +59,13 @@ export function Header() {
             <Link href="/profile?tab=wishlist"><Heart className="h-5 w-5" /></Link>
           </Button>
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/cart"><ShoppingCart className="h-5 w-5" /></Link>
+            <Link href="/cart" className="relative">
+              <ShoppingCart className="h-5 w-5" />
+              {cartCount > 0 && (
+                <Badge className="absolute -right-2 -top-2 h-5 w-5 justify-center p-0" variant="destructive">{cartCount}</Badge>
+              )}
+              <span className="sr-only">Cart</span>
+            </Link>
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
