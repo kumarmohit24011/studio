@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Product } from "@/lib/placeholder-data";
@@ -9,22 +10,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { getProducts } from "@/services/productService";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+const CATEGORIES = ["All", "Rings", "Necklaces", "Bracelets", "Earrings"];
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -35,24 +31,16 @@ export default function ProductsPage() {
     };
     fetchProducts();
   }, []);
-  
-  const filters = [
-    {
-      name: "Category",
-      options: ["Rings", "Necklaces", "Bracelets", "Earrings"],
-    },
-    {
-      name: "Metal",
-      options: ["Gold", "Silver", "Platinum"],
-    },
-    {
-      name: "Gemstone",
-      options: ["Diamond", "Ruby", "Sapphire", "Emerald"],
-    },
-  ];
-  
+
+  const filteredProducts = useMemo(() => {
+    if (selectedCategory === "All") {
+      return products;
+    }
+    return products.filter(p => p.category === selectedCategory);
+  }, [products, selectedCategory]);
+
   if (loading) {
-    return <div>Loading...</div>
+    return <div className="container mx-auto px-4 py-12 text-center">Loading...</div>
   }
 
   return (
@@ -64,74 +52,41 @@ export default function ProductsPage() {
         </p>
       </div>
 
-      <div className="grid md:grid-cols-4 gap-8">
-        <aside className="md:col-span-1">
-          <div className="sticky top-24">
-            <h2 className="text-2xl font-headline mb-4">Filters</h2>
-            <Accordion type="multiple" defaultValue={["Category", "Metal", "Price range"]}>
-              {filters.map((filter) => (
-                <AccordionItem value={filter.name} key={filter.name}>
-                  <AccordionTrigger className="text-lg font-body">{filter.name}</AccordionTrigger>
-                  <AccordionContent>
-                    <div className="grid gap-2">
-                      {filter.options.map((option) => (
-                        <div key={option} className="flex items-center space-x-2">
-                          <Checkbox id={`${filter.name}-${option}`} />
-                          <Label htmlFor={`${filter.name}-${option}`} className="font-normal">
-                            {option}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-              <AccordionItem value="Price range">
-                  <AccordionTrigger className="text-lg font-body">Price Range</AccordionTrigger>
-                  <AccordionContent>
-                    <div className="p-2">
-                        <Slider
-                            defaultValue={[10000]}
-                            max={500000}
-                            step={1000}
-                        />
-                        <div className="flex justify-between text-sm text-muted-foreground mt-2">
-                            <span>₹0</span>
-                            <span>₹500,000</span>
-                        </div>
-                    </div>
-                  </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-            <Button className="w-full mt-6">Apply Filters</Button>
-          </div>
-        </aside>
-
-        <main className="md:col-span-3">
-          <div className="flex justify-between items-center mb-6">
-            <p className="text-muted-foreground">{products.length} products</p>
-            <Select>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">New Arrivals</SelectItem>
-                <SelectItem value="price-asc">Price: Low to High</SelectItem>
-                <SelectItem value="price-desc">Price: High to Low</SelectItem>
-                <SelectItem value="popularity">Popularity</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-          <div className="flex justify-center mt-12">
+      <main>
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+            <Tabs defaultValue="All" onValueChange={setSelectedCategory}>
+                <TabsList>
+                    {CATEGORIES.map(category => (
+                         <TabsTrigger key={category} value={category}>{category}</TabsTrigger>
+                    ))}
+                </TabsList>
+            </Tabs>
+            <div className="flex items-center gap-4">
+                <p className="text-muted-foreground text-sm">{filteredProducts.length} products</p>
+                <Select>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="newest">New Arrivals</SelectItem>
+                    <SelectItem value="price-asc">Price: Low to High</SelectItem>
+                    <SelectItem value="price-desc">Price: High to Low</SelectItem>
+                    <SelectItem value="popularity">Popularity</SelectItem>
+                </SelectContent>
+                </Select>
+            </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          {filteredProducts.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+        {/* Optional: Add pagination or a "Load More" button if needed */}
+        {/* <div className="flex justify-center mt-12">
             <Button variant="outline">Load More</Button>
-          </div>
-        </main>
-      </div>
+        </div> */}
+      </main>
     </div>
   );
 }
+
