@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -220,6 +221,7 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
                     <SelectValue placeholder="Select a gemstone" />
                 </SelectTrigger>
                 <SelectContent>
+                    <SelectItem value="None">None</SelectItem>
                     <SelectItem value="Diamond">Diamond</SelectItem>
                     <SelectItem value="Ruby">Ruby</SelectItem>
                     <SelectItem value="Sapphire">Sapphire</SelectItem>
@@ -270,3 +272,5 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
     </Dialog>
   );
 }
+
+    
