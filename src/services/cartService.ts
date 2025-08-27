@@ -22,6 +22,7 @@ export const getCart = async (userId: string): Promise<CartItem[]> => {
 
 export const updateCart = async (userId: string, items: CartItem[]): Promise<void> => {
     const userDocRef = doc(db, usersCollection, userId);
-    // Use updateDoc to avoid overwriting the whole user document
-    await updateDoc(userDocRef, { cart: items });
+    // Use setDoc with merge: true to create the document if it doesn't exist,
+    // or update it if it does. This prevents race conditions on first login.
+    await setDoc(userDocRef, { cart: items }, { merge: true });
 };

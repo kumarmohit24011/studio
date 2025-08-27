@@ -2,7 +2,7 @@
 import { db } from '@/lib/firebase';
 import { ShippingAddress } from '@/lib/types';
 import { UserProfile } from './userService';
-import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, arrayUnion, arrayRemove, setDoc, writeBatch } from 'firebase/firestore';
 import { v4 as uuidv4 } from 'uuid';
 
 const usersCollection = 'users';
@@ -11,18 +11,32 @@ export const addAddress = async (userId: string, address: Omit<ShippingAddress, 
     const userDocRef = doc(db, usersCollection, userId);
     const newAddress = { ...address, id: uuidv4() };
 
-    if (newAddress.isDefault) {
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
+    const userDoc = await getDoc(userDocRef);
+
+    if (!userDoc.exists()) {
+        // If the user document doesn't exist, create it with the new address.
+        const newUserProfile: UserProfile = {
+            name: '', // Should be populated from auth, but let's be safe
+            email: '',
+            phone: '',
+            createdAt: Date.now(),
+            addresses: [newAddress],
+            cart: [],
+            wishlist: [],
+        };
+        await setDoc(userDocRef, newUserProfile);
+    } else {
+        // If it exists, update it.
+        if (newAddress.isDefault) {
             const userData = userDoc.data() as UserProfile;
             const updatedAddresses = userData.addresses.map(addr => ({ ...addr, isDefault: false }));
             await updateDoc(userDocRef, { addresses: updatedAddresses });
         }
-    }
 
-    await updateDoc(userDocRef, {
-        addresses: arrayUnion(newAddress)
-    });
+        await updateDoc(userDocRef, {
+            addresses: arrayUnion(newAddress)
+        });
+    }
 
     return newAddress.id;
 };
@@ -63,8 +77,10 @@ export const deleteAddress = async (userId: string, addressId: string): Promise<
     const userDoc = await getDoc(userDocRef);
      if (userDoc.exists()) {
         const userData = userDoc.data() as UserProfile;
-        const updatedAddresses = userData.addresses.filter(addr => addr.id !== addressId);
-        await updateDoc(userDocRef, { addresses: updatedAddresses });
+        const addressToDelete = userData.addresses.find(addr => addr.id === addressId);
+        if (addressToDelete) {
+             await updateDoc(userDocRef, { addresses: arrayRemove(addressToDelete) });
+        }
     }
 };
 
