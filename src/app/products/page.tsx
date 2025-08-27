@@ -56,12 +56,12 @@ export default function ProductsPage() {
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 border-b">
            <div className="flex items-center gap-2">
                {CATEGORIES.map(category => (
-                   <Button 
-                    key={category} 
-                    variant="ghost" 
+                   <Button
+                    key={category}
+                    variant="ghost"
                     onClick={() => setSelectedCategory(category)}
                     className={cn(
-                        "rounded-none text-muted-foreground hover:text-primary pb-3 border-b-2",
+                        "rounded-none text-muted-foreground hover:text-primary pb-2 border-b-2 h-auto px-3 py-2 text-base",
                         selectedCategory === category ? "border-primary text-primary" : "border-transparent"
                     )}
                    >
