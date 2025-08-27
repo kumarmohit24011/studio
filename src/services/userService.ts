@@ -1,9 +1,10 @@
 
 import { db } from '@/lib/firebase';
-import { doc, setDoc, getDoc, DocumentData } from 'firebase/firestore';
+import { doc, setDoc, getDoc, DocumentData, collection, getDocs, QueryDocumentSnapshot } from 'firebase/firestore';
 import { ShippingAddress, CartItem } from '@/lib/types';
 
 export interface UserProfile {
+    id: string;
     name: string;
     email: string;
     phone: string;
@@ -11,20 +12,43 @@ export interface UserProfile {
     addresses: ShippingAddress[];
     cart: CartItem[];
     wishlist: string[];
+    isActive?: boolean;
 }
 
-const usersCollection = 'users';
+const usersCollection = collection(db, 'users');
 
-export const createUserProfile = async (userId: string, data: UserProfile): Promise<void> => {
-    const userDocRef = doc(db, usersCollection, userId);
-    await setDoc(userDocRef, data);
+const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): UserProfile => {
+    const data = snapshot.data();
+    return {
+        id: snapshot.id,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        createdAt: data.createdAt,
+        addresses: data.addresses || [],
+        cart: data.cart || [],
+        wishlist: data.wishlist || [],
+        isActive: data.isActive !== false, // default to true if not set
+    };
+}
+
+
+export const createUserProfile = async (userId: string, data: Omit<UserProfile, 'id' | 'isActive'>): Promise<void> => {
+    const userDocRef = doc(db, 'users', userId);
+    // When creating, set isActive to true by default.
+    await setDoc(userDocRef, {...data, isActive: true});
 }
 
 export const getUserProfile = async (userId: string): Promise<UserProfile | null> => {
-    const userDocRef = doc(db, usersCollection, userId);
+    const userDocRef = doc(db, 'users', userId);
     const docSnap = await getDoc(userDocRef);
     if (docSnap.exists()) {
-        return docSnap.data() as UserProfile;
+        return fromFirestore(docSnap as QueryDocumentSnapshot<DocumentData>);
     }
     return null;
 }
+
+export const getAllUsers = async (): Promise<UserProfile[]> => {
+    const snapshot = await getDocs(usersCollection);
+    return snapshot.docs.map(fromFirestore);
+};
