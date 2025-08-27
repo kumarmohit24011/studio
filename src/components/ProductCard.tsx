@@ -9,6 +9,9 @@ import { Badge } from "./ui/badge";
 import { type Product } from "@/lib/placeholder-data";
 import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
+import { useWishlist } from "@/hooks/use-wishlist";
+import { Heart } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ProductCardProps {
   product: Product;
@@ -17,18 +20,33 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
   const { toast } = useToast();
+  const { wishlist, toggleWishlist } = useWishlist();
+
+  const isWishlisted = wishlist.includes(product.id);
 
   const formattedPrice = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(product.price);
   const discountedPrice = product.tags?.includes('sale') 
     ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(product.price * 0.8)
     : null;
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     addToCart(product);
     toast({
       title: "Added to Cart",
       description: `${product.name} has been added to your cart.`,
     });
+  }
+
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleWishlist(product.id);
+    toast({
+      title: isWishlisted ? "Removed from Wishlist" : "Added to Wishlist",
+      description: `${product.name} has been ${isWishlisted ? 'removed from' : 'added to'} your wishlist.`,
+    })
   }
 
   return (
@@ -45,6 +63,14 @@ export function ProductCard({ product }: ProductCardProps) {
               data-ai-hint="jewelry"
             />
             {product.tags?.includes('new') && <Badge className="absolute top-3 right-3 bg-primary">New!</Badge>}
+             <Button 
+                size="icon" 
+                variant="ghost" 
+                className="absolute top-2 left-2 bg-white/50 hover:bg-white/80 rounded-full text-foreground"
+                onClick={handleWishlistToggle}
+              >
+                <Heart className={cn("h-5 w-5", isWishlisted && "fill-destructive text-destructive")} />
+              </Button>
           </div>
         </CardContent>
       </Link>

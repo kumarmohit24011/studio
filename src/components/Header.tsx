@@ -24,10 +24,12 @@ import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useCart } from "@/hooks/use-cart";
 import { Badge } from "./ui/badge";
+import { useWishlist } from "@/hooks/use-wishlist";
 
 export function Header() {
   const { user, signOut } = useAuth();
   const { cartCount } = useCart();
+  const { wishlistCount } = useWishlist();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -56,7 +58,13 @@ export function Header() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           </div>
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/profile?tab=wishlist"><Heart className="h-5 w-5" /></Link>
+            <Link href="/profile?wishlist=true" className="relative">
+              <Heart className="h-5 w-5" />
+               {wishlistCount > 0 && (
+                <Badge className="absolute -right-2 -top-2 h-5 w-5 justify-center p-0" variant="destructive">{wishlistCount}</Badge>
+              )}
+               <span className="sr-only">Wishlist</span>
+            </Link>
           </Button>
           <Button variant="ghost" size="icon" asChild>
             <Link href="/cart" className="relative">

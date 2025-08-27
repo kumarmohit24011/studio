@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -17,23 +18,40 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { products } from "@/lib/placeholder-data";
+import { Product } from "@/lib/placeholder-data";
 import { ProductCard } from "@/components/ProductCard";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useWishlist } from "@/hooks/use-wishlist";
+import { getProducts } from "@/services/productService";
 
 export default function ProfilePage() {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const router = useRouter();
+  const { wishlist, loading: wishlistLoading } = useWishlist();
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!authLoading && !user) {
       router.push('/login');
     }
-  }, [user, loading, router]);
+  }, [user, authLoading, router]);
+
+  useEffect(() => {
+    const fetchAllProducts = async () => {
+        setLoading(true);
+        const products = await getProducts();
+        setAllProducts(products);
+        setLoading(false);
+    }
+    fetchAllProducts();
+  }, [])
+  
+  const wishlistedProducts = allProducts.filter(p => wishlist.includes(p.id));
 
   const orders = [
     // Mock data, will be connected to db later
@@ -42,18 +60,18 @@ export default function ProfilePage() {
       date: "June 23, 2024",
       status: "Delivered",
       total: 125000.0,
-      items: [products[0], products[1]],
+      items: allProducts.slice(0, 2),
     },
     {
       id: "ORD002",
       date: "May 15, 2024",
       status: "Processing",
       total: 89900.0,
-      items: [products[2]],
+      items: allProducts.slice(2,3),
     },
   ];
 
-  if (loading || !user) {
+  if (loading || authLoading || !user) {
     return <div className="container mx-auto px-4 py-12 md:py-20 text-center">Loading...</div>
   }
 
@@ -114,11 +132,22 @@ export default function ProfilePage() {
           </Card>
         </TabsContent>
         <TabsContent value="wishlist" className="mt-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {products.slice(0, 4).map(product => (
-                    <ProductCard key={product.id} product={product} />
-                ))}
-            </div>
+            {wishlistLoading ? (
+                <p>Loading wishlist...</p>
+            ) : wishlistedProducts.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    {wishlistedProducts.map(product => (
+                        <ProductCard key={product.id} product={product} />
+                    ))}
+                </div>
+            ) : (
+                <div className="text-center py-16">
+                    <p className="text-muted-foreground text-xl mb-4">Your wishlist is empty.</p>
+                    <Button asChild>
+                        <Link href="/products">Discover Products</Link>
+                    </Button>
+                </div>
+            )}
         </TabsContent>
         <TabsContent value="orders" className="mt-8">
             <div className="space-y-8">

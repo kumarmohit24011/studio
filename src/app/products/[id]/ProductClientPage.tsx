@@ -26,6 +26,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
+import { useWishlist } from "@/hooks/use-wishlist";
+import { cn } from "@/lib/utils";
 
 export function ProductClientPage({
   product,
@@ -36,6 +38,7 @@ export function ProductClientPage({
 }) {
   const { addToCart } = useCart();
   const { toast } = useToast();
+  const { wishlist, toggleWishlist } = useWishlist();
 
   const handleAddToCart = () => {
     if(product) {
@@ -46,6 +49,17 @@ export function ProductClientPage({
       });
     }
   }
+
+  const handleWishlistToggle = () => {
+    toggleWishlist(product.id);
+    const isInWishlist = wishlist.includes(product.id);
+    toast({
+      title: isInWishlist ? "Removed from Wishlist" : "Added to Wishlist",
+      description: `${product.name} has been ${isInWishlist ? 'removed from' : 'added to'} your wishlist.`,
+    })
+  }
+
+  const isWishlisted = wishlist.includes(product.id);
   
   const stockStatus =
     product.stock > 10
@@ -126,8 +140,8 @@ export function ProductClientPage({
             <Button size="lg" className="flex-1" disabled={product.stock === 0} onClick={handleAddToCart}>
               Add to Cart
             </Button>
-            <Button size="lg" variant="outline" className="p-3">
-              <Heart className="h-6 w-6" />
+            <Button size="lg" variant="outline" className="p-3" onClick={handleWishlistToggle}>
+              <Heart className={cn("h-6 w-6", isWishlisted && "fill-destructive text-destructive")} />
               <span className="sr-only">Add to Wishlist</span>
             </Button>
           </div>
