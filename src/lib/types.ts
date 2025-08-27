@@ -31,8 +31,7 @@ export interface Order {
     userId: string;
     items: OrderItem[];
     totalAmount: number;
-    shippingAddressId: string;
-    shippingAddress: ShippingAddress; // Keep for display purposes, will be denormalized on creation
+    shippingAddress: ShippingAddress; // Denormalize for easier display in admin panel
     orderStatus: 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
     paymentStatus: 'Paid' | 'Pending' | 'Failed';
     razorpay_payment_id: string;

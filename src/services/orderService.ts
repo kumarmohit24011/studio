@@ -1,7 +1,7 @@
 
 import { db } from '@/lib/firebase';
-import { Order, OrderItem } from '@/lib/types';
-import { collection, getDocs, doc, addDoc, query, where, orderBy, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
+import { Order, OrderItem, ShippingAddress } from '@/lib/types';
+import { collection, getDocs, doc, addDoc, query, where, orderBy, DocumentData, QueryDocumentSnapshot, updateDoc } from 'firebase/firestore';
 
 const orderCollection = collection(db, 'orders');
 
@@ -18,8 +18,7 @@ const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): Order => 
             price: item.price,
         })),
         totalAmount: data.totalAmount,
-        shippingAddressId: data.shippingAddressId,
-        shippingAddress: data.shippingAddress,
+        shippingAddress: data.shippingAddress as ShippingAddress,
         orderStatus: data.orderStatus,
         paymentStatus: data.paymentStatus,
         razorpay_payment_id: data.razorpay_payment_id,
@@ -44,3 +43,8 @@ export const getAllOrders = async (): Promise<Order[]> => {
     const snapshot = await getDocs(q);
     return snapshot.docs.map(fromFirestore);
 }
+
+export const updateOrderStatus = async (orderId: string, status: Order['orderStatus']): Promise<void> => {
+    const orderDoc = doc(db, 'orders', orderId);
+    await updateDoc(orderDoc, { orderStatus: status });
+};

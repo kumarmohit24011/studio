@@ -55,8 +55,7 @@ export async function saveOrder(
                 price: item.price
             })),
             totalAmount,
-            shippingAddressId: shippingAddress.id,
-            shippingAddress: shippingAddress, // Denormalize for easier display
+            shippingAddress: shippingAddress,
             orderStatus: 'Processing' as const,
             paymentStatus: 'Paid' as const,
             razorpay_payment_id: paymentDetails.razorpay_payment_id,
