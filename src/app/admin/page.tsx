@@ -1,5 +1,9 @@
+
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { DollarSign, Package, Users, ShoppingCart } from "lucide-react";
+import { getAllOrders } from "@/services/orderService";
+import { getAllUsers } from "@/services/userService";
+import { getProducts } from "@/services/productService";
 
 function RupeeIcon() {
     return (
@@ -13,7 +17,22 @@ function RupeeIcon() {
 }
 
 
-export default function AdminDashboard() {
+export default async function AdminDashboard() {
+
+  const [orders, users, products] = await Promise.all([
+    getAllOrders(),
+    getAllUsers(),
+    getProducts()
+  ]);
+
+  const totalRevenue = orders
+    .filter(order => order.paymentStatus === 'Paid')
+    .reduce((sum, order) => sum + order.totalAmount, 0);
+
+  const totalCustomers = users.length;
+  const totalOrders = orders.length;
+  const productsInStock = products.filter(product => product.stock > 0).length;
+
   return (
     <div className="flex flex-col gap-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -23,33 +42,33 @@ export default function AdminDashboard() {
             <RupeeIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₹4,523,189</div>
+            <div className="text-2xl font-bold">₹{totalRevenue.toLocaleString('en-IN')}</div>
             <p className="text-xs text-muted-foreground">
-              +20.1% from last month
+              From all successful orders
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">New Customers</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+2350</div>
+            <div className="text-2xl font-bold">+{totalCustomers}</div>
             <p className="text-xs text-muted-foreground">
-              +180.1% from last month
+              Total registered users
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Orders</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+12,234</div>
+            <div className="text-2xl font-bold">{totalOrders}</div>
             <p className="text-xs text-muted-foreground">
-              +19% from last month
+              Total orders placed
             </p>
           </CardContent>
         </Card>
@@ -59,9 +78,9 @@ export default function AdminDashboard() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">573</div>
+            <div className="text-2xl font-bold">{productsInStock}</div>
             <p className="text-xs text-muted-foreground">
-              +201 since last hour
+              Unique products available
             </p>
           </CardContent>
         </Card>
