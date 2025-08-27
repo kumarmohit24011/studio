@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useEffect, useState, useMemo } from "react";
 import { getProducts } from "@/services/productService";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 
 const CATEGORIES = ["All", "Rings", "Necklaces", "Bracelets", "Earrings"];
 
@@ -53,14 +53,22 @@ export default function ProductsPage() {
       </div>
 
       <main>
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-            <Tabs defaultValue="All" onValueChange={setSelectedCategory}>
-                <TabsList>
-                    {CATEGORIES.map(category => (
-                         <TabsTrigger key={category} value={category}>{category}</TabsTrigger>
-                    ))}
-                </TabsList>
-            </Tabs>
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 border-b">
+           <div className="flex items-center gap-2">
+               {CATEGORIES.map(category => (
+                   <Button 
+                    key={category} 
+                    variant="ghost" 
+                    onClick={() => setSelectedCategory(category)}
+                    className={cn(
+                        "rounded-none text-muted-foreground hover:text-primary pb-3 border-b-2",
+                        selectedCategory === category ? "border-primary text-primary" : "border-transparent"
+                    )}
+                   >
+                       {category}
+                   </Button>
+               ))}
+           </div>
             <div className="flex items-center gap-4">
                 <p className="text-muted-foreground text-sm">{filteredProducts.length} products</p>
                 <Select>
@@ -81,12 +89,7 @@ export default function ProductsPage() {
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
-        {/* Optional: Add pagination or a "Load More" button if needed */}
-        {/* <div className="flex justify-center mt-12">
-            <Button variant="outline">Load More</Button>
-        </div> */}
       </main>
     </div>
   );
 }
-
