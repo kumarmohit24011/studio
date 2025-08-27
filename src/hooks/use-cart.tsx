@@ -35,7 +35,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       localCart.forEach(localItem => {
         const remoteItemIndex = mergedCart.findIndex(item => item.id === localItem.id);
         if (remoteItemIndex !== -1) {
-          // If item exists, sum quantities. You might want different logic here.
           mergedCart[remoteItemIndex].quantity += localItem.quantity;
         } else {
           mergedCart.push(localItem);
@@ -59,18 +58,14 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    // This effect runs once on mount and handles cart initialization
     if (authLoading) {
-      // If authentication is still loading, we wait.
       setLoading(true);
       return;
     }
 
     if (user) {
-      // If user is logged in, fetch their cart
       fetchUserCart(user.uid);
     } else {
-      // If no user, load from local storage
       loadGuestCart();
     }
   }, [user, authLoading, fetchUserCart, loadGuestCart]);

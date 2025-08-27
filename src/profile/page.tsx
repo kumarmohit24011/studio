@@ -74,7 +74,7 @@ const AddressForm = ({ userId, onSave, address }: { userId: string, onSave: () =
                 await updateAddress(userId, address.id, formData);
                 toast({ title: 'Address updated successfully' });
             } else {
-                await addAddress(userId, { ...formData, isDefault: addresses.length === 0 ? true : formData.isDefault });
+                await addAddress(userId, formData);
                 toast({ title: 'Address saved successfully' });
             }
             onSave();

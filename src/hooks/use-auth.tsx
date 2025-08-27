@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useContext, useEffect, ReactNode } from 'react';
@@ -14,6 +15,7 @@ import {
 } from 'firebase/auth';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
+import { createUserProfile, getUserProfile } from '@/services/userService';
 
 interface AuthContextType {
   user: User | null | undefined;
@@ -33,9 +35,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
-        await signInWithPopup(auth, provider);
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        // Check if user profile exists, if not create one
+        const userProfile = await getUserProfile(user.uid);
+        if (!userProfile) {
+            await createUserProfile(user.uid, {
+                name: user.displayName || '',
+                email: user.email || '',
+                phone: user.phoneNumber || '',
+                createdAt: Date.now(),
+                addresses: [],
+                cart: [],
+                wishlist: []
+            });
+        }
     } catch(e) {
-        console.error(e);
+        console.error("Error during Google sign-in:", e);
         throw e;
     }
   };
@@ -47,6 +63,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signUpWithEmail = async (email: string, pass: string, name: string) => {
     const userCred = await createUserWithEmailAndPassword(auth, email, pass);
     await updateProfile(userCred.user, { displayName: name });
+    
+    // Create user profile in Firestore
+    await createUserProfile(userCred.user.uid, {
+        name: name,
+        email: email,
+        phone: '',
+        createdAt: Date.now(),
+        addresses: [],
+        cart: [],
+        wishlist: []
+    });
+
     return userCred;
   }
 

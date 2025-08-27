@@ -1,94 +1,82 @@
 
 import { db } from '@/lib/firebase';
 import { ShippingAddress } from '@/lib/types';
-import { collection, getDocs, doc, addDoc, updateDoc, deleteDoc, query, where, writeBatch, getDoc, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
+import { UserProfile } from './userService';
+import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { v4 as uuidv4 } from 'uuid';
 
-const usersCollection = collection(db, 'users');
-
-const getAddressesCollectionRef = (userId: string) => {
-    return collection(doc(usersCollection, userId), 'addresses');
-}
-
-const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): ShippingAddress => {
-    const data = snapshot.data();
-    return {
-        id: snapshot.id,
-        name: data.name,
-        mobile: data.mobile,
-        line1: data.line1,
-        line2: data.line2,
-        city: data.city,
-        state: data.state,
-        pincode: data.pincode,
-        isDefault: data.isDefault || false,
-    };
-}
-
+const usersCollection = 'users';
 
 export const addAddress = async (userId: string, address: Omit<ShippingAddress, 'id'>): Promise<string> => {
-    const addressesRef = getAddressesCollectionRef(userId);
-    
-    // If this is the first address or isDefault is true, unset other defaults
-    if (address.isDefault) {
-        const q = query(addressesRef, where("isDefault", "==", true));
-        const snapshot = await getDocs(q);
-        const batch = writeBatch(db);
-        snapshot.forEach(doc => {
-            batch.update(doc.ref, { isDefault: false });
-        });
-        await batch.commit();
+    const userDocRef = doc(db, usersCollection, userId);
+    const newAddress = { ...address, id: uuidv4() };
+
+    if (newAddress.isDefault) {
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+            const userData = userDoc.data() as UserProfile;
+            const updatedAddresses = userData.addresses.map(addr => ({ ...addr, isDefault: false }));
+            await updateDoc(userDocRef, { addresses: updatedAddresses });
+        }
     }
 
-    const docRef = await addDoc(addressesRef, address);
-    return docRef.id;
+    await updateDoc(userDocRef, {
+        addresses: arrayUnion(newAddress)
+    });
+
+    return newAddress.id;
 };
 
 export const getAddresses = async (userId: string): Promise<ShippingAddress[]> => {
-    const addressesRef = getAddressesCollectionRef(userId);
-    const snapshot = await getDocs(addressesRef);
-    return snapshot.docs.map(fromFirestore);
-}
-
-export const updateAddress = async (userId: string, addressId: string, addressData: Partial<ShippingAddress>): Promise<void> => {
-    const addressDocRef = doc(getAddressesCollectionRef(userId), addressId);
-
-    // If making this address default, unset other defaults
-    if (addressData.isDefault) {
-        const addressesRef = getAddressesCollectionRef(userId);
-        const q = query(addressesRef, where("isDefault", "==", true));
-        const snapshot = await getDocs(q);
-        const batch = writeBatch(db);
-        snapshot.forEach(doc => {
-            if(doc.id !== addressId) {
-                batch.update(doc.ref, { isDefault: false });
-            }
-        });
-        await batch.commit();
+    const userDocRef = doc(db, usersCollection, userId);
+    const docSnap = await getDoc(userDocRef);
+    if (docSnap.exists()) {
+        const data = docSnap.data() as UserProfile;
+        return data.addresses || [];
     }
+    return [];
+};
 
-    await updateDoc(addressDocRef, addressData);
-}
+export const updateAddress = async (userId: string, addressId: string, addressData: Partial<Omit<ShippingAddress, 'id'>>): Promise<void> => {
+    const userDocRef = doc(db, usersCollection, userId);
+    const userDoc = await getDoc(userDocRef);
+
+    if (userDoc.exists()) {
+        const userData = userDoc.data() as UserProfile;
+        let addresses = [...userData.addresses];
+
+        if (addressData.isDefault) {
+            addresses = addresses.map(addr => ({ ...addr, isDefault: false }));
+        }
+
+        const addressIndex = addresses.findIndex(a => a.id === addressId);
+        if (addressIndex > -1) {
+            addresses[addressIndex] = { ...addresses[addressIndex], ...addressData };
+        }
+        
+        await updateDoc(userDocRef, { addresses });
+    }
+};
 
 export const deleteAddress = async (userId: string, addressId: string): Promise<void> => {
-    const addressDocRef = doc(getAddressesCollectionRef(userId), addressId);
-    await deleteDoc(addressDocRef);
-}
+    const userDocRef = doc(db, usersCollection, userId);
+    const userDoc = await getDoc(userDocRef);
+     if (userDoc.exists()) {
+        const userData = userDoc.data() as UserProfile;
+        const updatedAddresses = userData.addresses.filter(addr => addr.id !== addressId);
+        await updateDoc(userDocRef, { addresses: updatedAddresses });
+    }
+};
 
 export const setDefaultAddress = async (userId: string, addressId: string): Promise<void> => {
-    const addressesRef = getAddressesCollectionRef(userId);
-    const q = query(addressesRef, where("isDefault", "==", true));
-    const snapshot = await getDocs(q);
-
-    const batch = writeBatch(db);
-
-    // Unset current default
-    snapshot.forEach(doc => {
-        batch.update(doc.ref, { isDefault: false });
-    });
-
-    // Set new default
-    const newDefaultRef = doc(addressesRef, addressId);
-    batch.update(newDefaultRef, { isDefault: true });
-
-    await batch.commit();
-}
+    const userDocRef = doc(db, usersCollection, userId);
+    const userDoc = await getDoc(userDocRef);
+     if (userDoc.exists()) {
+        const userData = userDoc.data() as UserProfile;
+        const updatedAddresses = userData.addresses.map(addr => ({
+            ...addr,
+            isDefault: addr.id === addressId
+        }));
+        await updateDoc(userDocRef, { addresses: updatedAddresses });
+    }
+};

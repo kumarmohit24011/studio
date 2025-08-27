@@ -1,38 +1,30 @@
 
 import { db } from '@/lib/firebase';
-import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, DocumentData } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { UserProfile } from './userService';
 
-const wishlistCollectionName = 'wishlists';
+const usersCollection = 'users';
 
 export const getWishlist = async (userId: string): Promise<string[]> => {
-    const wishlistDocRef = doc(db, wishlistCollectionName, userId);
-    const docSnap = await getDoc(wishlistDocRef);
+    const userDocRef = doc(db, usersCollection, userId);
+    const docSnap = await getDoc(userDocRef);
     if (docSnap.exists()) {
-        return (docSnap.data() as DocumentData).productIds as string[] || [];
+        const userData = docSnap.data() as UserProfile;
+        return userData.wishlist || [];
     }
     return [];
 };
 
 export const addToWishlist = async (userId: string, productId: string): Promise<void> => {
-    const wishlistDocRef = doc(db, wishlistCollectionName, userId);
-    const docSnap = await getDoc(wishlistDocRef);
-
-    if (!docSnap.exists()) {
-        await setDoc(wishlistDocRef, { productIds: [productId] });
-    } else {
-        await updateDoc(wishlistDocRef, {
-            productIds: arrayUnion(productId)
-        });
-    }
+    const userDocRef = doc(db, usersCollection, userId);
+    await updateDoc(userDocRef, {
+        wishlist: arrayUnion(productId)
+    });
 };
 
 export const removeFromWishlist = async (userId: string, productId: string): Promise<void> => {
-    const wishlistDocRef = doc(db, wishlistCollectionName, userId);
-    const docSnap = await getDoc(wishlistDocRef);
-
-    if (docSnap.exists()) {
-        await updateDoc(wishlistDocRef, {
-            productIds: arrayRemove(productId)
-        });
-    }
+    const userDocRef = doc(db, usersCollection, userId);
+    await updateDoc(userDocRef, {
+        wishlist: arrayRemove(productId)
+    });
 };
