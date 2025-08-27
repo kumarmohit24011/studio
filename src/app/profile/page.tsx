@@ -44,7 +44,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 
-const AddressForm = ({ userId, onSave, address }: { userId: string, onSave: () => void, address?: Omit<ShippingAddress, 'id'> & {id?: string} }) => {
+const AddressForm = ({ userId, onSave, address, addresses }: { userId: string, onSave: () => void, address?: Omit<ShippingAddress, 'id'> & {id?: string}, addresses: ShippingAddress[] }) => {
     const [formData, setFormData] = useState({
         name: address?.name || '',
         mobile: address?.mobile || '',
@@ -296,7 +296,7 @@ export default function ProfilePage() {
                   <DialogHeader>
                       <DialogTitle>{editingAddress ? 'Edit Address' : 'Add New Address'}</DialogTitle>
                   </DialogHeader>
-                  <AddressForm userId={user.uid} onSave={handleAddressSave} address={editingAddress} />
+                  <AddressForm userId={user.uid} onSave={handleAddressSave} address={editingAddress} addresses={addresses} />
               </DialogContent>
           </Dialog>
         </TabsContent>
@@ -329,15 +329,15 @@ export default function ProfilePage() {
                         </div>
                         <div className="text-left md:text-right mt-2 md:mt-0">
                            <p className="font-bold">₹{order.totalAmount.toFixed(2)}</p>
-                           <p className="text-sm text-muted-foreground">{order.status}</p>
+                           <p className="text-sm text-muted-foreground capitalize">{order.orderStatus}</p>
                         </div>
                     </CardHeader>
                     <CardContent>
                         <Separator className="my-4" />
                         <div className="space-y-4">
                         {order.items.map(item => (
-                            <div key={item.id} className="flex items-center gap-4">
-                                <Image src={item.images[0]} alt={item.name} width={64} height={64} className="w-16 h-16 rounded-md object-cover" />
+                            <div key={item.productId} className="flex items-center gap-4">
+                                <Image src={item.image} alt={item.name} width={64} height={64} className="w-16 h-16 rounded-md object-cover" />
                                 <div>
                                     <p className="font-semibold">{item.name}</p>
                                     <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>

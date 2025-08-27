@@ -39,7 +39,7 @@ export async function createRazorpayOrder(amount: number) {
 
 export async function saveOrder(
     userId: string,
-    items: CartItem[],
+    cartItems: CartItem[],
     totalAmount: number,
     shippingAddress: ShippingAddress,
     paymentDetails: { razorpay_payment_id: string; razorpay_order_id: string }
@@ -47,10 +47,18 @@ export async function saveOrder(
     try {
         const orderData = {
             userId,
-            items,
+            items: cartItems.map(item => ({
+                productId: item.id,
+                name: item.name,
+                image: item.images[0],
+                quantity: item.quantity,
+                price: item.price
+            })),
             totalAmount,
-            shippingAddress,
-            status: 'Processing' as const,
+            shippingAddressId: shippingAddress.id,
+            shippingAddress: shippingAddress, // Denormalize for easier display
+            orderStatus: 'Processing' as const,
+            paymentStatus: 'Paid' as const,
             razorpay_payment_id: paymentDetails.razorpay_payment_id,
             razorpay_order_id: paymentDetails.razorpay_order_id,
             createdAt: Date.now()

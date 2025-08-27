@@ -17,13 +17,24 @@ export interface ShippingAddress {
     isDefault?: boolean;
 }
 
+export interface OrderItem {
+    productId: string;
+    name: string; // Keep name and image for display purposes on order history
+    image: string;
+    quantity: number;
+    price: number;
+}
+
+
 export interface Order {
     id: string;
     userId: string;
-    items: CartItem[];
+    items: OrderItem[];
     totalAmount: number;
-    shippingAddress: ShippingAddress;
-    status: 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+    shippingAddressId: string;
+    shippingAddress: ShippingAddress; // Keep for display purposes, will be denormalized on creation
+    orderStatus: 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+    paymentStatus: 'Paid' | 'Pending' | 'Failed';
     razorpay_payment_id: string;
     razorpay_order_id: string;
     createdAt: number; // Firestore timestamp

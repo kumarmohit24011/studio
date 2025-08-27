@@ -1,6 +1,6 @@
 
 import { db } from '@/lib/firebase';
-import { Order } from '@/lib/types';
+import { Order, OrderItem } from '@/lib/types';
 import { collection, getDocs, doc, addDoc, query, where, orderBy, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 
 const orderCollection = collection(db, 'orders');
@@ -10,10 +10,18 @@ const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): Order => 
     return {
         id: snapshot.id,
         userId: data.userId,
-        items: data.items,
+        items: data.items.map((item: any): OrderItem => ({
+            productId: item.productId,
+            name: item.name,
+            image: item.image,
+            quantity: item.quantity,
+            price: item.price,
+        })),
         totalAmount: data.totalAmount,
+        shippingAddressId: data.shippingAddressId,
         shippingAddress: data.shippingAddress,
-        status: data.status,
+        orderStatus: data.orderStatus,
+        paymentStatus: data.paymentStatus,
         razorpay_payment_id: data.razorpay_payment_id,
         razorpay_order_id: data.razorpay_order_id,
         createdAt: data.createdAt,
