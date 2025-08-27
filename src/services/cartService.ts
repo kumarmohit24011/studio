@@ -7,9 +7,13 @@ const cartCollectionName = 'carts';
 
 export const getCart = async (userId: string): Promise<CartItem[]> => {
     const cartDocRef = doc(db, cartCollectionName, userId);
-    const docSnap = await getDoc(cartDocRef);
-    if (docSnap.exists()) {
-        return (docSnap.data() as DocumentData).items as CartItem[];
+    try {
+        const docSnap = await getDoc(cartDocRef);
+        if (docSnap.exists()) {
+            return (docSnap.data() as DocumentData).items as CartItem[] || [];
+        }
+    } catch (error) {
+        console.error("Error fetching cart:", error);
     }
     return [];
 };

@@ -24,102 +24,111 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const mergeCarts = useCallback(async (localCart: CartItem[], userId: string) => {
-    const remoteCart = await cartService.getCart(userId);
-    const mergedCart = [...remoteCart];
+  const fetchUserCart = useCallback(async (uid: string) => {
+    setLoading(true);
+    const localCart = JSON.parse(localStorage.getItem('cart') || '[]') as CartItem[];
+    let finalCart;
+    if (localCart.length > 0) {
+      const remoteCart = await cartService.getCart(uid);
+      const mergedCart = [...remoteCart];
 
-    localCart.forEach(localItem => {
-      const remoteItemIndex = mergedCart.findIndex(item => item.id === localItem.id);
-      if (remoteItemIndex !== -1) {
-        mergedCart[remoteItemIndex].quantity += localItem.quantity;
-      } else {
-        mergedCart.push(localItem);
-      }
-    });
+      localCart.forEach(localItem => {
+        const remoteItemIndex = mergedCart.findIndex(item => item.id === localItem.id);
+        if (remoteItemIndex !== -1) {
+          // If item exists, sum quantities. You might want different logic here.
+          mergedCart[remoteItemIndex].quantity += localItem.quantity;
+        } else {
+          mergedCart.push(localItem);
+        }
+      });
+      await cartService.updateCart(uid, mergedCart);
+      finalCart = mergedCart;
+      localStorage.removeItem('cart');
+    } else {
+      finalCart = await cartService.getCart(uid);
+    }
+    setCartItems(finalCart);
+    setLoading(false);
+  }, []);
 
-    await cartService.updateCart(userId, mergedCart);
-    return mergedCart;
+  const loadGuestCart = useCallback(() => {
+    setLoading(true);
+    const localCart = JSON.parse(localStorage.getItem('cart') || '[]') as CartItem[];
+    setCartItems(localCart);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
-    const initializeCart = async () => {
+    // This effect runs once on mount and handles cart initialization
+    if (authLoading) {
+      // If authentication is still loading, we wait.
       setLoading(true);
-      if (user) {
-        const localCart = JSON.parse(localStorage.getItem('cart') || '[]') as CartItem[];
-        if (localCart.length > 0) {
-          const merged = await mergeCarts(localCart, user.uid);
-          setCartItems(merged);
-          localStorage.removeItem('cart');
-        } else {
-          const remoteCart = await cartService.getCart(user.uid);
-          setCartItems(remoteCart);
-        }
-      } else if (!authLoading) {
-        const localCart = JSON.parse(localStorage.getItem('cart') || '[]') as CartItem[];
-        setCartItems(localCart);
-      }
-      setLoading(false);
-    };
-
-    initializeCart();
-  }, [user, authLoading, mergeCarts]);
-
-  const addToCart = async (product: Product, quantity = 1) => {
-    const newItem: CartItem = { ...product, quantity };
-    let updatedCart: CartItem[];
+      return;
+    }
 
     if (user) {
-        await cartService.addItemToCart(user.uid, newItem);
-        updatedCart = await cartService.getCart(user.uid);
+      // If user is logged in, fetch their cart
+      fetchUserCart(user.uid);
     } else {
-        const currentCart = JSON.parse(localStorage.getItem('cart') || '[]') as CartItem[];
-        const existingItemIndex = currentCart.findIndex(item => item.id === product.id);
-
-        if (existingItemIndex !== -1) {
-            currentCart[existingItemIndex].quantity += quantity;
-        } else {
-            currentCart.push(newItem);
-        }
-        localStorage.setItem('cart', JSON.stringify(currentCart));
-        updatedCart = currentCart;
+      // If no user, load from local storage
+      loadGuestCart();
     }
-    setCartItems(updatedCart);
+  }, [user, authLoading, fetchUserCart, loadGuestCart]);
+
+  const addToCart = async (product: Product, quantity = 1) => {
+    setCartItems(prevCart => {
+      const existingItemIndex = prevCart.findIndex(item => item.id === product.id);
+      let newCart: CartItem[];
+
+      if (existingItemIndex !== -1) {
+        newCart = [...prevCart];
+        newCart[existingItemIndex].quantity += quantity;
+      } else {
+        newCart = [...prevCart, { ...product, quantity }];
+      }
+
+      if (user) {
+        cartService.updateCart(user.uid, newCart);
+      } else {
+        localStorage.setItem('cart', JSON.stringify(newCart));
+      }
+      
+      return newCart;
+    });
   };
 
   const removeFromCart = async (productId: string) => {
-    let updatedCart: CartItem[];
-     if (user) {
-        await cartService.removeItemFromCart(user.uid, productId);
-        updatedCart = await cartService.getCart(user.uid);
-     } else {
-        const currentCart = JSON.parse(localStorage.getItem('cart') || '[]') as CartItem[];
-        updatedCart = currentCart.filter(item => item.id !== productId);
-        localStorage.setItem('cart', JSON.stringify(updatedCart));
-     }
-     setCartItems(updatedCart);
+     setCartItems(prevCart => {
+        const newCart = prevCart.filter(item => item.id !== productId);
+        if (user) {
+            cartService.updateCart(user.uid, newCart);
+        } else {
+            localStorage.setItem('cart', JSON.stringify(newCart));
+        }
+        return newCart;
+     });
   };
 
   const updateQuantity = async (productId: string, quantity: number) => {
-    let updatedCart: CartItem[];
-    if (user) {
-        await cartService.updateItemQuantity(user.uid, productId, quantity);
-        updatedCart = await cartService.getCart(user.uid);
-    } else {
-        const currentCart = JSON.parse(localStorage.getItem('cart') || '[]') as CartItem[];
-        const itemIndex = currentCart.findIndex(item => item.id === productId);
-        if (itemIndex > -1) {
-            if (quantity <= 0) {
-                updatedCart = currentCart.filter(item => item.id !== productId);
-            } else {
-                currentCart[itemIndex].quantity = quantity;
-                updatedCart = currentCart;
-            }
-            localStorage.setItem('cart', JSON.stringify(updatedCart));
+     setCartItems(prevCart => {
+        const itemIndex = prevCart.findIndex(item => item.id === productId);
+        if (itemIndex === -1) return prevCart;
+
+        let newCart;
+        if (quantity <= 0) {
+            newCart = prevCart.filter(item => item.id !== productId);
         } else {
-            updatedCart = currentCart;
+            newCart = [...prevCart];
+            newCart[itemIndex] = { ...newCart[itemIndex], quantity };
         }
-    }
-    setCartItems(updatedCart);
+
+        if (user) {
+            cartService.updateCart(user.uid, newCart);
+        } else {
+            localStorage.setItem('cart', JSON.stringify(newCart));
+        }
+        return newCart;
+     });
   };
 
   const clearCart = async () => {
