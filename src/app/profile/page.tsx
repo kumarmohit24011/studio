@@ -28,41 +28,154 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { getProducts } from "@/services/productService";
 import { getOrdersForUser } from "@/services/orderService";
-import { Order } from "@/lib/types";
+import { getAddresses, addAddress, deleteAddress, setDefaultAddress } from "@/services/addressService";
+import { Order, ShippingAddress } from "@/lib/types";
 import Link from "next/link";
 import Image from "next/image";
+import { PlusCircle, Trash, Star } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
+
+const AddressForm = ({ userId, onSave, address }: { userId: string, onSave: () => void, address?: ShippingAddress }) => {
+    const [formData, setFormData] = useState({
+        name: address?.name || '',
+        mobile: address?.mobile || '',
+        line1: address?.line1 || '',
+        line2: address?.line2 || '',
+        city: address?.city || '',
+        state: address?.state || '',
+        pincode: address?.pincode || '',
+    });
+    const { toast } = useToast();
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({ ...formData, [e.target.id]: e.target.value });
+    }
+
+    const handleSubmit = async () => {
+        if (!userId) return;
+        try {
+            // Basic validation
+            for (const key in formData) {
+                if (key !== 'line2' && !formData[key as keyof typeof formData]) {
+                    toast({ variant: 'destructive', title: 'Please fill all fields' });
+                    return;
+                }
+            }
+            await addAddress(userId, formData);
+            toast({ title: 'Address saved successfully' });
+            onSave();
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Failed to save address' });
+        }
+    }
+
+    return (
+        <>
+            <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">Name</Label>
+                    <Input id="name" value={formData.name} onChange={handleChange} className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="mobile" className="text-right">Mobile</Label>
+                    <Input id="mobile" value={formData.mobile} onChange={handleChange} className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="line1" className="text-right">Address Line 1</Label>
+                    <Input id="line1" value={formData.line1} onChange={handleChange} className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="line2" className="text-right">Line 2</Label>
+                    <Input id="line2" value={formData.line2} onChange={handleChange} className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="city" className="text-right">City</Label>
+                    <Input id="city" value={formData.city} onChange={handleChange} className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="state" className="text-right">State</Label>
+                    <Input id="state" value={formData.state} onChange={handleChange} className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="pincode" className="text-right">Pincode</Label>
+                    <Input id="pincode" value={formData.pincode} onChange={handleChange} className="col-span-3" />
+                </div>
+            </div>
+            <DialogFooter>
+                <DialogClose asChild>
+                    <Button type="button" variant="secondary">Cancel</Button>
+                </DialogClose>
+                <Button onClick={handleSubmit}>Save Address</Button>
+            </DialogFooter>
+        </>
+    )
+}
 
 export default function ProfilePage() {
   const { user, loading: authLoading, signOut } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
   const { wishlist, loading: wishlistLoading } = useWishlist();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [addresses, setAddresses] = useState<ShippingAddress[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
+
+  const fetchUserData = async () => {
+      if (user) {
+          setLoading(true);
+          const [products, userOrders, userAddresses] = await Promise.all([
+              getProducts(),
+              getOrdersForUser(user.uid),
+              getAddresses(user.uid)
+          ]);
+          setAllProducts(products);
+          setOrders(userOrders);
+          setAddresses(userAddresses.sort((a,b) => (b.isDefault ? 1 : 0) - (a.isDefault ? 1 : 0)));
+          setLoading(false);
+      }
+  }
 
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/login');
+    } else if (user) {
+      fetchUserData();
     }
   }, [user, authLoading, router]);
-
-  useEffect(() => {
-    const fetchInitialData = async () => {
-        setLoading(true);
-        if (user) {
-            const [products, userOrders] = await Promise.all([
-                getProducts(),
-                getOrdersForUser(user.uid)
-            ]);
-            setAllProducts(products);
-            setOrders(userOrders);
-        }
-        setLoading(false);
-    }
-    fetchInitialData();
-  }, [user])
   
   const wishlistedProducts = allProducts.filter(p => wishlist.includes(p.id));
+
+  const handleAddressSave = () => {
+    setIsAddressDialogOpen(false);
+    fetchUserData();
+  }
+
+  const handleDeleteAddress = async (addressId: string) => {
+    if (user && confirm('Are you sure you want to delete this address?')) {
+        await deleteAddress(user.uid, addressId);
+        toast({ title: 'Address deleted' });
+        fetchUserData();
+    }
+  }
+  
+  const handleSetDefault = async (addressId: string) => {
+    if (user) {
+        await setDefaultAddress(user.uid, addressId);
+        toast({ title: 'Default address updated' });
+        fetchUserData();
+    }
+  }
 
   if (loading || authLoading || !user) {
     return <div className="container mx-auto px-4 py-12 md:py-20 text-center">Loading...</div>
@@ -112,17 +225,58 @@ export default function ProfilePage() {
           </Card>
         </TabsContent>
         <TabsContent value="addresses" className="mt-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Saved Addresses</CardTitle>
-              <CardDescription>
-                Manage your shipping addresses.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button>Add New Address</Button>
-            </CardContent>
-          </Card>
+            <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+              <Card>
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                      <div>
+                        <CardTitle>Saved Addresses</CardTitle>
+                        <CardDescription>
+                          Manage your shipping addresses.
+                        </CardDescription>
+                      </div>
+                      <DialogTrigger asChild>
+                        <Button><PlusCircle className="mr-2"/>Add New Address</Button>
+                      </DialogTrigger>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
+                        {addresses.length > 0 ? addresses.map(address => (
+                            <div key={address.id} className="border p-4 rounded-lg flex justify-between items-start">
+                                <div>
+                                    <p className="font-semibold flex items-center gap-2">
+                                        {address.name}
+                                        {address.isDefault && <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">Default</span>}
+                                    </p>
+                                    <p className="text-muted-foreground">{address.line1}, {address.line2}</p>
+                                    <p className="text-muted-foreground">{address.city}, {address.state} - {address.pincode}</p>
+                                    <p className="text-muted-foreground">Mobile: {address.mobile}</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {!address.isDefault && (
+                                        <Button variant="ghost" size="sm" onClick={() => handleSetDefault(address.id)}>
+                                            <Star className="h-4 w-4 mr-2"/> Set as Default
+                                        </Button>
+                                    )}
+                                    <Button variant="destructive" size="icon" onClick={() => handleDeleteAddress(address.id)}>
+                                        <Trash className="h-4 w-4"/>
+                                    </Button>
+                                </div>
+                            </div>
+                        )) : (
+                            <p className="text-muted-foreground text-center py-8">You have no saved addresses.</p>
+                        )}
+                    </div>
+                </CardContent>
+              </Card>
+              <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                      <DialogTitle>Add New Address</DialogTitle>
+                  </DialogHeader>
+                  <AddressForm userId={user.uid} onSave={handleAddressSave} />
+              </DialogContent>
+          </Dialog>
         </TabsContent>
         <TabsContent value="wishlist" className="mt-8">
             {wishlistLoading ? (

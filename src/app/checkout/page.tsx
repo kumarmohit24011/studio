@@ -13,6 +13,19 @@ import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
 import { createRazorpayOrder, saveOrder } from "./actions";
 import { ShippingAddress } from "@/lib/types";
+import { getAddresses, addAddress } from "@/services/addressService";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose
+} from "@/components/ui/dialog";
+import { PlusCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
+
 
 interface RazorpayOptions {
     key: string;
@@ -38,22 +51,63 @@ interface RazorpayOptions {
 
 declare const Razorpay: new (options: RazorpayOptions) => any;
 
+
+const AddressForm = ({ userId, onSave }: { userId: string, onSave: (newAddress: ShippingAddress) => void }) => {
+    const [formData, setFormData] = useState<Omit<ShippingAddress, 'id' | 'isDefault'>>({
+        name: '', mobile: '', line1: '', line2: '', city: '', state: '', pincode: ''
+    });
+    const { toast } = useToast();
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({ ...formData, [e.target.id]: e.target.value });
+    }
+
+    const handleSubmit = async () => {
+        if (!userId) return;
+        try {
+            for (const key in formData) {
+                if (key !== 'line2' && !formData[key as keyof typeof formData]) {
+                    toast({ variant: 'destructive', title: 'Please fill all required fields' });
+                    return;
+                }
+            }
+            const newAddressId = await addAddress(userId, { ...formData, isDefault: false });
+            toast({ title: 'Address saved successfully' });
+            onSave({ ...formData, id: newAddressId, isDefault: false });
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Failed to save address' });
+        }
+    }
+
+    return (
+        <>
+            <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4"><Label htmlFor="name" className="text-right">Name</Label><Input id="name" value={formData.name} onChange={handleChange} className="col-span-3" /></div>
+                <div className="grid grid-cols-4 items-center gap-4"><Label htmlFor="mobile" className="text-right">Mobile</Label><Input id="mobile" value={formData.mobile} onChange={handleChange} className="col-span-3" /></div>
+                <div className="grid grid-cols-4 items-center gap-4"><Label htmlFor="line1" className="text-right">Address Line 1</Label><Input id="line1" value={formData.line1} onChange={handleChange} className="col-span-3" /></div>
+                <div className="grid grid-cols-4 items-center gap-4"><Label htmlFor="line2" className="text-right">Line 2 (Opt)</Label><Input id="line2" value={formData.line2} onChange={handleChange} className="col-span-3" /></div>
+                <div className="grid grid-cols-4 items-center gap-4"><Label htmlFor="city" className="text-right">City</Label><Input id="city" value={formData.city} onChange={handleChange} className="col-span-3" /></div>
+                <div className="grid grid-cols-4 items-center gap-4"><Label htmlFor="state" className="text-right">State</Label><Input id="state" value={formData.state} onChange={handleChange} className="col-span-3" /></div>
+                <div className="grid grid-cols-4 items-center gap-4"><Label htmlFor="pincode" className="text-right">Pincode</Label><Input id="pincode" value={formData.pincode} onChange={handleChange} className="col-span-3" /></div>
+            </div>
+            <DialogClose asChild>
+                <Button onClick={handleSubmit}>Save Address</Button>
+            </DialogClose>
+        </>
+    )
+}
+
+
 export default function CheckoutPage() {
   const { cartItems, cartCount, loading: cartLoading, clearCart } = useCart();
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
 
-  const [address, setAddress] = useState<ShippingAddress>({
-    name: "",
-    mobile: "",
-    line1: "",
-    line2: "",
-    city: "",
-    state: "",
-    pincode: "",
-  });
+  const [savedAddresses, setSavedAddresses] = useState<ShippingAddress[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -65,14 +119,26 @@ export default function CheckoutPage() {
   }, [user, authLoading, cartCount, cartLoading, router]);
 
   useEffect(() => {
-    if (user) {
-        setAddress(prev => ({...prev, name: user.displayName || '', mobile: user.phoneNumber || ''}));
+    const fetchAddresses = async () => {
+        if (user) {
+            const addresses = await getAddresses(user.uid);
+            setSavedAddresses(addresses);
+            const defaultAddress = addresses.find(a => a.isDefault);
+            if (defaultAddress) {
+                setSelectedAddressId(defaultAddress.id);
+            } else if (addresses.length > 0) {
+                setSelectedAddressId(addresses[0].id);
+            }
+        }
     }
+    fetchAddresses();
   }, [user]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAddress({ ...address, [e.target.id]: e.target.value });
-  };
+  const handleAddressSave = (newAddress: ShippingAddress) => {
+    setIsAddressDialogOpen(false);
+    setSavedAddresses(prev => [...prev, newAddress]);
+    setSelectedAddressId(newAddress.id);
+  }
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const shipping = 150.0;
@@ -83,10 +149,11 @@ export default function CheckoutPage() {
         toast({variant: 'destructive', title: "You must be logged in to checkout"});
         return;
     }
+    
+    const selectedAddress = savedAddresses.find(a => a.id === selectedAddressId);
 
-    // Basic validation
-    if (!address.name || !address.mobile || !address.line1 || !address.city || !address.state || !address.pincode) {
-        toast({variant: 'destructive', title: "Please fill all required shipping fields."});
+    if (!selectedAddress) {
+        toast({variant: 'destructive', title: "Please select or add a shipping address."});
         return;
     }
 
@@ -108,7 +175,7 @@ export default function CheckoutPage() {
                   user.uid,
                   cartItems,
                   totalAmount,
-                  address,
+                  selectedAddress,
                   {
                       razorpay_payment_id: response.razorpay_payment_id,
                       razorpay_order_id: response.razorpay_order_id,
@@ -118,7 +185,7 @@ export default function CheckoutPage() {
               if (saveResult.success) {
                   toast({ title: "Payment Successful!", description: "Your order has been placed." });
                   clearCart();
-                  router.push("/profile");
+                  router.push("/profile?tab=orders");
               } else {
                   throw new Error(saveResult.message);
               }
@@ -127,12 +194,12 @@ export default function CheckoutPage() {
             }
         },
         prefill: {
-          name: address.name,
+          name: selectedAddress.name,
           email: user.email || '',
-          contact: address.mobile,
+          contact: selectedAddress.mobile,
         },
         notes: {
-            address: `${address.line1}, ${address.line2}, ${address.city}, ${address.state} - ${address.pincode}`
+            address: `${selectedAddress.line1}, ${selectedAddress.line2}, ${selectedAddress.city}, ${selectedAddress.state} - ${selectedAddress.pincode}`
         },
         theme: {
           color: "#b92747",
@@ -155,7 +222,7 @@ export default function CheckoutPage() {
   };
 
 
-  if (cartLoading || authLoading) {
+  if (cartLoading || authLoading || !user) {
     return <div className="container mx-auto px-4 py-12 text-center">Loading checkout...</div>;
   }
 
@@ -164,39 +231,44 @@ export default function CheckoutPage() {
       <h1 className="text-3xl font-headline text-center mb-8">Checkout</h1>
       <div className="grid md:grid-cols-2 gap-12">
         <div>
-          <h2 className="text-2xl font-headline mb-4">Shipping Information</h2>
-          <div className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input id="name" value={address.name} onChange={handleChange} required />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="mobile">Mobile Number</Label>
-              <Input id="mobile" value={address.mobile} onChange={handleChange} required />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="line1">Address Line 1</Label>
-              <Input id="line1" value={address.line1} onChange={handleChange} required />
-            </div>
-             <div className="grid gap-2">
-              <Label htmlFor="line2">Address Line 2 (Optional)</Label>
-              <Input id="line2" value={address.line2} onChange={handleChange} />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="grid gap-2">
-                    <Label htmlFor="city">City</Label>
-                    <Input id="city" value={address.city} onChange={handleChange} required />
-                </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="state">State</Label>
-                    <Input id="state" value={address.state} onChange={handleChange} required />
-                </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="pincode">Pincode</Label>
-                    <Input id="pincode" value={address.pincode} onChange={handleChange} required />
-                </div>
-            </div>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-headline">Shipping Information</h2>
+            <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+                <DialogTrigger asChild>
+                    <Button variant="outline"><PlusCircle className="mr-2"/>Add New Address</Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add a new shipping address</DialogTitle>
+                    </DialogHeader>
+                    <AddressForm userId={user.uid} onSave={handleAddressSave} />
+                </DialogContent>
+            </Dialog>
           </div>
+          
+          <RadioGroup value={selectedAddressId} onValueChange={setSelectedAddressId} className="space-y-4">
+              {savedAddresses.map(address => (
+                  <Label key={address.id} htmlFor={address.id} className={cn("block p-4 border rounded-lg cursor-pointer", selectedAddressId === address.id && "border-primary ring-2 ring-primary")}>
+                      <div className="flex justify-between items-start">
+                           <div className="flex items-center space-x-4">
+                                <RadioGroupItem value={address.id} id={address.id} />
+                                <div>
+                                    <p className="font-semibold">{address.name} {address.isDefault && <span className="text-xs text-muted-foreground">(Default)</span>}</p>
+                                    <p className="text-sm text-muted-foreground">{address.line1}, {address.city}, {address.state} - {address.pincode}</p>
+                                    <p className="text-sm text-muted-foreground">Mobile: {address.mobile}</p>
+                                </div>
+                           </div>
+                      </div>
+                  </Label>
+              ))}
+          </RadioGroup>
+          {savedAddresses.length === 0 && (
+            <div className="text-center py-8 px-4 border-2 border-dashed rounded-lg">
+                <p className="text-muted-foreground">You have no saved addresses.</p>
+                <p className="text-muted-foreground text-sm">Add one to continue.</p>
+            </div>
+          )}
+
         </div>
         <div className="p-6 border rounded-lg bg-secondary/30 self-start sticky top-24">
             <h2 className="text-2xl font-headline mb-4">Your Order</h2>
@@ -230,7 +302,7 @@ export default function CheckoutPage() {
                   <span>₹{totalAmount.toFixed(2)}</span>
                 </div>
             </div>
-            <Button className="w-full mt-6" onClick={handlePayment} disabled={isProcessing || cartItems.length === 0}>
+            <Button className="w-full mt-6" onClick={handlePayment} disabled={isProcessing || cartItems.length === 0 || !selectedAddressId}>
                 {isProcessing ? "Processing..." : `Pay ₹${totalAmount.toFixed(2)}`}
             </Button>
         </div>

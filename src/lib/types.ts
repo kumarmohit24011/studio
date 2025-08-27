@@ -6,6 +6,7 @@ export interface CartItem extends Product {
 }
 
 export interface ShippingAddress {
+    id: string; // Add id for address management
     name: string;
     mobile: string;
     line1: string;
@@ -13,6 +14,7 @@ export interface ShippingAddress {
     city: string;
     state: string;
     pincode: string;
+    isDefault?: boolean;
 }
 
 export interface Order {
