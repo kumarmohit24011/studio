@@ -1,3 +1,4 @@
+
 import { db, storage } from '@/lib/firebase';
 import { Product } from '@/lib/placeholder-data';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
@@ -15,10 +16,10 @@ const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): Product =
         images: data.images,
         category: data.category,
         metal: data.metal,
-        gemstone: data.gemstone === null ? undefined : data.gemstone,
+        gemstone: data.gemstone || null,
         sku: data.sku,
         stock: data.stock,
-        tags: data.tags,
+        tags: data.tags || null,
     };
 }
 
