@@ -71,68 +71,63 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   }, [user, authLoading, fetchUserCart, loadGuestCart]);
 
   const addToCart = async (product: Product, quantity = 1) => {
-    setCartItems(prevCart => {
-      const existingItemIndex = prevCart.findIndex(item => item.id === product.id);
-      let newCart: CartItem[];
+    const existingItemIndex = cartItems.findIndex(item => item.id === product.id);
+    let newCart: CartItem[];
 
-      if (existingItemIndex !== -1) {
-        newCart = [...prevCart];
-        newCart[existingItemIndex].quantity += quantity;
-      } else {
-        newCart = [...prevCart, { ...product, quantity }];
-      }
+    if (existingItemIndex !== -1) {
+      newCart = [...cartItems];
+      newCart[existingItemIndex].quantity += quantity;
+    } else {
+      newCart = [...cartItems, { ...product, quantity }];
+    }
 
-      if (user) {
-        cartService.updateCart(user.uid, newCart);
-      } else {
-        localStorage.setItem('cart', JSON.stringify(newCart));
-      }
-      
-      return newCart;
-    });
+    setCartItems(newCart);
+
+    if (user) {
+      await cartService.updateCart(user.uid, newCart);
+    } else {
+      localStorage.setItem('cart', JSON.stringify(newCart));
+    }
   };
 
   const removeFromCart = async (productId: string) => {
-     setCartItems(prevCart => {
-        const newCart = prevCart.filter(item => item.id !== productId);
-        if (user) {
-            cartService.updateCart(user.uid, newCart);
-        } else {
-            localStorage.setItem('cart', JSON.stringify(newCart));
-        }
-        return newCart;
-     });
+    const newCart = cartItems.filter(item => item.id !== productId);
+    setCartItems(newCart);
+    if (user) {
+        await cartService.updateCart(user.uid, newCart);
+    } else {
+        localStorage.setItem('cart', JSON.stringify(newCart));
+    }
   };
 
   const updateQuantity = async (productId: string, quantity: number) => {
-     setCartItems(prevCart => {
-        const itemIndex = prevCart.findIndex(item => item.id === productId);
-        if (itemIndex === -1) return prevCart;
+    const itemIndex = cartItems.findIndex(item => item.id === productId);
+    if (itemIndex === -1) return;
 
-        let newCart;
-        if (quantity <= 0) {
-            newCart = prevCart.filter(item => item.id !== productId);
-        } else {
-            newCart = [...prevCart];
-            newCart[itemIndex] = { ...newCart[itemIndex], quantity };
-        }
+    let newCart;
+    if (quantity <= 0) {
+      newCart = cartItems.filter(item => item.id !== productId);
+    } else {
+      newCart = [...cartItems];
+      newCart[itemIndex] = { ...newCart[itemIndex], quantity };
+    }
+    
+    setCartItems(newCart);
 
-        if (user) {
-            cartService.updateCart(user.uid, newCart);
-        } else {
-            localStorage.setItem('cart', JSON.stringify(newCart));
-        }
-        return newCart;
-     });
+    if (user) {
+      await cartService.updateCart(user.uid, newCart);
+    } else {
+      localStorage.setItem('cart', JSON.stringify(newCart));
+    }
   };
 
   const clearCart = async () => {
+    setCartItems([]);
     if (user) {
         await cartService.updateCart(user.uid, []);
     } else {
         localStorage.removeItem('cart');
     }
-    setCartItems([]);
   }
 
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
