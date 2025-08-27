@@ -11,9 +11,9 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
-import { createOrder } from "./actions";
+import { createRazorpayOrder, saveOrder } from "./actions";
+import { ShippingAddress } from "@/lib/types";
 
-// Make sure to declare this interface
 interface RazorpayOptions {
     key: string;
     amount: number;
@@ -36,7 +36,6 @@ interface RazorpayOptions {
     };
 }
 
-// Add this line to declare the Razorpay object
 declare const Razorpay: new (options: RazorpayOptions) => any;
 
 export default function CheckoutPage() {
@@ -46,7 +45,7 @@ export default function CheckoutPage() {
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const [address, setAddress] = useState({
+  const [address, setAddress] = useState<ShippingAddress>({
     name: "",
     mobile: "",
     line1: "",
@@ -85,10 +84,16 @@ export default function CheckoutPage() {
         return;
     }
 
+    // Basic validation
+    if (!address.name || !address.mobile || !address.line1 || !address.city || !address.state || !address.pincode) {
+        toast({variant: 'destructive', title: "Please fill all required shipping fields."});
+        return;
+    }
+
     setIsProcessing(true);
     
     try {
-      const order = await createOrder(totalAmount);
+      const order = await createRazorpayOrder(totalAmount);
       
       const options: RazorpayOptions = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
@@ -98,12 +103,28 @@ export default function CheckoutPage() {
         description: "Transaction for your beautiful jewelry",
         order_id: order.id,
         handler: async (response) => {
-          // Here you would typically verify the payment signature on your server
-          // For this example, we'll assume it's successful
-          console.log("Payment successful:", response);
-          toast({ title: "Payment Successful!", description: "Your order has been placed." });
-          clearCart(); // Clear cart on successful payment
-          router.push("/profile"); // Redirect to profile/orders page
+            try {
+              const saveResult = await saveOrder(
+                  user.uid,
+                  cartItems,
+                  totalAmount,
+                  address,
+                  {
+                      razorpay_payment_id: response.razorpay_payment_id,
+                      razorpay_order_id: response.razorpay_order_id,
+                  }
+              );
+
+              if (saveResult.success) {
+                  toast({ title: "Payment Successful!", description: "Your order has been placed." });
+                  clearCart();
+                  router.push("/profile");
+              } else {
+                  throw new Error(saveResult.message);
+              }
+            } catch (saveError: any) {
+                 toast({ variant: 'destructive', title: "Order Save Error", description: `Your payment was successful, but we failed to save your order. Please contact support with Order ID: ${response.razorpay_order_id}`});
+            }
         },
         prefill: {
           name: address.name,
@@ -120,6 +141,10 @@ export default function CheckoutPage() {
 
       const rzp = new Razorpay(options);
       rzp.open();
+      
+      rzp.on('payment.failed', function (response: any){
+          toast({ variant: 'destructive', title: "Payment Failed", description: response.error.description });
+      });
 
     } catch (error) {
       console.error("Payment creation failed:", error);
@@ -205,7 +230,7 @@ export default function CheckoutPage() {
                   <span>₹{totalAmount.toFixed(2)}</span>
                 </div>
             </div>
-            <Button className="w-full mt-6" onClick={handlePayment} disabled={isProcessing}>
+            <Button className="w-full mt-6" onClick={handlePayment} disabled={isProcessing || cartItems.length === 0}>
                 {isProcessing ? "Processing..." : `Pay ₹${totalAmount.toFixed(2)}`}
             </Button>
         </div>

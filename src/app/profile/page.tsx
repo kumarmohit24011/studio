@@ -27,12 +27,17 @@ import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { getProducts } from "@/services/productService";
+import { getOrdersForUser } from "@/services/orderService";
+import { Order } from "@/lib/types";
+import Link from "next/link";
+import Image from "next/image";
 
 export default function ProfilePage() {
   const { user, loading: authLoading, signOut } = useAuth();
   const router = useRouter();
   const { wishlist, loading: wishlistLoading } = useWishlist();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,34 +47,22 @@ export default function ProfilePage() {
   }, [user, authLoading, router]);
 
   useEffect(() => {
-    const fetchAllProducts = async () => {
+    const fetchInitialData = async () => {
         setLoading(true);
-        const products = await getProducts();
-        setAllProducts(products);
+        if (user) {
+            const [products, userOrders] = await Promise.all([
+                getProducts(),
+                getOrdersForUser(user.uid)
+            ]);
+            setAllProducts(products);
+            setOrders(userOrders);
+        }
         setLoading(false);
     }
-    fetchAllProducts();
-  }, [])
+    fetchInitialData();
+  }, [user])
   
   const wishlistedProducts = allProducts.filter(p => wishlist.includes(p.id));
-
-  const orders = [
-    // Mock data, will be connected to db later
-    {
-      id: "ORD001",
-      date: "June 23, 2024",
-      status: "Delivered",
-      total: 125000.0,
-      items: allProducts.slice(0, 2),
-    },
-    {
-      id: "ORD002",
-      date: "May 15, 2024",
-      status: "Processing",
-      total: 89900.0,
-      items: allProducts.slice(2,3),
-    },
-  ];
 
   if (loading || authLoading || !user) {
     return <div className="container mx-auto px-4 py-12 md:py-20 text-center">Loading...</div>
@@ -151,15 +144,15 @@ export default function ProfilePage() {
         </TabsContent>
         <TabsContent value="orders" className="mt-8">
             <div className="space-y-8">
-            {orders.map(order => (
+            {orders.length > 0 ? orders.map(order => (
                 <Card key={order.id}>
-                    <CardHeader className="flex flex-row justify-between items-center">
+                    <CardHeader className="flex flex-col md:flex-row justify-between md:items-center">
                         <div>
-                            <CardTitle>Order {order.id}</CardTitle>
-                            <CardDescription>Date: {order.date}</CardDescription>
+                            <CardTitle>Order #{order.id.substring(0, 7)}</CardTitle>
+                            <CardDescription>Date: {new Date(order.createdAt).toLocaleDateString()}</CardDescription>
                         </div>
-                        <div className="text-right">
-                           <p className="font-bold">₹{order.total.toFixed(2)}</p>
+                        <div className="text-left md:text-right mt-2 md:mt-0">
+                           <p className="font-bold">₹{order.totalAmount.toFixed(2)}</p>
                            <p className="text-sm text-muted-foreground">{order.status}</p>
                         </div>
                     </CardHeader>
@@ -168,9 +161,10 @@ export default function ProfilePage() {
                         <div className="space-y-4">
                         {order.items.map(item => (
                             <div key={item.id} className="flex items-center gap-4">
-                                <img src={item.images[0]} alt={item.name} className="w-16 h-16 rounded-md object-cover" />
+                                <Image src={item.images[0]} alt={item.name} width={64} height={64} className="w-16 h-16 rounded-md object-cover" />
                                 <div>
                                     <p className="font-semibold">{item.name}</p>
+                                    <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
                                     <p className="text-sm text-muted-foreground">₹{item.price.toFixed(2)}</p>
                                 </div>
                             </div>
@@ -181,7 +175,14 @@ export default function ProfilePage() {
                         <Button variant="outline">View Details</Button>
                     </CardFooter>
                 </Card>
-            ))}
+            )) : (
+                 <div className="text-center py-16">
+                    <p className="text-muted-foreground text-xl mb-4">You have not placed any orders yet.</p>
+                    <Button asChild>
+                        <Link href="/products">Start Shopping</Link>
+                    </Button>
+                </div>
+            )}
             </div>
         </TabsContent>
       </Tabs>
