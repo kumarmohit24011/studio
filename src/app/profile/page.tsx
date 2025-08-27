@@ -22,7 +22,7 @@ import { Product } from "@/lib/placeholder-data";
 import { ProductCard } from "@/components/ProductCard";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/use-auth";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useWishlist } from "@/hooks/use-wishlist";
@@ -127,6 +127,7 @@ const AddressForm = ({ userId, onSave, address, addresses }: { userId: string, o
 export default function ProfilePage() {
   const { user, loading: authLoading, signOut } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const { wishlist, loading: wishlistLoading } = useWishlist();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -136,6 +137,7 @@ export default function ProfilePage() {
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<ShippingAddress | undefined>(undefined);
 
+  const defaultTab = searchParams.get('tab') || 'profile';
 
   const fetchUserData = async () => {
       if (user) {
@@ -213,7 +215,7 @@ export default function ProfilePage() {
         </div>
         <Button onClick={signOut} variant="outline" className="md:ml-auto">Logout</Button>
       </div>
-      <Tabs defaultValue="profile" className="w-full">
+      <Tabs defaultValue={defaultTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="addresses">Addresses</TabsTrigger>

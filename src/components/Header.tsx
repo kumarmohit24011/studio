@@ -25,9 +25,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useCart } from "@/hooks/use-cart";
 import { Badge } from "./ui/badge";
 import { useWishlist } from "@/hooks/use-wishlist";
+import { Skeleton } from "./ui/skeleton";
 
 export function Header() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading: authLoading } = useAuth();
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
 
@@ -58,7 +59,7 @@ export function Header() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           </div>
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/profile?wishlist=true" className="relative">
+            <Link href="/profile?tab=wishlist" className="relative">
               <Heart className="h-5 w-5" />
                {wishlistCount > 0 && (
                 <Badge className="absolute -right-2 -top-2 h-5 w-5 justify-center p-0" variant="destructive">{wishlistCount}</Badge>
@@ -75,39 +76,44 @@ export function Header() {
               <span className="sr-only">Cart</span>
             </Link>
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
+
+          {authLoading ? (
+            <Skeleton className="h-8 w-8 rounded-full" />
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full">
+                  {user ? (
+                      <Avatar className="h-8 w-8">
+                          <AvatarImage src={user.photoURL || ''} alt={user.displayName || 'User'}/>
+                          <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                  ) : (
+                      <UserCircle className="h-5 w-5" />
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
                 {user ? (
-                    <Avatar className="h-8 w-8">
-                        <AvatarImage src={user.photoURL || ''} alt={user.displayName || 'User'}/>
-                        <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
-                    </Avatar>
+                  <>
+                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild><Link href="/profile"><UserCircle className="mr-2"/>Profile</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link href="/admin"><LayoutDashboard className="mr-2"/>Admin</Link></DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={signOut}><LogOut className="mr-2"/>Logout</DropdownMenuItem>
+                  </>
                 ) : (
-                    <UserCircle className="h-5 w-5" />
+                  <>
+                    <DropdownMenuLabel>Guest</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild><Link href="/login">Login</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link href="/signup">Sign Up</Link></DropdownMenuItem>
+                  </>
                 )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {user ? (
-                <>
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild><Link href="/profile"><UserCircle className="mr-2"/>Profile</Link></DropdownMenuItem>
-                  <DropdownMenuItem asChild><Link href="/admin"><LayoutDashboard className="mr-2"/>Admin</Link></DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={signOut}><LogOut className="mr-2"/>Logout</DropdownMenuItem>
-                </>
-              ) : (
-                <>
-                  <DropdownMenuLabel>Guest</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild><Link href="/login">Login</Link></DropdownMenuItem>
-                  <DropdownMenuItem asChild><Link href="/signup">Sign Up</Link></DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
     </header>

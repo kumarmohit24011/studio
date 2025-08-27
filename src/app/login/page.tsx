@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -14,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 function GoogleIcon() {
     return (
@@ -30,12 +31,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect') || "/profile";
 
   const handleLogin = async () => {
     try {
       await signInWithEmail(email, password);
       toast({ title: "Logged in successfully!" });
-      router.push("/profile");
+      router.push(redirectUrl);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -49,7 +52,7 @@ export default function LoginPage() {
     try {
       await signInWithGoogle();
       toast({ title: "Logged in successfully!" });
-      router.push("/profile");
+      router.push(redirectUrl);
     } catch (error: any) {
       toast({
         variant: "destructive",
