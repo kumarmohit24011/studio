@@ -49,6 +49,8 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
   const [formData, setFormData] = useState<Omit<Product, 'id'>>(emptyProduct);
   const [isFeatured, setIsFeatured] = useState(false);
   const [isTrending, setIsTrending] = useState(false);
+  const [isNew, setIsNew] = useState(false);
+  const [isSale, setIsSale] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -57,10 +59,14 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
       setFormData(product);
       setIsFeatured(product.tags?.includes('featured') || false);
       setIsTrending(product.tags?.includes('trending') || false);
+      setIsNew(product.tags?.includes('new') || false);
+      setIsSale(product.tags?.includes('sale') || false);
     } else {
       setFormData(emptyProduct);
       setIsFeatured(false);
       setIsTrending(false);
+      setIsNew(false);
+      setIsSale(false);
     }
     setImageFiles([]); // Reset files on open/close
   }, [product, isOpen]);
@@ -103,11 +109,13 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
     }
 
     // Start with existing tags, filtering out any managed by switches
-    const otherTags = formData.tags?.filter(tag => tag !== 'featured' && tag !== 'trending' && tag !== 'new' && tag !== 'sale') || [];
+    const otherTags = formData.tags?.filter(tag => !['featured', 'trending', 'new', 'sale'].includes(tag)) || [];
     
     const newTags = [...otherTags];
     if (isFeatured) newTags.push('featured');
     if (isTrending) newTags.push('trending');
+    if (isNew) newTags.push('new');
+    if (isSale) newTags.push('sale');
 
     const dataToSave = {
       ...formData,
@@ -233,6 +241,22 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
                 id="trending"
                 checked={isTrending}
                 onCheckedChange={setIsTrending}
+            />
+           </div>
+           <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="new" className="text-right">New Arrival</Label>
+            <Switch
+                id="new"
+                checked={isNew}
+                onCheckedChange={setIsNew}
+            />
+           </div>
+           <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="sale" className="text-right">On Sale</Label>
+            <Switch
+                id="sale"
+                checked={isSale}
+                onCheckedChange={setIsSale}
             />
            </div>
         </div>
