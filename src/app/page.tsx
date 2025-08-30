@@ -45,8 +45,8 @@ export default function Home() {
           src={homepageSettings?.heroImageUrl || "https://placehold.co/1800x1200.png"}
           alt="Elegant jewelry on display"
           fill
-          objectFit="cover"
-          className="brightness-50"
+          className="object-cover brightness-50"
+          sizes="100vw"
           data-ai-hint="lifestyle jewelry"
           priority
         />
@@ -104,14 +104,14 @@ export default function Home() {
             <Card className="overflow-hidden">
               <CardContent className="p-0">
                 <div className="relative h-80">
-                    <Image src={homepageSettings?.offerImageUrl1 || "https://placehold.co/800x600.png"} alt="Seasonal Sale" fill objectFit="cover" data-ai-hint="jewelry sale"/>
+                    <Image src={homepageSettings?.offerImageUrl1 || "https://placehold.co/800x600.png"} alt="Seasonal Sale" fill className="object-cover" sizes="(min-width: 768px) 50vw, 100vw" data-ai-hint="jewelry sale"/>
                 </div>
               </CardContent>
             </Card>
             <Card className="overflow-hidden">
               <CardContent className="p-0">
                 <div className="relative h-80">
-                    <Image src={homepageSettings?.offerImageUrl2 || "https://placehold.co/800x600.png"} alt="Festive Discounts" fill objectFit="cover" data-ai-hint="diamond ring"/>
+                    <Image src={homepageSettings?.offerImageUrl2 || "https://placehold.co/800x600.png"} alt="Festive Discounts" fill className="object-cover" sizes="(min-width: 768px) 50vw, 100vw" data-ai-hint="diamond ring"/>
                 </div>
               </CardContent>
             </Card>

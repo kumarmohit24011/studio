@@ -127,7 +127,7 @@ export default function SettingsPage() {
                 src={heroImageUrl}
                 alt="Hero Image Preview"
                 fill
-                style={{objectFit: 'cover'}}
+                className="object-cover"
                 unoptimized={!!newHeroImageFile}
               />
             </div>
@@ -152,7 +152,7 @@ export default function SettingsPage() {
                     src={offerImageUrl1}
                     alt="Offer Image 1 Preview"
                     fill
-                    style={{objectFit: 'cover'}}
+                    className="object-cover"
                     unoptimized={!!newOfferImage1File}
                 />
                 </div>
@@ -177,7 +177,7 @@ export default function SettingsPage() {
                     src={offerImageUrl2}
                     alt="Offer Image 2 Preview"
                     fill
-                    style={{objectFit: 'cover'}}
+                    className="object-cover"
                     unoptimized={!!newOfferImage2File}
                 />
                 </div>

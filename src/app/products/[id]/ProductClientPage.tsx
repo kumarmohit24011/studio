@@ -85,8 +85,9 @@ export function ProductClientPage({
                       <Image
                         src={img}
                         alt={`${product.name} image ${index + 1}`}
-                        layout="fill"
-                        objectFit="cover"
+                        fill
+                        className="object-cover"
+                        sizes="(min-width: 1024px) 50vw, 100vw"
                         data-ai-hint="jewelry"
                       />
                     </CardContent>
