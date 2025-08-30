@@ -1,9 +1,11 @@
 
 import { db } from '@/lib/firebase';
-import { Order, OrderItem, ShippingAddress } from '@/lib/types';
-import { collection, getDocs, doc, addDoc, query, where, orderBy, DocumentData, QueryDocumentSnapshot, updateDoc } from 'firebase/firestore';
+import { Order, OrderItem } from '@/lib/types';
+import { collection, getDocs, doc, addDoc, query, where, orderBy, DocumentData, QueryDocumentSnapshot, updateDoc, limit } from 'firebase/firestore';
+import { Coupon } from './couponService';
 
 const orderCollection = collection(db, 'orders');
+const couponCollection = collection(db, 'coupons');
 
 const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): Order => {
     const data = snapshot.data();
@@ -18,12 +20,13 @@ const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): Order => 
             price: item.price,
         })),
         totalAmount: data.totalAmount,
-        shippingAddress: data.shippingAddress as ShippingAddress,
+        shippingAddressId: data.shippingAddressId,
         orderStatus: data.orderStatus,
         paymentStatus: data.paymentStatus,
         razorpay_payment_id: data.razorpay_payment_id,
         razorpay_order_id: data.razorpay_order_id,
         createdAt: data.createdAt,
+        coupon: data.coupon
     };
 }
 
@@ -48,3 +51,27 @@ export const updateOrderStatus = async (orderId: string, status: Order['orderSta
     const orderDoc = doc(db, 'orders', orderId);
     await updateDoc(orderDoc, { orderStatus: status });
 };
+
+export const getCouponByCode = async (code: string): Promise<Coupon | null> => {
+    const q = query(couponCollection, where("code", "==", code), limit(1));
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+        return null;
+    }
+
+    const couponDoc = snapshot.docs[0];
+    const data = couponDoc.data();
+
+    return {
+        id: couponDoc.id,
+        code: data.code,
+        discountType: data.discountType,
+        discountValue: data.discountValue,
+        expiryDate: data.expiryDate,
+        minPurchase: data.minPurchase,
+        isActive: data.isActive,
+    };
+};
+
+    

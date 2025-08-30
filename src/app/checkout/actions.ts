@@ -3,8 +3,10 @@
 
 import Razorpay from "razorpay";
 import { z } from "zod";
-import { createOrder as saveOrderInDb } from "@/services/orderService";
-import { CartItem, ShippingAddress } from "@/lib/types";
+import { createOrder as saveOrderInDb, getCouponByCode } from "@/services/orderService";
+import { CartItem } from "@/lib/types";
+import { Coupon } from "@/services/couponService";
+
 
 const RazorpayOrderInput = z.number().positive();
 
@@ -41,8 +43,9 @@ export async function saveOrder(
     userId: string,
     cartItems: CartItem[],
     totalAmount: number,
-    shippingAddress: ShippingAddress,
-    paymentDetails: { razorpay_payment_id: string; razorpay_order_id: string }
+    shippingAddressId: string,
+    paymentDetails: { razorpay_payment_id: string; razorpay_order_id: string },
+    couponApplied?: { code: string; discountAmount: number }
 ) {
     try {
         const orderData = {
@@ -55,12 +58,13 @@ export async function saveOrder(
                 price: item.price
             })),
             totalAmount,
-            shippingAddress: shippingAddress,
+            shippingAddressId: shippingAddressId,
             orderStatus: 'Processing' as const,
             paymentStatus: 'Paid' as const,
             razorpay_payment_id: paymentDetails.razorpay_payment_id,
             razorpay_order_id: paymentDetails.razorpay_order_id,
-            createdAt: Date.now()
+            createdAt: Date.now(),
+            coupon: couponApplied,
         };
         const orderId = await saveOrderInDb(orderData);
         return { success: true, orderId };
@@ -69,3 +73,45 @@ export async function saveOrder(
         return { success: false, message: "Failed to save the order to the database." };
     }
 }
+
+
+export async function applyCouponCode(code: string, subtotal: number): Promise<{
+    success: boolean;
+    coupon?: Coupon;
+    discountAmount?: number;
+    message: string;
+}> {
+    const coupon = await getCouponByCode(code);
+
+    if (!coupon) {
+        return { success: false, message: "Invalid coupon code." };
+    }
+
+    if (!coupon.isActive) {
+        return { success: false, message: "This coupon is no longer active." };
+    }
+
+    if (new Date().getTime() > coupon.expiryDate) {
+        return { success: false, message: "This coupon has expired." };
+    }
+
+    if (subtotal < coupon.minPurchase) {
+        return { success: false, message: `You must spend at least ₹${coupon.minPurchase} to use this coupon.` };
+    }
+
+    let discountAmount = 0;
+    if (coupon.discountType === 'percentage') {
+        discountAmount = (subtotal * coupon.discountValue) / 100;
+    } else {
+        discountAmount = coupon.discountValue;
+    }
+
+    return {
+        success: true,
+        coupon,
+        discountAmount,
+        message: "Coupon applied successfully.",
+    };
+}
+
+    

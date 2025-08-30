@@ -31,10 +31,16 @@ export interface Order {
     userId: string;
     items: OrderItem[];
     totalAmount: number;
-    shippingAddress: ShippingAddress; // Denormalize for easier display in admin panel
+    shippingAddressId: string;
     orderStatus: 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
     paymentStatus: 'Paid' | 'Pending' | 'Failed';
     razorpay_payment_id: string;
     razorpay_order_id: string;
     createdAt: number; // Firestore timestamp
+    coupon?: {
+        code: string;
+        discountAmount: number;
+    }
 }
+
+    

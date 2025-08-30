@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
-import { createRazorpayOrder, saveOrder } from "./actions";
+import { createRazorpayOrder, saveOrder, applyCouponCode } from "./actions";
 import { ShippingAddress } from "@/lib/types";
 import { getAddresses, addAddress } from "@/services/addressService";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -23,8 +23,9 @@ import {
   DialogTrigger,
   DialogClose
 } from "@/components/ui/dialog";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Coupon } from "@/services/couponService";
 
 
 interface RazorpayOptions {
@@ -108,6 +109,10 @@ export default function CheckoutPage() {
 
   const [savedAddresses, setSavedAddresses] = useState<ShippingAddress[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | undefined>(undefined);
+  
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [discount, setDiscount] = useState(0);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -142,7 +147,38 @@ export default function CheckoutPage() {
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const shipping = 150.0;
-  const totalAmount = subtotal + shipping;
+  
+  useEffect(() => {
+    if (appliedCoupon) {
+      if (appliedCoupon.discountType === 'percentage') {
+        setDiscount((subtotal * appliedCoupon.discountValue) / 100);
+      } else {
+        setDiscount(appliedCoupon.discountValue);
+      }
+    } else {
+      setDiscount(0);
+    }
+  }, [appliedCoupon, subtotal]);
+
+  const totalAmount = subtotal + shipping - discount;
+  
+  const handleApplyCoupon = async () => {
+    if (!couponCode) return;
+    try {
+      const result = await applyCouponCode(couponCode, subtotal);
+      if (result.success && result.coupon) {
+        setAppliedCoupon(result.coupon);
+        toast({ title: 'Coupon Applied', description: `Discount of ₹${result.discountAmount.toFixed(2)} applied.` });
+      } else {
+        setAppliedCoupon(null);
+        setCouponCode("");
+        toast({ variant: 'destructive', title: 'Invalid Coupon', description: result.message });
+      }
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Error', description: error.message });
+    }
+  };
+
 
   const handlePayment = async () => {
     if (!user) {
@@ -175,11 +211,12 @@ export default function CheckoutPage() {
                   user.uid,
                   cartItems,
                   totalAmount,
-                  selectedAddress,
+                  selectedAddress.id,
                   {
                       razorpay_payment_id: response.razorpay_payment_id,
                       razorpay_order_id: response.razorpay_order_id,
-                  }
+                  },
+                  appliedCoupon ? { code: appliedCoupon.code, discountAmount: discount } : undefined
               );
 
               if (saveResult.success) {
@@ -287,15 +324,33 @@ export default function CheckoutPage() {
               ))}
             </div>
             <Separator className="my-4"/>
+            <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                    <Input 
+                        placeholder="Coupon Code" 
+                        value={couponCode} 
+                        onChange={(e) => setCouponCode(e.target.value)}
+                        disabled={!!appliedCoupon}
+                    />
+                    <Button onClick={handleApplyCoupon} disabled={!!appliedCoupon}>Apply</Button>
+                </div>
+            </div>
+             <Separator className="my-4"/>
              <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
                   <span>₹{subtotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between">
+                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Shipping</span>
                   <span>₹{shipping.toFixed(2)}</span>
                 </div>
+                {appliedCoupon && (
+                   <div className="flex justify-between text-green-600">
+                    <span className="flex items-center gap-1"><Tag className="w-4 h-4"/> Coupon: {appliedCoupon.code}</span>
+                    <span>-₹{discount.toFixed(2)}</span>
+                   </div>
+                )}
                 <Separator />
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total</span>
@@ -310,3 +365,5 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
+    
