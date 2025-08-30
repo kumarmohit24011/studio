@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -11,7 +12,7 @@ import {
   Tag,
   ShoppingBag,
   Shield,
-  Ticket,
+  Shapes,
 } from "lucide-react";
 import {
   SidebarProvider,
@@ -25,7 +26,6 @@ import {
   SidebarTrigger,
   SidebarInset,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
 
 export default function AdminLayout({
   children,
@@ -37,9 +37,9 @@ export default function AdminLayout({
   const menuItems = [
     { href: "/admin", label: "Dashboard", icon: Home },
     { href: "/admin/products", label: "Products", icon: Package },
-    { href: "/admin/categories", label: "Categories", icon: Tag },
+    { href: "/admin/categories", label: "Categories", icon: Shapes },
     { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
-    { href: "/admin/offers", label: "Offers & Coupons", icon: Ticket },
+    { href: "/admin/offers", label: "Offers & Coupons", icon: Tag },
     { href: "/admin/inventory", label: "Inventory", icon: LineChart },
     { href: "/admin/users", label: "User Management", icon: Users },
     { href: "/admin/audit", label: "Audit Log", icon: Shield },
