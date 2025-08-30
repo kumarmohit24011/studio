@@ -6,7 +6,9 @@ import { z } from "zod";
 import { createOrder as saveOrderInDb, getCouponByCode } from "@/services/orderService";
 import { CartItem } from "@/lib/types";
 import { Coupon } from "@/services/couponService";
-
+import { db } from "@/lib/firebase";
+import { doc, getDoc, writeBatch, runTransaction } from "firebase/firestore";
+import { Product } from "@/lib/placeholder-data";
 
 const RazorpayOrderInput = z.number().positive();
 
@@ -48,7 +50,12 @@ export async function saveOrder(
     couponApplied?: { code: string; discountAmount: number }
 ) {
     try {
+        const batch = writeBatch(db);
+
+        // 1. Create the order document
+        const newOrderRef = doc(db, "orders", paymentDetails.razorpay_order_id);
         const orderData = {
+            id: paymentDetails.razorpay_order_id,
             userId,
             items: cartItems.map(item => ({
                 productId: item.id,
@@ -66,11 +73,28 @@ export async function saveOrder(
             createdAt: Date.now(),
             coupon: couponApplied,
         };
-        const orderId = await saveOrderInDb(orderData);
-        return { success: true, orderId };
+        batch.set(newOrderRef, orderData);
+        
+        // 2. Decrement stock for each product
+        for (const item of cartItems) {
+            const productRef = doc(db, 'products', item.id);
+            const productSnap = await getDoc(productRef);
+            if (productSnap.exists()) {
+                const productData = productSnap.data() as Product;
+                const newStock = productData.stock - item.quantity;
+                batch.update(productRef, { stock: newStock });
+            } else {
+                throw new Error(`Product with ID ${item.id} not found.`);
+            }
+        }
+        
+        // 3. Commit the batch write
+        await batch.commit();
+
+        return { success: true, orderId: newOrderRef.id };
     } catch (error) {
-        console.error("Failed to save order:", error);
-        return { success: false, message: "Failed to save the order to the database." };
+        console.error("Failed to save order and update stock:", error);
+        return { success: false, message: "Failed to save the order and update stock." };
     }
 }
 
@@ -113,5 +137,3 @@ export async function applyCouponCode(code: string, subtotal: number): Promise<{
         message: "Coupon applied successfully.",
     };
 }
-
-    
