@@ -49,8 +49,22 @@ export async function saveOrder(
     paymentDetails: { razorpay_payment_id: string; razorpay_order_id: string },
     couponApplied?: { code: string; discountAmount: number }
 ) {
+    console.log("--- Starting saveOrder ---");
+    console.log("UserID:", userId);
+    console.log("Cart Items Count:", cartItems.length);
+    console.log("Total Amount:", totalAmount);
+    console.log("Shipping Address ID:", shippingAddressId);
+    console.log("Payment Details:", paymentDetails);
+
+    if (!paymentDetails.razorpay_order_id) {
+        console.error("FATAL: razorpay_order_id is missing in paymentDetails.");
+        return { success: false, message: "Razorpay Order ID is missing." };
+    }
+    
     try {
        await runTransaction(db, async (transaction) => {
+            console.log(`[Transaction ${paymentDetails.razorpay_order_id}] Starting.`);
+            
             // 1. Create the order document
             const newOrderRef = doc(db, "orders", paymentDetails.razorpay_order_id);
             const orderData = {
@@ -73,11 +87,15 @@ export async function saveOrder(
                 coupon: couponApplied,
             };
             transaction.set(newOrderRef, orderData);
+            console.log(`[Transaction ${paymentDetails.razorpay_order_id}] Step 1: Set new order document.`);
+
 
             // 2. Decrement stock for each product
+            console.log(`[Transaction ${paymentDetails.razorpay_order_id}] Step 2: Decrementing stock for ${cartItems.length} items.`);
             for (const item of cartItems) {
                 const productRef = doc(db, 'products', item.id);
                 const productSnap = await transaction.get(productRef);
+                
                 if (!productSnap.exists()) {
                     throw new Error(`Product with ID ${item.id} not found.`);
                 }
@@ -85,17 +103,22 @@ export async function saveOrder(
                 const productData = productSnap.data() as Product;
                 const newStock = productData.stock - item.quantity;
                 
+                console.log(`[Transaction ${paymentDetails.razorpay_order_id}] Product ${item.id} (${productData.name}): Old stock: ${productData.stock}, New stock: ${newStock}`);
+
                 if (newStock < 0) {
-                    throw new Error(`Not enough stock for product ${productData.name}.`);
+                    throw new Error(`Not enough stock for product ${productData.name}. Requested: ${item.quantity}, Available: ${productData.stock}`);
                 }
 
                 transaction.update(productRef, { stock: newStock });
             }
+            console.log(`[Transaction ${paymentDetails.razorpay_order_id}] Step 2 Complete: Stock updates prepared.`);
         });
         
+        console.log(`--- saveOrder successful for Order ID: ${paymentDetails.razorpay_order_id} ---`);
         return { success: true, orderId: paymentDetails.razorpay_order_id };
     } catch (error) {
-        console.error("Failed to save order and update stock:", error);
+        console.error("--- saveOrder FAILED ---");
+        console.error("Error during Firestore transaction:", error);
         const errorMessage = error instanceof Error ? error.message : "Failed to save the order and update stock.";
         return { success: false, message: errorMessage };
     }
