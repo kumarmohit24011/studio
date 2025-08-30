@@ -13,14 +13,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { useEffect, useState, useMemo } from "react";
 import { getProducts } from "@/services/productService";
+import { getCategories } from "@/services/categoryService";
+import { Category } from "@/services/categoryService";
 import { cn } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
 
-const CATEGORIES = ["All", "Rings", "Necklaces", "Bracelets", "Earrings"];
 type SortOption = "newest" | "price-asc" | "price-desc" | "popularity";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortOption, setSortOption] = useState<SortOption>("newest");
@@ -28,13 +30,17 @@ export default function ProductsPage() {
   const searchQuery = searchParams.get('search');
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       setLoading(true);
-      const allProducts = await getProducts();
+      const [allProducts, allCategories] = await Promise.all([
+        getProducts(),
+        getCategories(),
+      ]);
       setProducts(allProducts);
+      setCategories(allCategories);
       setLoading(false);
     };
-    fetchProducts();
+    fetchData();
   }, []);
 
   const sortedAndFilteredProducts = useMemo(() => {
@@ -72,6 +78,8 @@ export default function ProductsPage() {
     }
 
   }, [products, selectedCategory, sortOption, searchQuery]);
+  
+  const displayCategories = useMemo(() => [{ id: 'all', name: 'All' }, ...categories], [categories]);
 
   if (loading) {
     return <div className="container mx-auto px-4 py-12 text-center">Loading...</div>
@@ -90,18 +98,18 @@ export default function ProductsPage() {
 
       <main>
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 border-b">
-           <div className="flex items-center gap-2">
-               {CATEGORIES.map(category => (
+           <div className="flex items-center gap-2 overflow-x-auto pb-2">
+               {displayCategories.map(category => (
                    <Button
-                    key={category}
+                    key={category.id}
                     variant="ghost"
-                    onClick={() => setSelectedCategory(category)}
+                    onClick={() => setSelectedCategory(category.name)}
                     className={cn(
-                        "rounded-none text-muted-foreground hover:text-primary pb-2 border-b-2 h-auto px-3 py-1 text-base",
-                        selectedCategory === category ? "border-primary text-primary" : "border-transparent"
+                        "rounded-none text-muted-foreground hover:text-primary border-b-2 flex-shrink-0",
+                        selectedCategory === category.name ? "border-primary text-primary" : "border-transparent"
                     )}
                    >
-                       {category}
+                       {category.name}
                    </Button>
                ))}
            </div>
