@@ -40,25 +40,28 @@ export default function Home() {
 
   return (
     <div className="flex flex-col">
-      <section className="relative h-[60vh] md:h-[70vh] w-full">
+      <section className="relative h-[70vh] w-full">
         <Image
           src={homepageSettings?.heroImageUrl || "https://placehold.co/1800x1200.png"}
           alt="Elegant jewelry on display"
-          layout="fill"
+          fill
           objectFit="cover"
           className="brightness-50"
           data-ai-hint="lifestyle jewelry"
+          priority
         />
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white p-4">
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-headline mb-4 drop-shadow-lg">
-            Timeless Elegance, Redefined
-          </h1>
-          <p className="text-lg md:text-xl max-w-2xl mb-8 font-body drop-shadow-md">
-            Discover exquisite jewelry that tells your story. Crafted with passion, designed for forever.
-          </p>
-          <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg py-8 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105">
-            <Link href="/products">Shop The Collection</Link>
-          </Button>
+        <div className="absolute inset-0 flex flex-col items-start justify-center text-white p-8 md:p-16 lg:p-24">
+          <div className="max-w-xl">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-headline mb-4 drop-shadow-lg">
+              Timeless Elegance, Redefined
+            </h1>
+            <p className="text-lg md:text-xl max-w-2xl mb-8 font-body drop-shadow-md">
+              Discover exquisite jewelry that tells your story. Crafted with passion, designed for forever.
+            </p>
+            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg py-8 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105">
+              <Link href="/products">Shop The Collection</Link>
+            </Button>
+          </div>
         </div>
       </section>
 
@@ -102,7 +105,7 @@ export default function Home() {
             <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
               <CardContent className="p-0">
                 <div className="relative h-80">
-                    <Image src={homepageSettings?.offerImageUrl1 || "https://placehold.co/800x600.png"} alt="Seasonal Sale" layout="fill" objectFit="cover" data-ai-hint="jewelry sale"/>
+                    <Image src={homepageSettings?.offerImageUrl1 || "https://placehold.co/800x600.png"} alt="Seasonal Sale" fill objectFit="cover" data-ai-hint="jewelry sale"/>
                     <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white p-6 text-center">
                         <h3 className="font-headline text-3xl mb-2">Seasonal Sale</h3>
                         <p className="mb-4">Up to 30% off on select collections.</p>
@@ -116,7 +119,7 @@ export default function Home() {
             <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
               <CardContent className="p-0">
                 <div className="relative h-80">
-                    <Image src={homepageSettings?.offerImageUrl2 || "https://placehold.co/800x600.png"} alt="Festive Discounts" layout="fill" objectFit="cover" data-ai-hint="diamond ring"/>
+                    <Image src={homepageSettings?.offerImageUrl2 || "https://placehold.co/800x600.png"} alt="Festive Discounts" fill objectFit="cover" data-ai-hint="diamond ring"/>
                     <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white p-6 text-center">
                         <h3 className="font-headline text-3xl mb-2">Festive Discounts</h3>
                         <p className="mb-4">Shine brighter with our exclusive festive offers.</p>
