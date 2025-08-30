@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,7 @@ import { addProduct, updateProduct, uploadProductImage } from "@/services/produc
 import { Category, getCategories } from "@/services/categoryService";
 import Image from "next/image";
 import { X } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 interface ProductDialogProps {
   isOpen: boolean;
@@ -147,103 +149,120 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>
-          <DialogTitle>{product ? "Edit Product" : "Add Product"}</DialogTitle>
+          <DialogTitle>{product ? "Edit Product" : "Add New Product"}</DialogTitle>
+           <DialogDescription>
+            {product ? "Update the details of this product." : "Fill out the form to add a new product."}
+          </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4 max-h-[80vh] overflow-y-auto pr-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">Name</Label>
-            <Input id="name" value={formData.name} onChange={handleChange} className="col-span-3" />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="description" className="text-right">Description</Label>
-            <Textarea id="description" value={formData.description} onChange={handleChange} className="col-span-3" />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="images" className="text-right">Images</Label>
-            <Input id="images" type="file" multiple onChange={handleImageChange} className="col-span-3" />
-          </div>
-          {formData.images.length > 0 && (
-             <div className="grid grid-cols-4 items-start gap-4">
-                <Label className="text-right pt-2">Current</Label>
-                <div className="col-span-3 grid grid-cols-4 gap-2">
-                    {formData.images.map((url, index) => (
-                        <div key={index} className="relative">
-                            <Image src={url} alt="product image" width={100} height={100} className="rounded-md object-cover"/>
-                            <Button
-                                variant="destructive"
-                                size="icon"
-                                className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
-                                onClick={() => handleRemoveImage(index)}
-                            >
-                                <X className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    ))}
-                </div>
+        <div className="grid gap-6 py-4 max-h-[80vh] overflow-y-auto pr-4">
+          
+          {/* Product Details */}
+          <div className="grid gap-4">
+            <div className="space-y-2">
+                <Label htmlFor="name">Product Name</Label>
+                <Input id="name" value={formData.name} onChange={handleChange} />
             </div>
-          )}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="price" className="text-right">Price</Label>
-            <Input id="price" type="number" value={formData.price} onChange={handleNumberChange} className="col-span-3" />
+             <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea id="description" value={formData.description} onChange={handleChange} />
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="category">Category</Label>
+                 <Select value={formData.category} onValueChange={(value) => handleSelectChange('category', value)}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {categories.map(cat => (
+                            <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="stock" className="text-right">Stock</Label>
-            <Input id="stock" type="number" value={formData.stock} onChange={handleNumberChange} className="col-span-3" />
+          
+          <Separator />
+
+          {/* Pricing and Inventory */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+             <div className="space-y-2">
+                <Label htmlFor="price">Price (₹)</Label>
+                <Input id="price" type="number" value={formData.price} onChange={handleNumberChange} />
+             </div>
+             <div className="space-y-2">
+                <Label htmlFor="stock">Stock</Label>
+                <Input id="stock" type="number" value={formData.stock} onChange={handleNumberChange} />
+             </div>
+             <div className="space-y-2">
+                <Label htmlFor="sku">SKU</Label>
+                <Input id="sku" value={formData.sku} onChange={handleChange} />
+             </div>
           </div>
-           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="sku" className="text-right">SKU</Label>
-            <Input id="sku" value={formData.sku} onChange={handleChange} className="col-span-3" />
+
+          <Separator />
+          
+          {/* Images */}
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="images">Product Images</Label>
+              <Input id="images" type="file" multiple onChange={handleImageChange} />
+              <p className="text-sm text-muted-foreground mt-1">Upload one or more images for your product.</p>
+            </div>
+            {formData.images.length > 0 && (
+               <div className="space-y-2">
+                  <Label>Current Images</Label>
+                  <div className="grid grid-cols-4 gap-2">
+                      {formData.images.map((url, index) => (
+                          <div key={index} className="relative">
+                              <Image src={url} alt="product image" width={100} height={100} className="rounded-md object-cover aspect-square"/>
+                              <Button
+                                  variant="destructive"
+                                  size="icon"
+                                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                                  onClick={() => handleRemoveImage(index)}
+                              >
+                                  <X className="h-4 w-4" />
+                              </Button>
+                          </div>
+                      ))}
+                  </div>
+              </div>
+            )}
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="category" className="text-right">Category</Label>
-            <Select value={formData.category} onValueChange={(value) => handleSelectChange('category', value)}>
-                <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                    {categories.map(cat => (
-                        <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
+          
+          <Separator />
+
+          {/* Tags */}
+          <div className="space-y-4">
+            <div>
+                <h4 className="font-medium">Product Tags</h4>
+                <p className="text-sm text-muted-foreground">Select tags to highlight this product across your store.</p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center space-x-2">
+                <Switch id="featured" checked={isFeatured} onCheckedChange={setIsFeatured}/>
+                <Label htmlFor="featured">Featured Product</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                  <Switch id="trending" checked={isTrending} onCheckedChange={setIsTrending}/>
+                  <Label htmlFor="trending">Trending Now</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                  <Switch id="new" checked={isNew} onCheckedChange={setIsNew}/>
+                  <Label htmlFor="new">New Arrival</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                  <Switch id="sale" checked={isSale} onCheckedChange={setIsSale}/>
+                  <Label htmlFor="sale">On Sale</Label>
+              </div>
+            </div>
           </div>
-           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="featured" className="text-right">Featured</Label>
-            <Switch
-                id="featured"
-                checked={isFeatured}
-                onCheckedChange={setIsFeatured}
-            />
-           </div>
-           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="trending" className="text-right">Trending</Label>
-            <Switch
-                id="trending"
-                checked={isTrending}
-                onCheckedChange={setIsTrending}
-            />
-           </div>
-           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="new" className="text-right">New Arrival</Label>
-            <Switch
-                id="new"
-                checked={isNew}
-                onCheckedChange={setIsNew}
-            />
-           </div>
-           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="sale" className="text-right">On Sale</Label>
-            <Switch
-                id="sale"
-                checked={isSale}
-                onCheckedChange={setIsSale}
-            />
-           </div>
+
         </div>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onClose} disabled={isUploading}>Cancel</Button>
           <Button type="submit" onClick={handleSubmit} disabled={isUploading}>
-            {isUploading ? 'Saving...' : 'Save'}
+            {isUploading ? 'Saving...' : 'Save Product'}
           </Button>
         </DialogFooter>
       </DialogContent>
