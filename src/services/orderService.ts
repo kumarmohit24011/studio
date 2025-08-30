@@ -1,7 +1,7 @@
 
 import { db } from '@/lib/firebase';
 import { Order, OrderItem } from '@/lib/types';
-import { collection, getDocs, doc, addDoc, query, where, orderBy, DocumentData, QueryDocumentSnapshot, updateDoc, limit, getDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, addDoc, query, where, orderBy, DocumentData, QueryDocumentSnapshot, updateDoc, limit, getDoc, setDoc } from 'firebase/firestore';
 import { Coupon } from './couponService';
 import { createLog } from './auditLogService';
 import { getAuth } from 'firebase/auth';
@@ -38,8 +38,9 @@ const getCurrentUser = () => {
 }
 
 
-export const createOrder = async (orderData: Omit<Order, 'id'>): Promise<string> => {
-    const docRef = await addDoc(orderCollection, orderData);
+export const createOrder = async (orderData: Order): Promise<string> => {
+    const docRef = doc(db, orderCollection.path, orderData.id);
+    await setDoc(docRef, orderData);
     
     // Note: Log creation is triggered by the customer action, may not need an admin log here unless desired.
     // We will log status changes instead.
