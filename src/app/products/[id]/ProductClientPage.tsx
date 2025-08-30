@@ -150,8 +150,6 @@ export function ProductClientPage({
             <AccordionItem value="item-1">
               <AccordionTrigger>Product Details</AccordionTrigger>
               <AccordionContent>
-                Metal: {product.metal} <br/>
-                Gemstone: {product.gemstone || 'N/A'} <br/>
                 Category: {product.category}
               </AccordionContent>
             </AccordionItem>

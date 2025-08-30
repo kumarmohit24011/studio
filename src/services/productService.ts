@@ -17,8 +17,6 @@ const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): Product =
         price: data.price,
         images: data.images,
         category: data.category,
-        metal: data.metal,
-        gemstone: data.gemstone || null,
         sku: data.sku,
         stock: data.stock,
         tags: data.tags || null,

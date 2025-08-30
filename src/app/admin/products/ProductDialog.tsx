@@ -40,10 +40,8 @@ const emptyProduct: Omit<Product, 'id'> = {
   price: 0,
   images: [],
   category: "",
-  metal: "Gold",
   sku: "",
   stock: 0,
-  gemstone: undefined,
   tags: [],
 };
 
@@ -131,7 +129,6 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
     const dataToSave = {
       ...formData,
       images: imageUrls,
-      gemstone: formData.gemstone || null,
       tags: newTags,
     };
 
@@ -207,34 +204,6 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
                     {categories.map(cat => (
                         <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
                     ))}
-                </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="metal" className="text-right">Metal</Label>
-             <Select value={formData.metal} onValueChange={(value) => handleSelectChange('metal', value)}>
-                <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select a metal" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="Gold">Gold</SelectItem>
-                    <SelectItem value="Silver">Silver</SelectItem>
-                    <SelectItem value="Platinum">Platinum</SelectItem>
-                </SelectContent>
-            </Select>
-          </div>
-           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="gemstone" className="text-right">Gemstone</Label>
-             <Select value={formData.gemstone} onValueChange={(value) => handleSelectChange('gemstone', value)}>
-                <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select a gemstone" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="None">None</SelectItem>
-                    <SelectItem value="Diamond">Diamond</SelectItem>
-                    <SelectItem value="Ruby">Ruby</SelectItem>
-                    <SelectItem value="Sapphire">Sapphire</SelectItem>
-                    <SelectItem value="Emerald">Emerald</SelectItem>
                 </SelectContent>
             </Select>
           </div>
