@@ -5,6 +5,8 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export interface HomepageSettings {
   heroImageUrl: string;
+  offerImageUrl1: string;
+  offerImageUrl2: string;
 }
 
 const settingsCollectionName = 'settings';
@@ -17,11 +19,17 @@ export const getHomepageSettings = async (): Promise<HomepageSettings | null> =>
     if (docSnap.exists()) {
         const data = docSnap.data() as DocumentData;
         return {
-            heroImageUrl: data.heroImageUrl || ''
+            heroImageUrl: data.heroImageUrl || '',
+            offerImageUrl1: data.offerImageUrl1 || '',
+            offerImageUrl2: data.offerImageUrl2 || '',
         };
     } else {
         // Return a default or empty state if the document doesn't exist
-        return { heroImageUrl: "https://placehold.co/1800x1200.png" };
+        return { 
+            heroImageUrl: "https://placehold.co/1800x1200.png",
+            offerImageUrl1: "https://placehold.co/800x600.png",
+            offerImageUrl2: "https://placehold.co/800x600.png",
+        };
     }
 };
 
@@ -31,9 +39,10 @@ export const updateHomepageSettings = async (settings: Partial<HomepageSettings>
     await setDoc(docRef, settings, { merge: true });
 };
 
-export const uploadHeroImage = async (file: File): Promise<string> => {
-  const storageRef = ref(storage, `hero-images/${file.name}`);
+export const uploadHomepageImage = async (file: File, path: string): Promise<string> => {
+  const storageRef = ref(storage, `${path}/${file.name}`);
   const snapshot = await uploadBytes(storageRef, file);
   const downloadURL = await getDownloadURL(snapshot.ref);
   return downloadURL;
 };
+

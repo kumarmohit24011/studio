@@ -102,7 +102,7 @@ export default function Home() {
             <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
               <CardContent className="p-0">
                 <div className="relative h-80">
-                    <Image src="https://placehold.co/800x600.png" alt="Seasonal Sale" layout="fill" objectFit="cover" data-ai-hint="jewelry sale"/>
+                    <Image src={homepageSettings?.offerImageUrl1 || "https://placehold.co/800x600.png"} alt="Seasonal Sale" layout="fill" objectFit="cover" data-ai-hint="jewelry sale"/>
                     <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white p-6 text-center">
                         <h3 className="font-headline text-3xl mb-2">Seasonal Sale</h3>
                         <p className="mb-4">Up to 30% off on select collections.</p>
@@ -116,7 +116,7 @@ export default function Home() {
             <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
               <CardContent className="p-0">
                 <div className="relative h-80">
-                    <Image src="https://placehold.co/800x600.png" alt="Festive Discounts" layout="fill" objectFit="cover" data-ai-hint="diamond ring"/>
+                    <Image src={homepageSettings?.offerImageUrl2 || "https://placehold.co/800x600.png"} alt="Festive Discounts" layout="fill" objectFit="cover" data-ai-hint="diamond ring"/>
                     <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white p-6 text-center">
                         <h3 className="font-headline text-3xl mb-2">Festive Discounts</h3>
                         <p className="mb-4">Shine brighter with our exclusive festive offers.</p>

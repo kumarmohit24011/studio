@@ -13,13 +13,20 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { getHomepageSettings, updateHomepageSettings, uploadHeroImage } from "@/services/settingsService";
+import { getHomepageSettings, updateHomepageSettings, uploadHomepageImage } from "@/services/settingsService";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
+import { Separator } from "@/components/ui/separator";
 
 export default function SettingsPage() {
   const [heroImageUrl, setHeroImageUrl] = useState("");
-  const [newImageFile, setNewImageFile] = useState<File | null>(null);
+  const [offerImageUrl1, setOfferImageUrl1] = useState("");
+  const [offerImageUrl2, setOfferImageUrl2] = useState("");
+
+  const [newHeroImageFile, setNewHeroImageFile] = useState<File | null>(null);
+  const [newOfferImage1File, setNewOfferImage1File] = useState<File | null>(null);
+  const [newOfferImage2File, setNewOfferImage2File] = useState<File | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
@@ -28,8 +35,10 @@ export default function SettingsPage() {
     const fetchSettings = async () => {
       setLoading(true);
       const settings = await getHomepageSettings();
-      if (settings && settings.heroImageUrl) {
-        setHeroImageUrl(settings.heroImageUrl);
+      if (settings) {
+        setHeroImageUrl(settings.heroImageUrl || "");
+        setOfferImageUrl1(settings.offerImageUrl1 || "");
+        setOfferImageUrl2(settings.offerImageUrl2 || "");
       }
       setLoading(false);
     };
@@ -37,53 +46,48 @@ export default function SettingsPage() {
     fetchSettings();
   }, []);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setImageFile: React.Dispatch<React.SetStateAction<File | null>>, setImageUrl: React.Dispatch<React.SetStateAction<string>>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setNewImageFile(file);
-      // Create a temporary URL to preview the image
-      setHeroImageUrl(URL.createObjectURL(file));
+      setImageFile(file);
+      setImageUrl(URL.createObjectURL(file));
     }
   };
 
   const handleSave = async () => {
-    console.log("handleSave called");
     setIsSaving(true);
     try {
-      let finalHeroUrl = heroImageUrl;
-      console.log("Initial hero URL:", finalHeroUrl);
+      let settingsToUpdate: Partial<{heroImageUrl: string, offerImageUrl1: string, offerImageUrl2: string}> = {};
 
-      if (newImageFile) {
-        console.log("New image file detected, starting upload:", newImageFile.name);
-        try {
-          const downloadURL = await uploadHeroImage(newImageFile);
-          console.log("Image uploaded successfully, download URL:", downloadURL);
-          finalHeroUrl = downloadURL; // Use the URL from storage
-          setHeroImageUrl(downloadURL); // Update preview with final URL
-          setNewImageFile(null); // Clear the file after successful upload
-        } catch (uploadError) {
-          console.error("Image upload failed:", uploadError);
-          toast({
-            variant: "destructive",
-            title: "Image Upload Failed",
-            description: "Could not upload the new hero image. Please try again.",
-          });
-          // Revert to the old image URL if the upload fails
-          const settings = await getHomepageSettings();
-          if (settings) setHeroImageUrl(settings.heroImageUrl || "");
-          setIsSaving(false);
-          return;
-        }
+      if (newHeroImageFile) {
+        const downloadURL = await uploadHomepageImage(newHeroImageFile, "hero-images");
+        settingsToUpdate.heroImageUrl = downloadURL;
+        setHeroImageUrl(downloadURL);
+        setNewHeroImageFile(null);
       }
 
-      console.log("Updating homepage settings with URL:", finalHeroUrl);
-      await updateHomepageSettings({ heroImageUrl: finalHeroUrl });
+      if (newOfferImage1File) {
+        const downloadURL = await uploadHomepageImage(newOfferImage1File, "offer-images");
+        settingsToUpdate.offerImageUrl1 = downloadURL;
+        setOfferImageUrl1(downloadURL);
+        setNewOfferImage1File(null);
+      }
+      
+      if (newOfferImage2File) {
+        const downloadURL = await uploadHomepageImage(newOfferImage2File, "offer-images");
+        settingsToUpdate.offerImageUrl2 = downloadURL;
+        setOfferImageUrl2(downloadURL);
+        setNewOfferImage2File(null);
+      }
+
+      if (Object.keys(settingsToUpdate).length > 0) {
+        await updateHomepageSettings(settingsToUpdate);
+      }
 
       toast({
         title: "Success",
         description: "Homepage settings updated successfully.",
       });
-      console.log("Homepage settings updated successfully.");
     } catch (error) {
       toast({
         variant: "destructive",
@@ -93,7 +97,6 @@ export default function SettingsPage() {
       console.error("An error occurred during the save process:", error);
     } finally {
       setIsSaving(false);
-      console.log("handleSave finished, isSaving set to false.");
     }
   };
 
@@ -107,37 +110,84 @@ export default function SettingsPage() {
         <CardTitle>Homepage Settings</CardTitle>
         <CardDescription>Manage the content displayed on your homepage.</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="grid gap-6">
-          <div className="grid gap-2">
-            <Label htmlFor="hero-image">Hero Image</Label>
-            <Input
-              id="hero-image"
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              disabled={isSaving}
-            />
-          </div>
+      <CardContent className="grid gap-6">
+        {/* Hero Image Section */}
+        <div className="grid gap-3">
+          <Label htmlFor="hero-image" className="text-lg font-medium">Hero Image</Label>
+          <Input
+            id="hero-image"
+            type="file"
+            accept="image/*"
+            onChange={(e) => handleFileChange(e, setNewHeroImageFile, setHeroImageUrl)}
+            disabled={isSaving}
+          />
           {heroImageUrl && (
-            <div>
-              <Label>Current Hero Image</Label>
-              <div className="mt-2 relative w-full h-64 rounded-md overflow-hidden border">
-                <Image
-                  src={heroImageUrl}
-                  alt="Hero Image Preview"
-                  fill
-                  style={{objectFit: 'cover'}}
-                  unoptimized={!!newImageFile} // Prevents Next.js from trying to optimize a local blob URL
-                />
-              </div>
+            <div className="mt-2 relative w-full h-64 rounded-md overflow-hidden border">
+              <Image
+                src={heroImageUrl}
+                alt="Hero Image Preview"
+                fill
+                style={{objectFit: 'cover'}}
+                unoptimized={!!newHeroImageFile}
+              />
             </div>
           )}
         </div>
+
+        <Separator />
+
+        {/* Special Offer 1 Image Section */}
+        <div className="grid gap-3">
+            <Label htmlFor="offer-image-1" className="text-lg font-medium">Special Offer Image 1 (Left)</Label>
+            <Input
+                id="offer-image-1"
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleFileChange(e, setNewOfferImage1File, setOfferImageUrl1)}
+                disabled={isSaving}
+            />
+            {offerImageUrl1 && (
+                <div className="mt-2 relative w-full h-56 rounded-md overflow-hidden border">
+                <Image
+                    src={offerImageUrl1}
+                    alt="Offer Image 1 Preview"
+                    fill
+                    style={{objectFit: 'cover'}}
+                    unoptimized={!!newOfferImage1File}
+                />
+                </div>
+            )}
+        </div>
+
+        <Separator />
+
+         {/* Special Offer 2 Image Section */}
+        <div className="grid gap-3">
+            <Label htmlFor="offer-image-2" className="text-lg font-medium">Special Offer Image 2 (Right)</Label>
+            <Input
+                id="offer-image-2"
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleFileChange(e, setNewOfferImage2File, setOfferImageUrl2)}
+                disabled={isSaving}
+            />
+            {offerImageUrl2 && (
+                <div className="mt-2 relative w-full h-56 rounded-md overflow-hidden border">
+                <Image
+                    src={offerImageUrl2}
+                    alt="Offer Image 2 Preview"
+                    fill
+                    style={{objectFit: 'cover'}}
+                    unoptimized={!!newOfferImage2File}
+                />
+                </div>
+            )}
+        </div>
+
       </CardContent>
       <CardFooter className="border-t px-6 py-4">
         <Button onClick={handleSave} disabled={isSaving}>
-          {isSaving ? "Saving..." : "Save"}
+          {isSaving ? "Saving..." : "Save All Changes"}
         </Button>
       </CardFooter>
     </Card>
