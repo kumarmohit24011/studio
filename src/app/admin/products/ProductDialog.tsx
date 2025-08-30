@@ -23,6 +23,7 @@ import { Switch } from "@/components/ui/switch";
 import { Product } from "@/lib/placeholder-data";
 import { useState, useEffect } from "react";
 import { addProduct, updateProduct, uploadProductImage } from "@/services/productService";
+import { Category, getCategories } from "@/services/categoryService";
 import Image from "next/image";
 import { X } from "lucide-react";
 
@@ -38,7 +39,7 @@ const emptyProduct: Omit<Product, 'id'> = {
   description: "",
   price: 0,
   images: [],
-  category: "Rings",
+  category: "",
   metal: "Gold",
   sku: "",
   stock: 0,
@@ -48,12 +49,21 @@ const emptyProduct: Omit<Product, 'id'> = {
 
 export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialogProps) {
   const [formData, setFormData] = useState<Omit<Product, 'id'>>(emptyProduct);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isFeatured, setIsFeatured] = useState(false);
   const [isTrending, setIsTrending] = useState(false);
   const [isNew, setIsNew] = useState(false);
   const [isSale, setIsSale] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+        const fetchedCategories = await getCategories();
+        setCategories(fetchedCategories);
+    }
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     if (product) {
@@ -194,10 +204,9 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
                     <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="Rings">Rings</SelectItem>
-                    <SelectItem value="Necklaces">Necklaces</SelectItem>
-                    <SelectItem value="Bracelets">Bracelets</SelectItem>
-                    <SelectItem value="Earrings">Earrings</SelectItem>
+                    {categories.map(cat => (
+                        <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                    ))}
                 </SelectContent>
             </Select>
           </div>
@@ -272,5 +281,3 @@ export function ProductDialog({ isOpen, onClose, onSave, product }: ProductDialo
     </Dialog>
   );
 }
-
-    

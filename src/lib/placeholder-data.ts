@@ -1,12 +1,13 @@
+
 export interface Product {
   id: string;
   name: string;
   description: string;
   price: number;
   images: string[];
-  category: "Rings" | "Necklaces" | "Bracelets" | "Earrings";
+  category: string;
   metal: "Gold" | "Silver" | "Platinum";
-  gemstone?: "Diamond" | "Ruby" | "Sapphire" | "Emerald";
+  gemstone?: "Diamond" | "Ruby" | "Sapphire" | "Emerald" | "None";
   sku: string;
   stock: number;
   tags?: ("new" | "sale" | "featured" | "trending")[];
