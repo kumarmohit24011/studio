@@ -7,7 +7,7 @@ import { createOrder as saveOrderInDb, getCouponByCode } from "@/services/orderS
 import { CartItem } from "@/lib/types";
 import { Coupon } from "@/services/couponService";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, writeBatch, runTransaction } from "firebase/firestore";
+import { doc, getDoc, writeBatch, runTransaction, DocumentReference } from "firebase/firestore";
 import { Product } from "@/lib/placeholder-data";
 
 const RazorpayOrderInput = z.number().positive();
@@ -50,33 +50,58 @@ export async function saveOrder(
     couponApplied?: { code: string; discountAmount: number }
 ) {
      if (!paymentDetails.razorpay_order_id) {
+        console.error("saveOrder failed: Missing razorpay_order_id.");
         return { success: false, message: "Razorpay Order ID is missing." };
     }
     
     try {
-       const orderId = await saveOrderInDb({
-            id: paymentDetails.razorpay_order_id,
-            userId,
-            items: cartItems.map(item => ({
-                productId: item.id,
-                name: item.name,
-                image: item.images[0],
-                quantity: item.quantity,
-                price: item.price
-            })),
-            totalAmount,
-            shippingAddressId: shippingAddressId,
-            orderStatus: 'Processing' as const,
-            paymentStatus: 'Paid' as const,
-            razorpay_payment_id: paymentDetails.razorpay_payment_id,
-            razorpay_order_id: paymentDetails.razorpay_order_id,
-            createdAt: Date.now(),
-            coupon: couponApplied,
+        await runTransaction(db, async (transaction) => {
+            const orderDocRef = doc(db, 'orders', paymentDetails.razorpay_order_id);
+
+            // 1. Create the order document
+            transaction.set(orderDocRef, {
+                 id: paymentDetails.razorpay_order_id,
+                userId,
+                items: cartItems.map(item => ({
+                    productId: item.id,
+                    name: item.name,
+                    image: item.images[0],
+                    quantity: item.quantity,
+                    price: item.price
+                })),
+                totalAmount,
+                shippingAddressId: shippingAddressId,
+                orderStatus: 'Processing' as const,
+                paymentStatus: 'Paid' as const,
+                razorpay_payment_id: paymentDetails.razorpay_payment_id,
+                razorpay_order_id: paymentDetails.razorpay_order_id,
+                createdAt: Date.now(),
+                coupon: couponApplied,
+            });
+
+            // 2. Decrement stock for each product
+            for (const item of cartItems) {
+                const productRef = doc(db, 'products', item.id);
+                const productDoc = await transaction.get(productRef);
+
+                if (!productDoc.exists()) {
+                    throw new Error(`Product with ID ${item.id} not found.`);
+                }
+
+                const newStock = productDoc.data().stock - item.quantity;
+                if (newStock < 0) {
+                    throw new Error(`Not enough stock for ${productDoc.data().name}.`);
+                }
+                
+                transaction.update(productRef, { stock: newStock });
+            }
         });
         
-        return { success: true, orderId: orderId };
+        return { success: true, orderId: paymentDetails.razorpay_order_id };
+
     } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Failed to save the order.";
+        console.error("Error in saveOrder transaction:", error);
+        const errorMessage = error instanceof Error ? error.message : "Failed to save the order due to an unexpected error.";
         return { success: false, message: errorMessage };
     }
 }

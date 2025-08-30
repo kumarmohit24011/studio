@@ -136,7 +136,7 @@ export default function AdminOrdersPage() {
                 </Badge>
               </TableCell>
               <TableCell>
-                {order.coupon ? (
+                {order.coupon?.code ? (
                   <Badge variant="secondary">{order.coupon.code}</Badge>
                 ) : (
                   <span className="text-muted-foreground">None</span>
@@ -251,5 +251,3 @@ export default function AdminOrdersPage() {
     </Card>
   );
 }
-
-    
