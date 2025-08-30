@@ -50,51 +50,54 @@ export async function saveOrder(
     couponApplied?: { code: string; discountAmount: number }
 ) {
     try {
-        const batch = writeBatch(db);
+       await runTransaction(db, async (transaction) => {
+            // 1. Create the order document
+            const newOrderRef = doc(db, "orders", paymentDetails.razorpay_order_id);
+            const orderData = {
+                id: paymentDetails.razorpay_order_id,
+                userId,
+                items: cartItems.map(item => ({
+                    productId: item.id,
+                    name: item.name,
+                    image: item.images[0],
+                    quantity: item.quantity,
+                    price: item.price
+                })),
+                totalAmount,
+                shippingAddressId: shippingAddressId,
+                orderStatus: 'Processing' as const,
+                paymentStatus: 'Paid' as const,
+                razorpay_payment_id: paymentDetails.razorpay_payment_id,
+                razorpay_order_id: paymentDetails.razorpay_order_id,
+                createdAt: Date.now(),
+                coupon: couponApplied,
+            };
+            transaction.set(newOrderRef, orderData);
 
-        // 1. Create the order document
-        const newOrderRef = doc(db, "orders", paymentDetails.razorpay_order_id);
-        const orderData = {
-            id: paymentDetails.razorpay_order_id,
-            userId,
-            items: cartItems.map(item => ({
-                productId: item.id,
-                name: item.name,
-                image: item.images[0],
-                quantity: item.quantity,
-                price: item.price
-            })),
-            totalAmount,
-            shippingAddressId: shippingAddressId,
-            orderStatus: 'Processing' as const,
-            paymentStatus: 'Paid' as const,
-            razorpay_payment_id: paymentDetails.razorpay_payment_id,
-            razorpay_order_id: paymentDetails.razorpay_order_id,
-            createdAt: Date.now(),
-            coupon: couponApplied,
-        };
-        batch.set(newOrderRef, orderData);
-        
-        // 2. Decrement stock for each product
-        for (const item of cartItems) {
-            const productRef = doc(db, 'products', item.id);
-            const productSnap = await getDoc(productRef);
-            if (productSnap.exists()) {
+            // 2. Decrement stock for each product
+            for (const item of cartItems) {
+                const productRef = doc(db, 'products', item.id);
+                const productSnap = await transaction.get(productRef);
+                if (!productSnap.exists()) {
+                    throw new Error(`Product with ID ${item.id} not found.`);
+                }
+                
                 const productData = productSnap.data() as Product;
                 const newStock = productData.stock - item.quantity;
-                batch.update(productRef, { stock: newStock });
-            } else {
-                throw new Error(`Product with ID ${item.id} not found.`);
-            }
-        }
-        
-        // 3. Commit the batch write
-        await batch.commit();
+                
+                if (newStock < 0) {
+                    throw new Error(`Not enough stock for product ${productData.name}.`);
+                }
 
-        return { success: true, orderId: newOrderRef.id };
+                transaction.update(productRef, { stock: newStock });
+            }
+        });
+        
+        return { success: true, orderId: paymentDetails.razorpay_order_id };
     } catch (error) {
         console.error("Failed to save order and update stock:", error);
-        return { success: false, message: "Failed to save the order and update stock." };
+        const errorMessage = error instanceof Error ? error.message : "Failed to save the order and update stock.";
+        return { success: false, message: errorMessage };
     }
 }
 
