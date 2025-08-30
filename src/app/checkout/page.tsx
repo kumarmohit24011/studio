@@ -36,7 +36,7 @@ interface RazorpayOptions {
     description: string;
     image?: string;
     order_id: string;
-    handler: (response: any) => void;
+    handler: (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => void;
     prefill: {
         name: string;
         email: string;
@@ -236,7 +236,7 @@ export default function CheckoutPage() {
           contact: selectedAddress.mobile,
         },
         notes: {
-            address: `${selectedAddress.line1}, ${selectedAddress.line2}, ${selectedAddress.city}, ${selectedAddress.state} - ${selectedAddress.pincode}`
+            address: `${selectedAddress.line1}, ${selectedAddress.line2 || ''}, ${selectedAddress.city}, ${selectedAddress.state} - ${selectedAddress.pincode}`
         },
         theme: {
           color: "#b92747",
@@ -365,5 +365,3 @@ export default function CheckoutPage() {
     </div>
   );
 }
-
-    
