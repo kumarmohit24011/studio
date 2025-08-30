@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState, useMemo } from "react";
 import { getProducts } from "@/services/productService";
 import { cn } from "@/lib/utils";
+import { useSearchParams } from "next/navigation";
 
 const CATEGORIES = ["All", "Rings", "Necklaces", "Bracelets", "Earrings"];
 type SortOption = "newest" | "price-asc" | "price-desc" | "popularity";
@@ -23,6 +24,8 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortOption, setSortOption] = useState<SortOption>("newest");
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get('search');
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -36,8 +39,16 @@ export default function ProductsPage() {
 
   const sortedAndFilteredProducts = useMemo(() => {
     let filtered = products;
+
     if (selectedCategory !== "All") {
       filtered = products.filter(p => p.category === selectedCategory);
+    }
+
+    if (searchQuery) {
+        filtered = filtered.filter(p => 
+            p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.description.toLowerCase().includes(searchQuery.toLowerCase())
+        );
     }
     
     switch (sortOption) {
@@ -60,7 +71,7 @@ export default function ProductsPage() {
         });
     }
 
-  }, [products, selectedCategory, sortOption]);
+  }, [products, selectedCategory, sortOption, searchQuery]);
 
   if (loading) {
     return <div className="container mx-auto px-4 py-12 text-center">Loading...</div>
@@ -69,7 +80,9 @@ export default function ProductsPage() {
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-headline">Our Collection</h1>
+        <h1 className="text-4xl md:text-5xl font-headline">
+          {searchQuery ? `Search Results for "${searchQuery}"` : "Our Collection"}
+        </h1>
         <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
           Explore our hand-selected range of fine jewelry, crafted to perfection for every moment.
         </p>
@@ -108,9 +121,13 @@ export default function ProductsPage() {
             </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {sortedAndFilteredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+          {sortedAndFilteredProducts.length > 0 ? (
+            sortedAndFilteredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))
+          ) : (
+            <p className="text-muted-foreground col-span-full text-center">No products found.</p>
+          )}
         </div>
       </main>
     </div>

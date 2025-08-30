@@ -26,11 +26,21 @@ import { useCart } from "@/hooks/use-cart";
 import { Badge } from "./ui/badge";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { Skeleton } from "./ui/skeleton";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export function Header() {
   const { user, signOut, loading: authLoading } = useAuth();
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
+  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
+
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && searchQuery.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchQuery)}`);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -55,7 +65,14 @@ export function Header() {
         </nav>
         <div className="flex flex-1 items-center justify-end space-x-4">
           <div className="hidden lg:flex flex-1 max-w-xs relative">
-            <Input type="search" placeholder="Search for jewelry..." className="pl-10" />
+            <Input 
+              type="search" 
+              placeholder="Search for jewelry..." 
+              className="pl-10"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearch}
+            />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           </div>
           <Button variant="ghost" size="icon" asChild>
