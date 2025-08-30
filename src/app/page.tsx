@@ -40,7 +40,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col">
-      <section className="relative h-[60vh] md:h-[80vh] w-full">
+      <section className="relative h-[60vh] md:h-[70vh] w-full">
         <Image
           src={homepageSettings?.heroImageUrl || "https://placehold.co/1800x1200.png"}
           alt="Elegant jewelry on display"
