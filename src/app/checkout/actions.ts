@@ -7,7 +7,7 @@ import { createOrder as saveOrderInDb, getCouponByCode } from "@/services/orderS
 import { CartItem } from "@/lib/types";
 import { Coupon } from "@/services/couponService";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, writeBatch, runTransaction, DocumentReference } from "firebase/firestore";
+import { doc, getDoc, writeBatch, runTransaction, DocumentReference, setDoc } from "firebase/firestore";
 import { Product } from "@/lib/placeholder-data";
 
 const RazorpayOrderInput = z.number().positive();
@@ -55,31 +55,8 @@ export async function saveOrder(
     }
     
     try {
+        // Step 1: Run a transaction to safely decrement stock.
         await runTransaction(db, async (transaction) => {
-            const orderDocRef = doc(db, 'orders', paymentDetails.razorpay_order_id);
-
-            // 1. Create the order document
-            transaction.set(orderDocRef, {
-                 id: paymentDetails.razorpay_order_id,
-                userId,
-                items: cartItems.map(item => ({
-                    productId: item.id,
-                    name: item.name,
-                    image: item.images[0],
-                    quantity: item.quantity,
-                    price: item.price
-                })),
-                totalAmount,
-                shippingAddressId: shippingAddressId,
-                orderStatus: 'Processing' as const,
-                paymentStatus: 'Paid' as const,
-                razorpay_payment_id: paymentDetails.razorpay_payment_id,
-                razorpay_order_id: paymentDetails.razorpay_order_id,
-                createdAt: Date.now(),
-                coupon: couponApplied,
-            });
-
-            // 2. Decrement stock for each product
             for (const item of cartItems) {
                 const productRef = doc(db, 'products', item.id);
                 const productDoc = await transaction.get(productRef);
@@ -97,10 +74,32 @@ export async function saveOrder(
             }
         });
         
+        // Step 2: If stock transaction is successful, create the order document.
+        const orderDocRef = doc(db, 'orders', paymentDetails.razorpay_order_id);
+        await setDoc(orderDocRef, {
+             id: paymentDetails.razorpay_order_id,
+            userId,
+            items: cartItems.map(item => ({
+                productId: item.id,
+                name: item.name,
+                image: item.images[0],
+                quantity: item.quantity,
+                price: item.price
+            })),
+            totalAmount,
+            shippingAddressId: shippingAddressId,
+            orderStatus: 'Processing' as const,
+            paymentStatus: 'Paid' as const,
+            razorpay_payment_id: paymentDetails.razorpay_payment_id,
+            razorpay_order_id: paymentDetails.razorpay_order_id,
+            createdAt: Date.now(),
+            coupon: couponApplied,
+        });
+
         return { success: true, orderId: paymentDetails.razorpay_order_id };
 
     } catch (error) {
-        console.error("Error in saveOrder transaction:", error);
+        console.error("Error in saveOrder process:", error);
         const errorMessage = error instanceof Error ? error.message : "Failed to save the order due to an unexpected error.";
         return { success: false, message: errorMessage };
     }
