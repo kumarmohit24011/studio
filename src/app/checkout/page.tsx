@@ -250,7 +250,11 @@ export default function CheckoutPage() {
       rzp.open();
       
       rzp.on('payment.failed', function (response: any){
-          toast({ variant: 'destructive', title: "Payment Failed", description: response.error.description });
+          let errorMessage = "Payment failed. Please try again.";
+          if (response && response.error && (response.error.description || response.error.message)) {
+            errorMessage = response.error.description || response.error.message;
+          }
+          toast({ variant: 'destructive', title: "Payment Failed", description: errorMessage });
       });
 
     } catch (error) {
