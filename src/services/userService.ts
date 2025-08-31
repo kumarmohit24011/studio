@@ -29,8 +29,8 @@ const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): UserProfi
         phone: data.phone || '',
         createdAt: data.createdAt,
         addresses: data.addresses || [],
-        isActive: data.isActive !== false, // default to true if not set
-        isAdmin: data.isAdmin === true, // Default to false if not set or not explicitly true
+        isActive: data.isActive !== false,
+        isAdmin: data.isAdmin === true,
         cart: data.cart || [],
         wishlist: data.wishlist || []
     };
@@ -38,6 +38,13 @@ const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): UserProfi
 
 export const createUserProfile = async (user: User): Promise<void> => {
     const userDocRef = doc(db, 'users', user.uid);
+    
+    // --- TEMPORARY ADMIN CREATION ---
+    // IMPORTANT: Replace 'admin@example.com' with your own email address.
+    // This will make you an admin when you sign up.
+    // REMOVE this logic before deploying to production.
+    const isAdmin = user.email === 'admin@example.com';
+
     const userProfile : Omit<UserProfile, 'id'> = {
         name: user.displayName || '',
         email: user.email || '',
@@ -45,7 +52,7 @@ export const createUserProfile = async (user: User): Promise<void> => {
         createdAt: Date.now(),
         addresses: [],
         isActive: true,
-        isAdmin: false, // New users are NOT admins by default
+        isAdmin: isAdmin, 
     }
     await setDoc(userDocRef, userProfile);
 }
@@ -63,7 +70,7 @@ export const getUserProfile = async (userId: string): Promise<UserProfile | null
             createdAt: data.createdAt,
             addresses: data.addresses || [],
             isActive: data.isActive !== false,
-            isAdmin: data.isAdmin === true, // Default to false if the field is missing
+            isAdmin: data.isAdmin === true,
             cart: data.cart || [],
             wishlist: data.wishlist || []
         } as UserProfile;
@@ -78,7 +85,6 @@ export const getAllUsers = async (): Promise<UserProfile[]> => {
 
     const profile = await getUserProfile(currentUser.uid);
     if (!profile?.isAdmin) {
-        // This will be caught by the UI and show a helpful message.
         throw new Error("Admin privileges required.");
     }
 
