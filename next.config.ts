@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Permissions-Policy',
-            value: "publickey-credentials-create=*",
+            value: "payment=*, publickey-credentials-get=*, publickey-credentials-create=*, otp-credentials=*, web-share=*",
           },
         ],
         
