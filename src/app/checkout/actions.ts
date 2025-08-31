@@ -41,6 +41,7 @@ export async function createRazorpayOrder(amount: number) {
     }
 }
 
+// This is now just a clean wrapper around the centralized service function.
 export async function saveOrder(
     input: z.infer<typeof SaveOrderInputSchema>
 ): Promise<{ success: boolean; message: string; orderId?: string; }> {
