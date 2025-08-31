@@ -1,3 +1,4 @@
+
 "use server";
 
 import Razorpay from "razorpay";
@@ -121,8 +122,7 @@ export async function saveOrder(
         return { success: true, message: "Order saved successfully." };
 
     } catch (error: any) {
-        console.error("---[SERVER]--- CRITICAL ERROR in saveOrder process:", error.toString());
-        // Added more detailed logging
+        console.error("---[SERVER]--- CRITICAL ERROR in saveOrder process. This is the error from the server, please inspect it carefully.");
         console.error("Full error object:", error);
         return { success: false, message: error.message || "Failed to save order due to a critical server error." };
     }
