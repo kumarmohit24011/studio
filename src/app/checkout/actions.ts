@@ -58,8 +58,6 @@ export async function saveOrder(
     
     try {
         await runTransaction(db, async (transaction) => {
-            console.log("---[SERVER]--- Starting Firestore transaction.");
-
             // 1. Decrement stock for each item
             for (const item of cartItems) {
                 const productRef = doc(db, "products", item.id);
@@ -105,9 +103,7 @@ export async function saveOrder(
         return { success: true, message: "Order saved successfully." };
 
     } catch (error: any) {
-        console.error("---[SERVER] FIREBASE TRANSACTION FAILED ---");
-        console.error("Error saving order:", error.message);
-        console.error("Full error object:", JSON.stringify(error, null, 2));
+        console.error("---[SERVER] FIREBASE TRANSACTION FAILED ---", error);
         return { success: false, message: error.message || "Failed to save order due to a critical server error." };
     }
 }
