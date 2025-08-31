@@ -58,25 +58,9 @@ export async function saveOrder(
     
     try {
         await runTransaction(db, async (transaction) => {
-            // 1. Decrement stock for each item
-            for (const item of cartItems) {
-                const productRef = doc(db, "products", item.id);
-                const productDoc = await transaction.get(productRef);
+            // NOTE: Stock decrement functionality has been removed as per user request.
 
-                if (!productDoc.exists()) {
-                    throw new Error(`Product with ID ${item.id} not found.`);
-                }
-
-                const currentStock = productDoc.data().stock;
-                if (currentStock < item.quantity) {
-                    throw new Error(`Not enough stock for ${productDoc.data().name}.`);
-                }
-
-                const newStock = currentStock - item.quantity;
-                transaction.update(productRef, { stock: newStock });
-            }
-
-            // 2. Create the new order document
+            // Create the new order document
             const orderRef = doc(collection(db, "orders"));
             const newOrderData = {
                 userId,
@@ -104,8 +88,6 @@ export async function saveOrder(
 
     } catch (error: any) {
         console.error("---[SERVER] FIREBASE TRANSACTION FAILED ---", error);
-        // This log will give us the exact reason for failure from Firestore's perspective.
-        console.error("Detailed Firestore Error:", error.code, error.message);
         return { success: false, message: error.message || "Failed to save order due to a critical server error." };
     }
 }
