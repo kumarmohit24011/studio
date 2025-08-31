@@ -8,6 +8,8 @@ import { Coupon } from "@/services/couponService";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, runTransaction, setDoc, collection, writeBatch } from "firebase/firestore";
 import { getCouponByCode } from "@/services/orderService";
+import { createLog } from "@/services/auditLogService";
+import { auth } from "@/lib/firebase";
 
 const RazorpayOrderInput = z.number().positive();
 
@@ -105,6 +107,18 @@ export async function saveOrder(
             createdAt: Date.now(),
             coupon: couponApplied,
         });
+
+        // Step 3: Create an audit log for the new order
+        const currentUser = auth.currentUser;
+        await createLog({
+            action: 'CREATE',
+            entityType: 'ORDER',
+            entityId: orderId,
+            details: `Order of ₹${totalAmount.toFixed(2)} was placed.`,
+            userId: userId,
+            userName: currentUser?.displayName || 'Customer'
+        });
+
 
         console.log("--- Order document created successfully ---");
         return { success: true, orderId: orderId };

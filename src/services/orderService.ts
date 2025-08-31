@@ -37,17 +37,6 @@ const getCurrentUser = () => {
     return auth.currentUser;
 }
 
-
-export const createOrder = async (orderData: Order): Promise<string> => {
-    const docRef = doc(db, orderCollection.path, orderData.id);
-    await setDoc(docRef, orderData);
-    
-    // Note: Log creation is triggered by the customer action, may not need an admin log here unless desired.
-    // We will log status changes instead.
-    
-    return docRef.id;
-};
-
 export const getOrdersForUser = async (userId: string): Promise<Order[]> => {
     const q = query(orderCollection, where("userId", "==", userId), orderBy("createdAt", "desc"));
     const snapshot = await getDocs(q);
