@@ -8,7 +8,6 @@ import { Coupon } from "@/services/couponService";
 import { db } from "@/lib/firebase";
 import { doc, runTransaction, collection, serverTimestamp } from "firebase/firestore";
 import { getCouponByCode } from "@/services/orderService";
-import { createLog } from "@/services/auditLogService";
 
 const RazorpayOrderInput = z.number().positive();
 
@@ -108,17 +107,6 @@ export async function saveOrder(
         
         console.log("---[SERVER]--- Firestore transaction completed successfully.");
 
-        // 3. Create an audit log
-        await createLog({
-            userId,
-            userName,
-            action: 'CREATE',
-            entityType: 'ORDER',
-            entityId: paymentDetails.razorpay_order_id, // Using razorpay order id for consistency
-            details: `User ${userName} placed a new order.`,
-        });
-
-        console.log("---[SERVER]--- Audit log created successfully. Order process finished.");
         return { success: true, message: "Order saved successfully." };
 
     } catch (error: any) {

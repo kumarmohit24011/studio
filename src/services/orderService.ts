@@ -3,7 +3,6 @@ import { db } from '@/lib/firebase';
 import { Order, OrderItem } from '@/lib/types';
 import { collection, getDocs, doc, addDoc, query, where, orderBy, DocumentData, QueryDocumentSnapshot, updateDoc, limit, getDoc, setDoc } from 'firebase/firestore';
 import { Coupon } from './couponService';
-import { createLog } from './auditLogService';
 import { getAuth } from 'firebase/auth';
 
 const orderCollection = collection(db, 'orders');
@@ -50,21 +49,8 @@ export const getAllOrders = async (): Promise<Order[]> => {
 }
 
 export const updateOrderStatus = async (orderId: string, status: Order['orderStatus']): Promise<void> => {
-    const user = getCurrentUser();
     const orderDoc = doc(db, 'orders', orderId);
-    const orderSnap = await getDoc(orderDoc);
-    const prevStatus = orderSnap.data()?.orderStatus || 'N/A';
-
     await updateDoc(orderDoc, { orderStatus: status });
-
-    await createLog({
-        action: 'UPDATE',
-        entityType: 'ORDER',
-        entityId: orderId,
-        details: `Order status changed from "${prevStatus}" to "${status}".`,
-        userId: user?.uid || 'system',
-        userName: user?.displayName || 'System'
-    });
 };
 
 export const getCouponByCode = async (code: string): Promise<Coupon | null> => {

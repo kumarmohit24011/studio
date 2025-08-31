@@ -3,7 +3,6 @@ import { db, storage } from '@/lib/firebase';
 import { Product } from '@/lib/placeholder-data';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { createLog } from './auditLogService';
 import { getAuth } from 'firebase/auth';
 
 const productCollection = collection(db, 'products');
@@ -44,49 +43,18 @@ export const getProduct = async (id: string): Promise<Product | null> => {
 };
 
 export const addProduct = async (product: Omit<Product, 'id'>): Promise<string> => {
-    const user = getCurrentUser();
     const docRef = await addDoc(productCollection, product);
-    await createLog({
-        action: 'CREATE',
-        entityType: 'PRODUCT',
-        entityId: docRef.id,
-        details: `Product "${product.name}" was created.`,
-        userId: user?.uid || 'system',
-        userName: user?.displayName || 'System'
-    });
     return docRef.id;
 };
 
 export const updateProduct = async (id: string, product: Partial<Product>): Promise<void> => {
-    const user = getCurrentUser();
     const productDoc = doc(db, 'products', id);
     await updateDoc(productDoc, product);
-    await createLog({
-        action: 'UPDATE',
-        entityType: 'PRODUCT',
-        entityId: id,
-        details: `Product "${product.name}" was updated.`,
-        userId: user?.uid || 'system',
-        userName: user?.displayName || 'System'
-    });
 };
 
 export const deleteProduct = async (id: string): Promise<void> => {
-    const user = getCurrentUser();
-    const productRef = doc(db, 'products', id);
-    const productSnap = await getDoc(productRef);
-    const productName = productSnap.data()?.name || 'N/A';
-    
     const productDoc = doc(db, 'products', id);
     await deleteDoc(productDoc);
-    await createLog({
-        action: 'DELETE',
-        entityType: 'PRODUCT',
-        entityId: id,
-        details: `Product "${productName}" was deleted.`,
-        userId: user?.uid || 'system',
-        userName: user?.displayName || 'System'
-    });
 };
 
 export const uploadProductImage = async (file: File): Promise<string> => {

@@ -11,7 +11,6 @@ import {
   Settings,
   Tag,
   ShoppingBag,
-  Shield,
   Shapes,
 } from "lucide-react";
 import {
@@ -42,7 +41,6 @@ export default function AdminLayout({
     { href: "/admin/offers", label: "Offers & Coupons", icon: Tag },
     { href: "/admin/inventory", label: "Inventory", icon: LineChart },
     { href: "/admin/users", label: "User Management", icon: Users },
-    { href: "/admin/audit", label: "Audit Log", icon: Shield },
   ];
 
   return (
