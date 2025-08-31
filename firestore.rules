@@ -12,44 +12,41 @@ service cloud.firestore {
       return isUserAuthenticated() && request.auth.uid == userId;
     }
 
-    function isUserAdmin() {
-      return isUserAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    function isUserAdmin(userId) {
+      return isUserAuthenticated() && get(/databases/$(database)/documents/users/$(userId)).data.isAdmin == true;
     }
     
     match /users/{userId} {
       allow read, write: if isUserProfileOwner(userId);
-      allow list: if isUserAdmin();
+      allow list: if isUserAdmin(request.auth.uid);
     }
     
     match /products/{productId} {
       allow read: if true;
-      allow write: if isUserAdmin();
+      allow write: if isUserAdmin(request.auth.uid);
     }
 
     match /categories/{categoryId} {
       allow read: if true;
-      allow write: if isUserAdmin();
+      allow write: if isUserAdmin(request.auth.uid);
     }
     
     match /coupons/{couponId} {
       allow read: if true;
-      allow write: if isUserAdmin();
+      allow write: if isUserAdmin(request.auth.uid);
     }
 
     match /orders/{orderId} {
-      // Authenticated users can read their own orders. Admins can read all orders.
-      allow read: if (isUserAuthenticated() && resource.data.userId == request.auth.uid) || isUserAdmin();
-      // Any authenticated user can create an order.
-      allow create: if isUserAuthenticated();
-      // Only admins can update an order's status.
-      allow update: if isUserAdmin();
-      // Nobody can delete orders for data integrity.
+      allow read: if isUserAuthenticated();
+      // Add debug() to log the result of the authentication check.
+      allow create: if debug(isUserAuthenticated());
+      allow update: if isUserAdmin(request.auth.uid);
       allow delete: if false;
     }
 
     match /settings/{docId} {
       allow read: if true;
-      allow write: if isUserAdmin();
+      allow write: if isUserAdmin(request.auth.uid);
     }
   }
 }
