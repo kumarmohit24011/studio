@@ -6,7 +6,7 @@ import { z } from "zod";
 import { CartItem } from "@/lib/types";
 import { Coupon } from "@/services/couponService";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, runTransaction, setDoc, collection, writeBatch } from "firebase/firestore";
+import { doc, getDoc, runTransaction, setDoc, collection, writeBatch, serverTimestamp, getFirestore } from "firebase/firestore";
 import { getCouponByCode } from "@/services/orderService";
 import { createLog } from "@/services/auditLogService";
 import { auth } from "@/lib/firebase";
@@ -51,94 +51,83 @@ export async function saveOrder(
     cartItems: CartItem[],
     totalAmount: number,
     shippingAddressId: string,
-    paymentDetails: { razorpay_payment_id: string; razorpay_order_id: string },
-    couponApplied?: { code: string; discountAmount: number }
-) {
-    console.log("--- Starting saveOrder ---", { userId, userName, totalAmount, orderId: paymentDetails.razorpay_order_id });
-    if (!paymentDetails.razorpay_order_id) {
-        console.error("saveOrder failed: Missing razorpay_order_id.");
-        return { success: false, message: "saveOrder failed: Missing razorpay_order_id." };
+    paymentDetails: {
+        razorpay_payment_id: string,
+        razorpay_order_id: string,
+    },
+    couponDetails?: {
+        code: string,
+        discountAmount: number
     }
+) {
+    console.log("---[SERVER]--- Starting saveOrder process for user:", userId, "with data:", { cartItems, totalAmount, shippingAddressId, paymentDetails, couponDetails });
     
     try {
-        // Step 1: Update stock levels within a transaction for atomicity.
-        try {
-            console.log("--- Running stock update transaction ---");
-            await runTransaction(db, async (transaction) => {
-                for (const item of cartItems) {
-                    const productRef = doc(db, 'products', item.id);
-                    const productDoc = await transaction.get(productRef);
+        await runTransaction(db, async (transaction) => {
+            console.log("---[SERVER]--- Starting Firestore transaction.");
 
-                    if (!productDoc.exists()) {
-                        throw new Error(`Product with ID ${item.id} not found.`);
-                    }
+            // 1. Decrement stock for each item
+            for (const item of cartItems) {
+                const productRef = doc(db, "products", item.id);
+                const productDoc = await transaction.get(productRef);
 
-                    const currentStock = productDoc.data().stock;
-                    const newStock = currentStock - item.quantity;
-
-                    if (newStock < 0) {
-                        throw new Error(`Not enough stock for ${productDoc.data().name}. Only ${currentStock} left.`);
-                    }
-                    
-                    console.log(`Updating stock for ${item.name} from ${currentStock} to ${newStock}`);
-                    transaction.update(productRef, { stock: newStock });
+                if (!productDoc.exists()) {
+                    throw new Error(`Product with ID ${item.id} not found.`);
                 }
-            });
-            console.log("--- Stock update transaction successful ---");
-        } catch(transactionError) {
-            console.error("--- FATAL: Stock update transaction failed ---", transactionError);
-            const errorMessage = transactionError instanceof Error ? transactionError.message : "Failed to update product stock.";
-            // Re-throw the error to be caught by the outer catch block
-            throw new Error(errorMessage);
-        }
-        
-        // Step 2: Create the order document after the transaction is successful.
-        const orderId = paymentDetails.razorpay_order_id;
-        const orderDocRef = doc(db, 'orders', orderId);
-        
-        console.log(`--- Creating order document with ID: ${orderId} ---`);
 
-        const orderItems = cartItems.map(item => ({
-            productId: item.id,
-            name: item.name,
-            image: item.images[0], // Assuming the first image is the primary one
-            quantity: item.quantity,
-            price: item.price
-        }));
+                const currentStock = productDoc.data().stock;
+                if (currentStock < item.quantity) {
+                    throw new Error(`Not enough stock for ${productDoc.data().name}.`);
+                }
 
-        await setDoc(orderDocRef, {
-            userId,
-            items: orderItems,
-            totalAmount,
-            shippingAddressId: shippingAddressId,
-            orderStatus: 'Processing' as const,
-            paymentStatus: 'Paid' as const,
-            razorpay_payment_id: paymentDetails.razorpay_payment_id,
-            razorpay_order_id: paymentDetails.razorpay_order_id,
-            createdAt: Date.now(),
-            coupon: couponApplied,
+                const newStock = currentStock - item.quantity;
+                transaction.update(productRef, { stock: newStock });
+                console.log(`---[SERVER]--- Stock for ${item.id} updated from ${currentStock} to ${newStock}.`);
+            }
+
+            // 2. Create the new order document
+            const orderRef = doc(collection(db, "orders"));
+            const newOrderData = {
+                userId,
+                items: cartItems.map(item => ({
+                    productId: item.id,
+                    name: item.name,
+                    image: item.images[0], // Use the first image
+                    quantity: item.quantity,
+                    price: item.price,
+                })),
+                totalAmount,
+                shippingAddressId,
+                orderStatus: 'Processing',
+                paymentStatus: 'Paid',
+                razorpay_payment_id: paymentDetails.razorpay_payment_id,
+                razorpay_order_id: paymentDetails.razorpay_order_id,
+                coupon: couponDetails || null,
+                createdAt: serverTimestamp(),
+            };
+
+            transaction.set(orderRef, newOrderData);
+            console.log(`---[SERVER]--- New order document ${orderRef.id} set in transaction.`);
         });
+        
+        console.log("---[SERVER]--- Firestore transaction completed successfully.");
 
-        // Step 3: Create an audit log for the new order
-        console.log("--- Creating audit log for new order ---");
+        // 3. Create an audit log
         await createLog({
+            userId,
+            userName,
             action: 'CREATE',
             entityType: 'ORDER',
-            entityId: orderId,
-            details: `Order of ₹${totalAmount.toFixed(2)} was placed.`,
-            userId: userId,
-            userName: userName || 'Customer'
+            entityId: paymentDetails.razorpay_order_id, // Using razorpay order id for consistency
+            details: `User ${userName} placed a new order.`,
         });
 
+        console.log("---[SERVER]--- Audit log created successfully. Order process finished.");
+        return { success: true, message: "Order saved successfully." };
 
-        console.log("--- Order document created successfully ---");
-        console.log("--- saveOrder function finished successfully ---");
-        return { success: true, orderId: orderId };
-
-    } catch (error) {
-        console.error("--- Error in saveOrder process ---", error);
-        const errorMessage = error instanceof Error ? error.message : "Failed to save the order due to an unexpected error.";
-        return { success: false, message: errorMessage };
+    } catch (error: any) {
+        console.error("---[SERVER]--- Error in saveOrder process:", error);
+        return { success: false, message: error.message || "Failed to save order due to a server error." };
     }
 }
 
