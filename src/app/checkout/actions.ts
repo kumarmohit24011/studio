@@ -1,4 +1,3 @@
-
 "use server";
 
 import Razorpay from "razorpay";
@@ -6,11 +5,9 @@ import { z } from "zod";
 import { CartItem } from "@/lib/types";
 import { Coupon } from "@/services/couponService";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, runTransaction, setDoc, collection, writeBatch, serverTimestamp } from "firebase/firestore";
+import { doc, runTransaction, collection, serverTimestamp } from "firebase/firestore";
 import { getCouponByCode } from "@/services/orderService";
 import { createLog } from "@/services/auditLogService";
-import { auth } from "@/lib/firebase";
-import dotenv from 'dotenv';
 
 const RazorpayOrderInput = z.number().positive();
 
@@ -125,6 +122,8 @@ export async function saveOrder(
 
     } catch (error: any) {
         console.error("---[SERVER]--- CRITICAL ERROR in saveOrder process:", error.toString());
+        // Added more detailed logging
+        console.error("Full error object:", error);
         return { success: false, message: error.message || "Failed to save order due to a critical server error." };
     }
 }
