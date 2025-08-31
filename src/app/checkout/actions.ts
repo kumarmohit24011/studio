@@ -18,6 +18,9 @@ import {
     getDocs
 } from "firebase/firestore";
 import { createLog } from "@/services/auditLogService";
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const RazorpayOrderInput = z.number().positive();
 
