@@ -1,41 +1,60 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Function to check if a user is authenticated
-    function isAuthenticated() {
+
+    function isAuth() {
       return request.auth != null;
     }
 
-    // Function to check if the user is an admin
     function isAdmin() {
-      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
-    }
-
-    // Products can be read by anyone, but only written by authenticated users.
-    // This is required for both the admin panel and for the checkout transaction to update stock.
-    match /products/{productId} {
-      allow read: if true;
-      allow write: if isAuthenticated();
+      // Check if the user is an admin by looking at their user document
+      return isAuth() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
     
-    // Categories, Coupons, and Settings can be read by anyone, but only written by an admin.
-    match /(categories|coupons|settings)/{docId} {
+    function isOwner(userId) {
+        return isAuth() && request.auth.uid == userId;
+    }
+
+    // Products can be read by anyone, but only modified by admins
+    match /products/{productId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Users can only read and write to their own data document.
-    match /users/{userId} {
-      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    // Categories can be read by anyone, but only modified by admins
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Coupons can only be accessed by admins
+    match /coupons/{couponId} {
+      allow read, write: if isAdmin();
     }
 
-    // Orders can be created by any authenticated user for themselves.
-    // Users can only read their own orders. Admins can read/write any order.
+    // Settings can be read by anyone, but only written to by admins
+    match /settings/{docId} {
+        allow read: if true;
+        allow write: if isAdmin();
+    }
+
+    // Users collection can be listed by admins.
+    // Individual users can only manage their own data.
+    match /users/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+    match /users/{wildcard=**} {
+      allow list: if isAdmin();
+    }
+    
+    // Orders can be created by any authenticated user.
+    // Users can only read their own orders.
+    // Admins can read all orders.
     match /orders/{orderId} {
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow read, update, delete: if (isAuthenticated() && resource.data.userId == request.auth.uid) || isAdmin();
+      allow create: if isAuth();
+      allow read, update, delete: if isAdmin() || (isAuth() && resource.data.userId == request.auth.uid);
     }
   }
 }

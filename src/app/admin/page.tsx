@@ -1,9 +1,14 @@
 
+"use client";
+
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { DollarSign, Package, Users, ShoppingCart } from "lucide-react";
 import { getAllOrders } from "@/services/orderService";
-import { getAllUsers } from "@/services/userService";
+import { getAllUsers, UserProfile } from "@/services/userService";
 import { getProducts } from "@/services/productService";
+import { useEffect, useState } from 'react';
+import { Product } from "@/lib/placeholder-data";
+import { Order } from "@/lib/types";
 
 function RupeeIcon({ className }: { className?: string }) {
     return (
@@ -17,14 +22,45 @@ function RupeeIcon({ className }: { className?: string }) {
 }
 
 
-export default async function AdminDashboard() {
+export default function AdminDashboard() {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [orders, users, products] = await Promise.all([
-    getAllOrders(),
-    getAllUsers(),
-    getProducts()
-  ]);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [ordersData, usersData, productsData] = await Promise.all([
+          getAllOrders(),
+          getAllUsers(),
+          getProducts()
+        ]);
+        setOrders(ordersData);
+        setUsers(usersData);
+        setProducts(productsData);
+        setError(null);
+      } catch (err: any) {
+        setError(err.message);
+        console.error("Failed to fetch admin data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return <div>Loading dashboard...</div>;
+  }
+
+  if (error) {
+    return <div className="text-destructive p-4 border border-destructive/50 rounded-md bg-destructive/10">Error: {error} <p className="text-sm text-destructive/80 mt-2">You may not have the required admin privileges to view this page.</p></div>;
+  }
+  
   const totalRevenue = orders
     .filter(order => order.paymentStatus === 'Paid')
     .reduce((sum, order) => sum + order.totalAmount, 0);

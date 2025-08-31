@@ -3,7 +3,7 @@
 import { db } from '@/lib/firebase';
 import { doc, setDoc, getDoc, DocumentData, collection, getDocs, QueryDocumentSnapshot, updateDoc } from 'firebase/firestore';
 import { ShippingAddress } from '@/lib/types';
-import { User } from 'firebase/auth';
+import { User, getAuth } from 'firebase/auth';
 
 export interface UserProfile {
     id: string;
@@ -30,7 +30,9 @@ const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): UserProfi
         createdAt: data.createdAt,
         addresses: data.addresses || [],
         isActive: data.isActive !== false, // default to true if not set
-        isAdmin: data.isAdmin === true, // default to false
+        isAdmin: data.isAdmin === true, // default to false,
+        cart: data.cart || [],
+        wishlist: data.wishlist || []
     };
 }
 
@@ -70,6 +72,13 @@ export const getUserProfile = async (userId: string): Promise<UserProfile | null
 }
 
 export const getAllUsers = async (): Promise<UserProfile[]> => {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+    if (!currentUser) throw new Error("Authentication required.");
+
+    const profile = await getUserProfile(currentUser.uid);
+    if (!profile?.isAdmin) throw new Error("Admin privileges required.");
+
     const snapshot = await getDocs(usersCollection);
     return snapshot.docs.map(fromFirestore);
 };
