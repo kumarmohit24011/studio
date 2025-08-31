@@ -6,7 +6,7 @@ import { z } from "zod";
 import { CartItem } from "@/lib/types";
 import { Coupon } from "@/services/couponService";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, runTransaction, setDoc, collection, writeBatch, serverTimestamp, getFirestore } from "firebase/firestore";
+import { doc, getDoc, runTransaction, setDoc, collection, writeBatch, serverTimestamp } from "firebase/firestore";
 import { getCouponByCode } from "@/services/orderService";
 import { createLog } from "@/services/auditLogService";
 import { auth } from "@/lib/firebase";
@@ -15,8 +15,6 @@ import dotenv from 'dotenv';
 const RazorpayOrderInput = z.number().positive();
 
 export async function createRazorpayOrder(amount: number) {
-    dotenv.config();
-    
     const validationResult = RazorpayOrderInput.safeParse(amount);
     if (!validationResult.success) {
         throw new Error("Invalid amount provided");
