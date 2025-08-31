@@ -168,9 +168,11 @@ export default function CheckoutPage() {
       const result = await applyCouponCode(couponCode, subtotal);
       if (result.success && result.coupon) {
         setAppliedCoupon(result.coupon);
-        toast({ title: 'Coupon Applied', description: `Discount of ₹${result.discountAmount.toFixed(2)} applied.` });
+        setDiscount(result.discountAmount || 0);
+        toast({ title: 'Coupon Applied', description: `Discount of ₹${result.discountAmount?.toFixed(2)} applied.` });
       } else {
         setAppliedCoupon(null);
+        setDiscount(0);
         setCouponCode("");
         toast({ variant: 'destructive', title: 'Invalid Coupon', description: result.message });
       }
@@ -209,6 +211,7 @@ export default function CheckoutPage() {
             try {
               const saveResult = await saveOrder(
                   user.uid,
+                  user.displayName || "Customer",
                   cartItems,
                   totalAmount,
                   selectedAddress.id,
@@ -332,7 +335,7 @@ export default function CheckoutPage() {
                         onChange={(e) => setCouponCode(e.target.value)}
                         disabled={!!appliedCoupon}
                     />
-                    <Button onClick={handleApplyCoupon} disabled={!!appliedCoupon}>Apply</Button>
+                    <Button onClick={handleApplyCoupon} disabled={!!appliedCoupon || !couponCode}>Apply</Button>
                 </div>
             </div>
              <Separator className="my-4"/>
@@ -365,5 +368,3 @@ export default function CheckoutPage() {
     </div>
   );
 }
-
-    
