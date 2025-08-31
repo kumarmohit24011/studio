@@ -41,13 +41,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const userProfile = await getUserProfile(user.uid);
         if (!userProfile) {
             await createUserProfile(user.uid, {
+                id: user.uid,
                 name: user.displayName || '',
                 email: user.email || '',
                 phone: user.phoneNumber || '',
                 createdAt: Date.now(),
                 addresses: [],
-                cart: [],
-                wishlist: []
             });
         }
     } catch(e) {
@@ -66,13 +65,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     // Create user profile in Firestore
     await createUserProfile(userCred.user.uid, {
+        id: userCred.user.uid,
         name: name,
         email: email,
         phone: '',
         createdAt: Date.now(),
         addresses: [],
-        cart: [],
-        wishlist: []
     });
 
     return userCred;

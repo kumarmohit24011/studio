@@ -10,8 +10,6 @@ export interface UserProfile {
     phone: string;
     createdAt: number;
     addresses: ShippingAddress[];
-    cart: CartItem[];
-    wishlist: string[];
     isActive?: boolean;
 }
 
@@ -26,14 +24,12 @@ const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): UserProfi
         phone: data.phone,
         createdAt: data.createdAt,
         addresses: data.addresses || [],
-        cart: data.cart || [],
-        wishlist: data.wishlist || [],
         isActive: data.isActive !== false, // default to true if not set
     };
 }
 
 
-export const createUserProfile = async (userId: string, data: Omit<UserProfile, 'id' | 'isActive'>): Promise<void> => {
+export const createUserProfile = async (userId: string, data: Omit<UserProfile, 'isActive'>): Promise<void> => {
     const userDocRef = doc(db, 'users', userId);
     // When creating, set isActive to true by default.
     await setDoc(userDocRef, {...data, isActive: true});
