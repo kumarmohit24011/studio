@@ -54,7 +54,7 @@ export async function saveOrder(
     paymentDetails: { razorpay_payment_id: string; razorpay_order_id: string },
     couponApplied?: { code: string; discountAmount: number }
 ) {
-    console.log("--- Starting saveOrder ---", { userId, totalAmount, orderId: paymentDetails.razorpay_order_id });
+    console.log("--- Starting saveOrder ---", { userId, userName, totalAmount, orderId: paymentDetails.razorpay_order_id });
     if (!paymentDetails.razorpay_order_id) {
         console.error("saveOrder failed: Missing razorpay_order_id.");
         return { success: false, message: "saveOrder failed: Missing razorpay_order_id." };
@@ -62,28 +62,35 @@ export async function saveOrder(
     
     try {
         // Step 1: Update stock levels within a transaction for atomicity.
-        console.log("--- Running stock update transaction ---");
-        await runTransaction(db, async (transaction) => {
-            for (const item of cartItems) {
-                const productRef = doc(db, 'products', item.id);
-                const productDoc = await transaction.get(productRef);
+        try {
+            console.log("--- Running stock update transaction ---");
+            await runTransaction(db, async (transaction) => {
+                for (const item of cartItems) {
+                    const productRef = doc(db, 'products', item.id);
+                    const productDoc = await transaction.get(productRef);
 
-                if (!productDoc.exists()) {
-                    throw new Error(`Product with ID ${item.id} not found.`);
+                    if (!productDoc.exists()) {
+                        throw new Error(`Product with ID ${item.id} not found.`);
+                    }
+
+                    const currentStock = productDoc.data().stock;
+                    const newStock = currentStock - item.quantity;
+
+                    if (newStock < 0) {
+                        throw new Error(`Not enough stock for ${productDoc.data().name}. Only ${currentStock} left.`);
+                    }
+                    
+                    console.log(`Updating stock for ${item.name} from ${currentStock} to ${newStock}`);
+                    transaction.update(productRef, { stock: newStock });
                 }
-
-                const currentStock = productDoc.data().stock;
-                const newStock = currentStock - item.quantity;
-
-                if (newStock < 0) {
-                    throw new Error(`Not enough stock for ${productDoc.data().name}. Only ${currentStock} left.`);
-                }
-                
-                console.log(`Updating stock for ${item.name} from ${currentStock} to ${newStock}`);
-                transaction.update(productRef, { stock: newStock });
-            }
-        });
-        console.log("--- Stock update transaction successful ---");
+            });
+            console.log("--- Stock update transaction successful ---");
+        } catch(transactionError) {
+            console.error("--- FATAL: Stock update transaction failed ---", transactionError);
+            const errorMessage = transactionError instanceof Error ? transactionError.message : "Failed to update product stock.";
+            // Re-throw the error to be caught by the outer catch block
+            throw new Error(errorMessage);
+        }
         
         // Step 2: Create the order document after the transaction is successful.
         const orderId = paymentDetails.razorpay_order_id;
@@ -113,6 +120,7 @@ export async function saveOrder(
         });
 
         // Step 3: Create an audit log for the new order
+        console.log("--- Creating audit log for new order ---");
         await createLog({
             action: 'CREATE',
             entityType: 'ORDER',
