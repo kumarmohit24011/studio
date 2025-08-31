@@ -30,7 +30,7 @@ const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): UserProfi
         createdAt: data.createdAt,
         addresses: data.addresses || [],
         isActive: data.isActive !== false, // default to true if not set
-        isAdmin: data.isAdmin !== false, // default to true if not set
+        isAdmin: data.isAdmin === true, // Default to false if not set or not explicitly true
         cart: data.cart || [],
         wishlist: data.wishlist || []
     };
@@ -45,7 +45,7 @@ export const createUserProfile = async (user: User): Promise<void> => {
         createdAt: Date.now(),
         addresses: [],
         isActive: true,
-        isAdmin: true, // New users are now admins by default
+        isAdmin: false, // New users are NOT admins by default
     }
     await setDoc(userDocRef, userProfile);
 }
@@ -63,7 +63,7 @@ export const getUserProfile = async (userId: string): Promise<UserProfile | null
             createdAt: data.createdAt,
             addresses: data.addresses || [],
             isActive: data.isActive !== false,
-            isAdmin: data.isAdmin !== false, // Default to true if the field is missing
+            isAdmin: data.isAdmin === true, // Default to false if the field is missing
             cart: data.cart || [],
             wishlist: data.wishlist || []
         } as UserProfile;
@@ -77,7 +77,10 @@ export const getAllUsers = async (): Promise<UserProfile[]> => {
     if (!currentUser) throw new Error("Authentication required.");
 
     const profile = await getUserProfile(currentUser.uid);
-    if (!profile?.isAdmin) throw new Error("Admin privileges required.");
+    if (!profile?.isAdmin) {
+        // This will be caught by the UI and show a helpful message.
+        throw new Error("Admin privileges required.");
+    }
 
     const snapshot = await getDocs(usersCollection);
     return snapshot.docs.map(fromFirestore);
