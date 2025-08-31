@@ -1,42 +1,53 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    function getUserData(userId) {
-      return get(/databases/$(database)/documents/users/$(userId)).data;
+    // Helper function to check for admin role
+    function isAdmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
+    // Users collection rules
     match /users/{userId} {
       allow read, update, write: if request.auth != null && request.auth.uid == userId;
-      allow list: if request.auth != null && getUserData(request.auth.uid).isAdmin == true;
+      allow read: if request.auth != null && isAdmin();
     }
-
+    
+    // Products collection rules
     match /products/{productId} {
       allow read: if true;
-      allow write: if request.auth != null && getUserData(request.auth.uid).isAdmin == true;
-    }
-    
-    match /categories/{categoryId} {
-        allow read: if true;
-        allow write: if request.auth != null && getUserData(request.auth.uid).isAdmin == true;
-    }
-    
-    match /coupons/{couponId} {
-        allow read: if true;
-        allow write: if request.auth != null && getUserData(request.auth.uid).isAdmin == true;
-    }
-    
-    match /orders/{orderId} {
-      allow create: if request.auth != null;
-      allow read, update: if request.auth != null && (request.auth.uid == resource.data.userId || getUserData(request.auth.uid).isAdmin == true);
-      allow list: if request.auth != null && getUserData(request.auth.uid).isAdmin == true;
+      // Admins can create, update, and delete products
+      allow write: if request.auth != null && isAdmin();
     }
 
-    match /settings/{docId} {
+    // Categories collection rules
+    match /categories/{categoryId} {
       allow read: if true;
-      allow write: if request.auth != null && getUserData(request.auth.uid).isAdmin == true;
+      // Admins can create, update, and delete categories
+      allow write: if request.auth != null && isAdmin();
+    }
+    
+    // Coupons collection rules
+    match /coupons/{couponId} {
+        allow read: if true;
+        // Admins can create, update, and delete coupons
+        allow write: if request.auth != null && isAdmin();
+    }
+    
+    // Settings collection rules
+    match /settings/{docId} {
+        allow read: if true;
+        // Admins can write to settings
+        allow write: if request.auth != null && isAdmin();
+    }
+
+    // Orders collection rules
+    match /orders/{orderId} {
+      allow read: if request.auth != null && (request.auth.uid == resource.data.userId || isAdmin());
+      // Allow authenticated users to create new orders.
+      allow create: if request.auth != null;
+      // Allow admins to update orders (e.g., change status)
+      allow update: if request.auth != null && isAdmin();
     }
   }
 }
