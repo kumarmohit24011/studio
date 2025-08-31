@@ -55,7 +55,6 @@ export async function saveOrder(
         discountAmount: number
     }
 ) {
-    console.log("---[SERVER]--- Starting saveOrder process for user:", userId);
     
     try {
         await runTransaction(db, async (transaction) => {
@@ -77,7 +76,6 @@ export async function saveOrder(
 
                 const newStock = currentStock - item.quantity;
                 transaction.update(productRef, { stock: newStock });
-                console.log(`---[SERVER]--- Stock for ${item.id} updated from ${currentStock} to ${newStock}.`);
             }
 
             // 2. Create the new order document
@@ -102,16 +100,14 @@ export async function saveOrder(
             };
 
             transaction.set(orderRef, newOrderData);
-            console.log(`---[SERVER]--- New order document ${orderRef.id} set in transaction.`);
         });
         
-        console.log("---[SERVER]--- Firestore transaction completed successfully.");
-
         return { success: true, message: "Order saved successfully." };
 
     } catch (error: any) {
-        console.error("---[SERVER]--- CRITICAL ERROR in saveOrder process. This is the error from the server, please inspect it carefully.");
-        console.error("Full error object:", error);
+        console.error("---[SERVER] FIREBASE TRANSACTION FAILED ---");
+        console.error("Error saving order:", error.message);
+        console.error("Full error object:", JSON.stringify(error, null, 2));
         return { success: false, message: error.message || "Failed to save order due to a critical server error." };
     }
 }
