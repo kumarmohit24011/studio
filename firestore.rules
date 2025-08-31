@@ -3,61 +3,56 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Helper functions
-    function isOwner(userId) {
-      return request.auth.uid == userId;
+  
+    // Helper function to check if a user is an admin
+    function isAdmin() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-    
-    // PUBLIC COLLECTIONS: Anyone can read these.
+    // Products can be read by anyone, but only modified by admins
     match /products/{productId} {
       allow read: if true;
-      // Allow writes only by authenticated users (for admin panel & order transaction)
-      allow write: if isAuthenticated(); 
+      allow write: if isAdmin();
     }
 
+    // Categories can be read by anyone, but only modified by admins
     match /categories/{categoryId} {
       allow read: if true;
-      allow write: if isAuthenticated(); // Admin can manage
-    }
-    
-    match /settings/{docId} {
-      allow read: if true;
-      allow write: if isAuthenticated(); // Admin can manage
-    }
-    
-    // SECURE USER DATA
-    match /users/{userId} {
-      // Only the authenticated user can read or write to their own document.
-      allow read, write: if isOwner(userId);
-    }
-    
-    // SECURE ORDERS
-    match /orders/{orderId} {
-        // Users can create orders for themselves. The code ensures userId is correct.
-        allow create: if isAuthenticated();
-        // Users can only read their own orders. Admin can read all.
-        allow read: if isOwner(resource.data.userId); 
-        // Only allow admins to update orders (e.g., change status)
-        allow update: if isAuthenticated();
-        allow delete: if false; // Orders should not be deleted
+      allow write: if isAdmin();
     }
 
-    // SECURE COUPONS (Admin only)
+    // Coupons can be read by anyone, but only modified by admins
     match /coupons/{couponId} {
-      // Anyone can read to verify, but only admin can write.
-      allow read: if true; 
-      allow write: if isAuthenticated();
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Users can only read/write their own data, but admins can read any user's data
+    match /users/{userId} {
+      allow read, write: if request.auth.uid == userId || isAdmin();
+    }
+
+    // Orders can be created by any authenticated user for themselves.
+    // They can be read by the user who owns it or by an admin.
+    // They can only be updated (e.g. status change) by an admin.
+    match /orders/{orderId} {
+      allow create: if request.auth.uid == request.resource.data.userId;
+      allow read: if request.auth.uid == resource.data.userId || isAdmin();
+      allow update: if isAdmin();
+      allow delete: if false;
     }
     
-    // AUDIT LOGS (Write-only for server-side actions by authenticated users)
+    // Audit logs can be created by admins, but never read, updated or deleted from the client.
     match /auditLogs/{logId} {
-      allow read, update, delete: if false; // Nobody can read/change logs from client
-      allow create: if isAuthenticated();
+      allow create: if isAdmin();
+      allow read, update, delete: if false;
+    }
+
+    // Settings can be read by anyone, but only modified by admins
+    match /settings/{docId} {
+        allow read: if true;
+        allow write: if isAdmin();
     }
   }
 }
