@@ -30,7 +30,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export function Header() {
-  const { user, signOut, loading: authLoading } = useAuth();
+  const { user, userProfile, signOut, loading: authLoading } = useAuth();
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
   const [searchQuery, setSearchQuery] = useState("");
@@ -61,7 +61,9 @@ export function Header() {
           <Link href="/products" className="transition-colors hover:text-primary">Products</Link>
           <Link href="/#offers" className="transition-colors hover:text-primary">Offers</Link>
           <Link href="/#trending" className="transition-colors hover:text-primary">Trending</Link>
-          <Link href="/admin" className="transition-colors hover:text-primary">Admin</Link>
+          {userProfile?.isAdmin && (
+            <Link href="/admin" className="transition-colors hover:text-primary">Admin</Link>
+          )}
         </nav>
         <div className="flex flex-1 items-center justify-end space-x-4">
           <div className="hidden lg:flex flex-1 max-w-xs relative">
@@ -116,7 +118,9 @@ export function Header() {
                     <DropdownMenuLabel>My Account</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild><Link href="/profile"><UserCircle className="mr-2"/>Profile</Link></DropdownMenuItem>
-                    <DropdownMenuItem asChild><Link href="/admin"><LayoutDashboard className="mr-2"/>Admin</Link></DropdownMenuItem>
+                    {userProfile?.isAdmin && (
+                        <DropdownMenuItem asChild><Link href="/admin"><LayoutDashboard className="mr-2"/>Admin</Link></DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={signOut}><LogOut className="mr-2"/>Logout</DropdownMenuItem>
                   </>

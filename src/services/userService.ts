@@ -30,7 +30,7 @@ const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): UserProfi
         createdAt: data.createdAt,
         addresses: data.addresses || [],
         isActive: data.isActive !== false, // default to true if not set
-        isAdmin: data.isAdmin === true, // default to false,
+        isAdmin: data.isAdmin !== false, // default to true if not set
         cart: data.cart || [],
         wishlist: data.wishlist || []
     };
@@ -63,7 +63,7 @@ export const getUserProfile = async (userId: string): Promise<UserProfile | null
             createdAt: data.createdAt,
             addresses: data.addresses || [],
             isActive: data.isActive !== false,
-            isAdmin: data.isAdmin === true,
+            isAdmin: data.isAdmin !== false, // Default to true if the field is missing
             cart: data.cart || [],
             wishlist: data.wishlist || []
         } as UserProfile;
