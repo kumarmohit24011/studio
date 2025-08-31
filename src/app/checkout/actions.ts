@@ -48,12 +48,15 @@ export async function saveOrder(
     paymentDetails: { razorpay_payment_id: string; razorpay_order_id: string },
     couponApplied?: { code: string; discountAmount: number }
 ) {
+    console.log("--- Starting saveOrder ---", { userId, totalAmount, orderId: paymentDetails.razorpay_order_id });
     if (!paymentDetails.razorpay_order_id) {
+        console.error("saveOrder failed: Missing razorpay_order_id.");
         return { success: false, message: "saveOrder failed: Missing razorpay_order_id." };
     }
     
     try {
         // Step 1: Update stock levels within a transaction for atomicity.
+        console.log("--- Running stock update transaction ---");
         await runTransaction(db, async (transaction) => {
             for (const item of cartItems) {
                 const productRef = doc(db, 'products', item.id);
@@ -70,23 +73,29 @@ export async function saveOrder(
                     throw new Error(`Not enough stock for ${productDoc.data().name}. Only ${currentStock} left.`);
                 }
                 
+                console.log(`Updating stock for ${item.name} from ${currentStock} to ${newStock}`);
                 transaction.update(productRef, { stock: newStock });
             }
         });
+        console.log("--- Stock update transaction successful ---");
         
         // Step 2: Create the order document after the transaction is successful.
         const orderId = paymentDetails.razorpay_order_id;
         const orderDocRef = doc(db, 'orders', orderId);
         
+        console.log(`--- Creating order document with ID: ${orderId} ---`);
+
+        const orderItems = cartItems.map(item => ({
+            productId: item.id,
+            name: item.name,
+            image: item.images[0], // Assuming the first image is the primary one
+            quantity: item.quantity,
+            price: item.price
+        }));
+
         await setDoc(orderDocRef, {
             userId,
-            items: cartItems.map(item => ({
-                productId: item.id,
-                name: item.name,
-                image: item.images[0],
-                quantity: item.quantity,
-                price: item.price
-            })),
+            items: orderItems,
             totalAmount,
             shippingAddressId: shippingAddressId,
             orderStatus: 'Processing' as const,
@@ -97,10 +106,11 @@ export async function saveOrder(
             coupon: couponApplied,
         });
 
+        console.log("--- Order document created successfully ---");
         return { success: true, orderId: orderId };
 
     } catch (error) {
-        console.error("Error in saveOrder process:", error);
+        console.error("--- Error in saveOrder process ---", error);
         const errorMessage = error instanceof Error ? error.message : "Failed to save the order due to an unexpected error.";
         return { success: false, message: errorMessage };
     }
