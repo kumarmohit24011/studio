@@ -381,7 +381,7 @@ export default function ProfilePage() {
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button variant="outline">View Details</Button>
+                        <Button variant="outline">View Order Details</Button>
                     </CardFooter>
                 </Card>
             )) : (
