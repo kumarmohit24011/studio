@@ -55,7 +55,9 @@ export async function saveOrder(
         discountAmount: number
     }
 ) {
-    
+    console.log("---[SERVER] ATTEMPTING TO SAVE ORDER ---");
+    console.log("---[SERVER] Received Data:", { userId, userName, totalAmount, shippingAddressId });
+
     try {
         const ordersCollectionRef = collection(db, "orders");
         
@@ -78,12 +80,16 @@ export async function saveOrder(
             createdAt: serverTimestamp(),
         };
 
+        console.log("---[SERVER] Order data prepared for Firestore:", JSON.stringify(newOrderData, null, 2));
+
         await addDoc(ordersCollectionRef, newOrderData);
         
+        console.log("---[SERVER] Order saved successfully. ---");
         return { success: true, message: "Order saved successfully." };
 
     } catch (error: any) {
-        console.error("---[SERVER] FIREBASE SAVE ORDER FAILED ---", error);
+        console.error("---[SERVER] CRITICAL: FAILED TO SAVE ORDER TO FIRESTORE ---");
+        console.error("---[SERVER] Full Error Object:", error);
         return { success: false, message: error.message || "Failed to save order due to a critical server error." };
     }
 }
