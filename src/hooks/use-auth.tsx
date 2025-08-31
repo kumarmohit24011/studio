@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { createContext, useContext, useEffect, ReactNode } from 'react';
@@ -23,6 +22,7 @@ interface AuthContextType {
   user: User | null | undefined;
   userProfile: UserProfile | null;
   loading: boolean;
+  profileLoading: boolean;
   error: Error | undefined;
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, pass: string) => Promise<any>;
@@ -35,15 +35,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, loading, error] = useAuthState(auth);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
+        setProfileLoading(true);
         if(user) {
             const profile = await getUserProfile(user.uid);
             setUserProfile(profile);
         } else {
             setUserProfile(null);
         }
+        setProfileLoading(false);
     }
     fetchUserProfile();
   }, [user]);
@@ -80,7 +83,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     firebaseSignOut(auth);
   };
 
-  const value = { user, userProfile, loading, error, signInWithGoogle, signInWithEmail, signUpWithEmail, signOut };
+  const value = { user, userProfile, loading, profileLoading, error, signInWithGoogle, signInWithEmail, signUpWithEmail, signOut };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
