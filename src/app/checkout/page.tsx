@@ -211,28 +211,27 @@ export default function CheckoutPage() {
             console.log("--- Payment Successful on client ---", response);
             console.log("--- Calling saveOrder server action ---");
             try {
-              const saveResult = await saveOrder(
-                  user.uid,
-                  user.displayName || "Customer",
-                  cartItems,
-                  totalAmount,
-                  selectedAddress.id,
-                  {
+              const saveResult = await saveOrder({
+                  userId: user.uid,
+                  cartItems: cartItems,
+                  totalAmount: totalAmount,
+                  shippingAddressId: selectedAddress.id,
+                  paymentDetails: {
                       razorpay_payment_id: response.razorpay_payment_id,
                       razorpay_order_id: response.razorpay_order_id,
                   },
-                  appliedCoupon ? { code: appliedCoupon.code, discountAmount: discount } : undefined
-              );
+                  couponDetails: appliedCoupon ? { code: appliedCoupon.code, discountAmount: discount } : undefined
+              });
 
               if (saveResult.success) {
-                  toast({ title: "Payment Successful!", description: "Your order has been placed." });
+                  toast({ title: "Payment Successful!", description: `Your order #${saveResult.orderId?.substring(0,7)} has been placed.` });
                   clearCart();
                   router.push("/profile?tab=orders");
               } else {
                   throw new Error(saveResult.message);
               }
             } catch (saveError: any) {
-                 toast({ variant: 'destructive', title: "Order Save Error", description: `Your payment was successful, but we failed to save your order. Please contact support with Order ID: ${response.razorpay_order_id}`});
+                 toast({ variant: 'destructive', title: "Order Save Error", description: `Your payment was successful, but we failed to save your order. Please contact support with Order ID: ${response.razorpay_order_id}. Error: ${saveError.message}`});
             }
         },
         prefill: {
@@ -259,9 +258,9 @@ export default function CheckoutPage() {
           toast({ variant: 'destructive', title: "Payment Failed", description: errorMessage });
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Payment creation failed:", error);
-      toast({ variant: 'destructive', title: "Payment Error", description: "Could not initiate payment. Please try again."})
+      toast({ variant: 'destructive', title: "Payment Error", description: `Could not initiate payment. ${error.message}`})
     } finally {
         setIsProcessing(false);
     }

@@ -3,11 +3,11 @@
 
 import Razorpay from "razorpay";
 import { z } from "zod";
-import { CartItem } from "@/lib/types";
-import { Coupon } from "@/services/couponService";
 import { db } from "@/lib/firebase";
-import { doc, collection, serverTimestamp, addDoc } from "firebase/firestore";
+import { collection, serverTimestamp, addDoc, doc, getDoc, runTransaction } from "firebase/firestore";
 import { getCouponByCode } from "@/services/orderService";
+import type { CartItem } from "@/lib/types";
+import type { Coupon } from "@/services/couponService";
 
 const RazorpayOrderInput = z.number().positive();
 
@@ -35,33 +35,69 @@ export async function createRazorpayOrder(amount: number) {
         }
         return order;
     } catch (error) {
-        console.error("Error creating Razorpay order:", error);
+        console.error("[SERVER_ERROR] createRazorpayOrder:", error);
         throw new Error("Failed to create Razorpay order.");
     }
 }
 
+// --- ZOD Schemas for robust validation ---
+const CartItemSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  images: z.array(z.string().url()).min(1),
+  price: z.number(),
+  quantity: z.number().positive(),
+  category: z.string(),
+  sku: z.string(),
+  stock: z.number(),
+  tags: z.array(z.string()).optional(),
+});
+
+const PaymentDetailsSchema = z.object({
+  razorpay_payment_id: z.string(),
+  razorpay_order_id: z.string(),
+});
+
+const CouponDetailsSchema = z.object({
+  code: z.string(),
+  discountAmount: z.number(),
+}).optional();
+
+const SaveOrderInputSchema = z.object({
+    userId: z.string(),
+    cartItems: z.array(CartItemSchema),
+    totalAmount: z.number(),
+    shippingAddressId: z.string(),
+    paymentDetails: PaymentDetailsSchema,
+    couponDetails: CouponDetailsSchema,
+});
+
+
 export async function saveOrder(
-    userId: string,
-    userName: string,
-    cartItems: CartItem[],
-    totalAmount: number,
-    shippingAddressId: string,
-    paymentDetails: {
-        razorpay_payment_id: string,
-        razorpay_order_id: string,
-    },
-    couponDetails?: {
-        code: string,
-        discountAmount: number
+    input: z.infer<typeof SaveOrderInputSchema>
+): Promise<{ success: boolean; message: string; orderId?: string; }> {
+    console.log("[SERVER] Received raw input for saveOrder:", input);
+    
+    const validation = SaveOrderInputSchema.safeParse(input);
+    if (!validation.success) {
+        console.error("[SERVER_ERROR] SaveOrder validation failed:", validation.error.flatten());
+        return { success: false, message: `Invalid order data provided. ${validation.error.message}` };
     }
-) {
-    console.log("---[SERVER] ATTEMPTING TO SAVE ORDER ---");
-    console.log("---[SERVER] Received Data:", { userId, userName, totalAmount, shippingAddressId });
+    
+    const { 
+        userId, 
+        cartItems, 
+        totalAmount, 
+        shippingAddressId, 
+        paymentDetails, 
+        couponDetails 
+    } = validation.data;
 
     try {
-        const ordersCollectionRef = collection(db, "orders");
-        
+        const newOrderRef = doc(collection(db, "orders"));
+
         const newOrderData = {
+            id: newOrderRef.id,
             userId,
             items: cartItems.map(item => ({
                 productId: item.id,
@@ -80,17 +116,20 @@ export async function saveOrder(
             createdAt: serverTimestamp(),
         };
 
-        console.log("---[SERVER] Order data prepared for Firestore:", JSON.stringify(newOrderData, null, 2));
+        console.log("[SERVER] Prepared validated order data for Firestore:", JSON.stringify(newOrderData, null, 2));
 
-        await addDoc(ordersCollectionRef, newOrderData);
+        await addDoc(collection(db, "orders"), newOrderData);
         
-        console.log("---[SERVER] Order saved successfully. ---");
-        return { success: true, message: "Order saved successfully." };
+        console.log(`[SERVER] Order ${newOrderRef.id} saved successfully.`);
+        return { success: true, message: "Order saved successfully.", orderId: newOrderRef.id };
 
     } catch (error: any) {
-        console.error("---[SERVER] CRITICAL: FAILED TO SAVE ORDER TO FIRESTORE ---");
-        console.error("---[SERVER] Full Error Object:", error);
-        return { success: false, message: error.message || "Failed to save order due to a critical server error." };
+        console.error("[SERVER_ERROR] CRITICAL: FAILED TO SAVE ORDER TO FIRESTORE", {
+            code: error.code,
+            message: error.message,
+            stack: error.stack,
+        });
+        return { success: false, message: error.message || "A critical server error occurred while saving the order." };
     }
 }
 

@@ -124,8 +124,59 @@ const AddressForm = ({ userId, onSave, address, addresses }: { userId: string, o
     )
 }
 
+function ProfileInfoTab() {
+    const { user, userProfile, updateUserProfile } = useAuth();
+    const [name, setName] = useState(userProfile?.name || '');
+    const [phone, setPhone] = useState(userProfile?.phone || '');
+    const { toast } = useToast();
+    const [isSaving, setIsSaving] = useState(false);
+
+    useEffect(() => {
+        setName(userProfile?.name || '');
+        setPhone(userProfile?.phone || '');
+    }, [userProfile]);
+
+    const handleSaveChanges = async () => {
+        setIsSaving(true);
+        try {
+            await updateUserProfile({ displayName: name, phoneNumber: phone });
+            toast({ title: "Profile updated successfully!" });
+        } catch (error: any) {
+            toast({ variant: "destructive", title: "Error", description: error.message });
+        } finally {
+            setIsSaving(false);
+        }
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Personal Information</CardTitle>
+                <CardDescription>
+                    Update your name and phone number.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                </div>
+            </CardContent>
+            <CardFooter>
+                <Button onClick={handleSaveChanges} disabled={isSaving}>
+                    {isSaving ? "Saving..." : "Save Changes"}
+                </Button>
+            </CardFooter>
+        </Card>
+    );
+}
+
 export default function ProfilePage() {
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { user, userProfile, loading: authLoading, signOut } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -148,7 +199,7 @@ export default function ProfilePage() {
               getAddresses(user.uid)
           ]);
           setAllProducts(products);
-          setOrders(userOrders);
+          setOrders(userOrders.sort((a,b) => b.createdAt - a.createdAt));
           setAddresses(userAddresses.sort((a,b) => (b.isDefault ? 1 : 0) - (a.isDefault ? 1 : 0)));
           setLoading(false);
       }
@@ -198,7 +249,7 @@ export default function ProfilePage() {
       setIsAddressDialogOpen(open);
   }
 
-  if (loading || authLoading || !user) {
+  if (loading || authLoading || !user || !userProfile) {
     return <div className="container mx-auto px-4 py-12 md:py-20 text-center">Loading...</div>
   }
 
@@ -206,11 +257,11 @@ export default function ProfilePage() {
     <div className="container mx-auto px-4 py-12 md:py-20">
       <div className="flex flex-col md:flex-row items-center gap-6 mb-8">
         <Avatar className="w-24 h-24">
-            <AvatarImage src={user.photoURL || ''} alt={user.displayName || 'User'}/>
-            <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
+            <AvatarImage src={user.photoURL || ''} alt={userProfile.name || 'User'}/>
+            <AvatarFallback>{userProfile.name?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
         </Avatar>
         <div>
-            <h1 className="text-4xl font-headline">{user.displayName || 'My Account'}</h1>
+            <h1 className="text-4xl font-headline">{userProfile.name || 'My Account'}</h1>
             <p className="text-muted-foreground">{user.email}</p>
         </div>
         <Button onClick={signOut} variant="outline" className="md:ml-auto">Logout</Button>
@@ -223,27 +274,7 @@ export default function ProfilePage() {
           <TabsTrigger value="orders">Order History</TabsTrigger>
         </TabsList>
         <TabsContent value="profile" className="mt-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
-              <CardDescription>
-                Update your name and phone number.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input id="name" defaultValue={user.displayName || ""} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input id="phone" defaultValue={user.phoneNumber || ""} />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button>Save Changes</Button>
-            </CardFooter>
-          </Card>
+          <ProfileInfoTab />
         </TabsContent>
         <TabsContent value="addresses" className="mt-8">
             <Dialog open={isAddressDialogOpen} onOpenChange={handleOpenDialog}>

@@ -3,7 +3,7 @@
 import { db } from '@/lib/firebase';
 import { doc, setDoc, getDoc, DocumentData, collection, getDocs, QueryDocumentSnapshot, updateDoc } from 'firebase/firestore';
 import { ShippingAddress } from '@/lib/types';
-import { User, getAuth } from 'firebase/auth';
+import { User, getAuth, updateProfile as firebaseUpdateProfile } from 'firebase/auth';
 
 export interface UserProfile {
     id: string;
@@ -36,17 +36,21 @@ const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): UserProfi
     };
 }
 
-export const createUserProfile = async (user: User): Promise<void> => {
+export const createUserProfile = async (user: User, name?: string): Promise<void> => {
     const userDocRef = doc(db, 'users', user.uid);
     
-    // --- TEMPORARY ADMIN CREATION ---
-    // IMPORTANT: Replace 'admin@example.com' with your own email address.
-    // This will make you an admin when you sign up.
-    // REMOVE this logic before deploying to production.
+    // If a name is provided (from email signup form), update the auth profile first.
+    if (name && auth.currentUser) {
+        await firebaseUpdateProfile(auth.currentUser, { displayName: name });
+    }
+
+    const finalName = name || user.displayName || '';
+
+    // Check if the user is the designated admin.
     const isAdmin = user.email === 'admin@rebow.com';
 
     const userProfile : Omit<UserProfile, 'id'> = {
-        name: user.displayName || '',
+        name: finalName,
         email: user.email || '',
         phone: user.phoneNumber || '',
         createdAt: Date.now(),
@@ -100,4 +104,20 @@ export const toggleUserStatus = async (userId: string, currentStatus: boolean): 
 export const toggleAdminStatus = async (userId: string, currentStatus: boolean): Promise<void> => {
     const userDocRef = doc(db, 'users', userId);
     await updateDoc(userDocRef, { isAdmin: !currentStatus });
+}
+
+export const auth = getAuth();
+export const updateProfile = async (data: {displayName?: string, phoneNumber?: string}) => {
+    const user = auth.currentUser;
+    if (user) {
+        await firebaseUpdateProfile(user, {
+            displayName: data.displayName
+        });
+
+        const userDocRef = doc(db, 'users', user.uid);
+        await updateDoc(userDocRef, {
+            name: data.displayName,
+            phone: data.phoneNumber
+        });
+    }
 }

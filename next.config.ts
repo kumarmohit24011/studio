@@ -15,11 +15,11 @@ const nextConfig: NextConfig = {
         source: '/:path*',
         headers: [
           {
-            key: 'Permissions-Policy',
-            value: "payment=*, publickey-credentials-get=*, publickey-credentials-create=*, otp-credentials=*, web-share=*",
-          },
-        ],
-        
+            key: "Permissions-Policy",
+            value: "payment=(\"self\"), publickey-credentials-create=(\"self\"), publickey-credentials-get=(\"self\"), web-share=(\"self\"), otp-credentials=(\"self\"), camera=(\"self\"), clipboard-write=(\"self\")"
+          }
+        ]
+         
         
       },
     ];

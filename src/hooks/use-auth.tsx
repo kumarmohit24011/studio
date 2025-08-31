@@ -11,11 +11,10 @@ import {
   signOut as firebaseSignOut,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  updateProfile,
 } from 'firebase/auth';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
-import { createUserProfile, getUserProfile, UserProfile } from '@/services/userService';
+import { createUserProfile, getUserProfile, UserProfile, updateProfile } from '@/services/userService';
 import { useState } from 'react';
 
 interface AuthContextType {
@@ -28,6 +27,7 @@ interface AuthContextType {
   signInWithEmail: (email: string, pass: string) => Promise<any>;
   signUpWithEmail: (email: string, pass: string, name: string) => Promise<any>;
   signOut: () => void;
+  updateUserProfile: (data: {displayName?: string, phoneNumber?: string}) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,18 +37,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
+  const fetchUserProfile = async (currentUser: User | null) => {
+      setProfileLoading(true);
+      if(currentUser) {
+          const profile = await getUserProfile(currentUser.uid);
+          setUserProfile(profile);
+      } else {
+          setUserProfile(null);
+      }
+      setProfileLoading(false);
+  }
+
   useEffect(() => {
-    const fetchUserProfile = async () => {
-        setProfileLoading(true);
-        if(user) {
-            const profile = await getUserProfile(user.uid);
-            setUserProfile(profile);
-        } else {
-            setUserProfile(null);
-        }
-        setProfileLoading(false);
-    }
-    fetchUserProfile();
+    fetchUserProfile(user);
   }, [user]);
 
   const signInWithGoogle = async () => {
@@ -72,18 +73,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUpWithEmail = async (email: string, pass: string, name: string) => {
     const userCred = await createUserWithEmailAndPassword(auth, email, pass);
-    await updateProfile(userCred.user, { displayName: name });
-    
-    await createUserProfile(userCred.user);
-
+    await createUserProfile(userCred.user, name);
     return userCred;
   }
 
   const signOut = () => {
     firebaseSignOut(auth);
   };
+  
+  const updateUserProfile = async (data: {displayName?: string, phoneNumber?: string}) => {
+      await updateProfile(data);
+      if (user) {
+          await fetchUserProfile(user); // Re-fetch profile after update
+      }
+  }
 
-  const value = { user, userProfile, loading, profileLoading, error, signInWithGoogle, signInWithEmail, signUpWithEmail, signOut };
+  const value = { user, userProfile, loading, profileLoading, error, signInWithGoogle, signInWithEmail, signUpWithEmail, signOut, updateUserProfile };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
