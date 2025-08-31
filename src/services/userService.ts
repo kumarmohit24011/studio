@@ -43,7 +43,7 @@ export const createUserProfile = async (user: User): Promise<void> => {
     // IMPORTANT: Replace 'admin@example.com' with your own email address.
     // This will make you an admin when you sign up.
     // REMOVE this logic before deploying to production.
-    const isAdmin = user.email === 'admin@example.com';
+    const isAdmin = user.email === 'admin@rebow.com';
 
     const userProfile : Omit<UserProfile, 'id'> = {
         name: user.displayName || '',

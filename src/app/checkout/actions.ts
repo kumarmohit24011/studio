@@ -104,6 +104,8 @@ export async function saveOrder(
 
     } catch (error: any) {
         console.error("---[SERVER] FIREBASE TRANSACTION FAILED ---", error);
+        // This log will give us the exact reason for failure from Firestore's perspective.
+        console.error("Detailed Firestore Error:", error.code, error.message);
         return { success: false, message: error.message || "Failed to save order due to a critical server error." };
     }
 }
