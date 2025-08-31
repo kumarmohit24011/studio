@@ -79,7 +79,6 @@ export async function saveOrder(
         const orderDocRef = doc(db, 'orders', orderId);
         
         await setDoc(orderDocRef, {
-             id: orderId,
             userId,
             items: cartItems.map(item => ({
                 productId: item.id,
@@ -146,5 +145,3 @@ export async function applyCouponCode(code: string, subtotal: number): Promise<{
         message: "Coupon applied successfully.",
     };
 }
-
-    
