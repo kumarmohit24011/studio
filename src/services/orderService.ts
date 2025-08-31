@@ -6,7 +6,6 @@ import type { Order, OrderItem, CartItem } from '@/lib/types';
 import { collection, getDocs, doc, query, where, orderBy, DocumentData, QueryDocumentSnapshot, updateDoc, limit, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Coupon } from './couponService';
-import { z } from "zod";
 import * as admin from 'firebase-admin';
 
 
@@ -15,6 +14,7 @@ const couponCollectionRef = collection(db, 'coupons');
 
 const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): Order => {
     const data = snapshot.data();
+    // Handle both server-generated Timestamps and client-side numbers
     const createdAt = data.createdAt?.toMillis ? data.createdAt.toMillis() : data.createdAt;
     return {
         id: snapshot.id,
