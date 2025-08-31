@@ -12,11 +12,14 @@ service cloud.firestore {
     }
 
     function isUserAdmin(userId) {
+      // Check for the existence of the isAdmin field and its value.
       return isUserAuthenticated() && get(/databases/$(database)/documents/users/$(userId)).data.isAdmin == true;
     }
     
     match /users/{userId} {
+      // Users can read and write their own profile.
       allow read, write: if isUserProfileOwner(userId);
+      // Admins can list all users.
       allow list: if isUserAdmin(request.auth.uid);
     }
     
@@ -36,9 +39,16 @@ service cloud.firestore {
     }
 
     match /orders/{orderId} {
-      allow read: if isUserAuthenticated();
-      allow create: if isUserAuthenticated();
+      // A user can only read their own orders. An admin can read any order.
+      allow read: if isUserProfileOwner(resource.data.userId) || isUserAdmin(request.auth.uid);
+      
+      // IMPORTANT: No client-side creation is allowed. Orders are only created via the server action using the Admin SDK.
+      allow create: if false; 
+      
+      // Only admins can update the status of an order.
       allow update: if isUserAdmin(request.auth.uid);
+      
+      // Orders can never be deleted.
       allow delete: if false;
     }
 
