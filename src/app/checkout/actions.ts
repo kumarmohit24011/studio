@@ -124,6 +124,7 @@ export async function saveOrder(
 
 
         console.log("--- Order document created successfully ---");
+        console.log("--- saveOrder function finished successfully ---");
         return { success: true, orderId: orderId };
 
     } catch (error) {

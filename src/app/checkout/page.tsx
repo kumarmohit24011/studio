@@ -208,6 +208,8 @@ export default function CheckoutPage() {
         description: "Transaction for your beautiful jewelry",
         order_id: order.id,
         handler: async (response) => {
+            console.log("--- Payment Successful on client ---", response);
+            console.log("--- Calling saveOrder server action ---");
             try {
               const saveResult = await saveOrder(
                   user.uid,
