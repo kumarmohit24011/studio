@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Allow public read on collections needed for the storefront
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if request.auth != null; // Or more restrictive admin check
+    }
+
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if request.auth != null; // Or more restrictive admin check
+    }
+
+    match /coupons/{couponId} {
+      allow read: if true;
+      allow write: if request.auth != null; // Or more restrictive admin check
+    }
+
+    // Users can read and write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Orders can be created by authenticated users
+    // and can only be read by the user who owns it
+    match /orders/{orderId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null; // For admin status updates
+    }
+
+    // Settings should be publicly readable for the homepage
+    match /settings/homepage {
+        allow read: if true;
+        allow write: if request.auth != null; // Or admin
+    }
+
+    // Audit logs should only be writable by authenticated (admin) users
+    // and readable only by them. For simplicity, restricting write.
+    match /auditLogs/{logId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null;
+    }
+  }
+}
