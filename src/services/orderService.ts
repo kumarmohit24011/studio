@@ -10,8 +10,8 @@ import { z } from "zod";
 import * as admin from 'firebase-admin';
 
 
-const orderCollection = collection(db, 'orders');
-const couponCollection = collection(db, 'coupons');
+const orderCollectionRef = collection(db, 'orders');
+const couponCollectionRef = collection(db, 'coupons');
 
 const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): Order => {
     const data = snapshot.data();
@@ -37,25 +37,25 @@ const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): Order => 
     };
 }
 
-export const getOrdersForUser = async (userId: string): Promise<Order[]> => {
-    const q = query(orderCollection, where("userId", "==", userId), orderBy("createdAt", "desc"));
+export async function getOrdersForUser(userId: string): Promise<Order[]> {
+    const q = query(orderCollectionRef, where("userId", "==", userId), orderBy("createdAt", "desc"));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(fromFirestore);
 }
 
-export const getAllOrders = async (): Promise<Order[]> => {
-    const q = query(orderCollection, orderBy("createdAt", "desc"));
+export async function getAllOrders(): Promise<Order[]> {
+    const q = query(orderCollectionRef, orderBy("createdAt", "desc"));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(fromFirestore);
 }
 
-export const updateOrderStatus = async (orderId: string, status: Order['orderStatus']): Promise<void> => {
+export async function updateOrderStatus(orderId: string, status: Order['orderStatus']): Promise<void> {
     const orderDoc = doc(db, 'orders', orderId);
     await updateDoc(orderDoc, { orderStatus: status });
 };
 
-export const getCouponByCode = async (code: string): Promise<Coupon | null> => {
-    const q = query(couponCollection, where("code", "==", code), limit(1));
+export async function getCouponByCode(code: string): Promise<Coupon | null> {
+    const q = query(couponCollectionRef, where("code", "==", code), limit(1));
     const snapshot = await getDocs(q);
 
     if (snapshot.empty) {
@@ -76,41 +76,8 @@ export const getCouponByCode = async (code: string): Promise<Coupon | null> => {
     };
 };
 
-
-const CartItemSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  images: z.array(z.string().url()).min(1),
-  price: z.number(),
-  quantity: z.number().positive(),
-  category: z.string(),
-  sku: z.string(),
-  stock: z.number(),
-  tags: z.array(z.string()).optional(),
-});
-
-const PaymentDetailsSchema = z.object({
-  razorpay_payment_id: z.string(),
-  razorpay_order_id: z.string(),
-});
-
-const CouponDetailsSchema = z.object({
-  code: z.string(),
-  discountAmount: z.number(),
-}).optional();
-
-export const SaveOrderInputSchema = z.object({
-    userId: z.string(),
-    cartItems: z.array(CartItemSchema),
-    totalAmount: z.number(),
-    shippingAddressId: z.string(),
-    paymentDetails: PaymentDetailsSchema,
-    couponDetails: CouponDetailsSchema,
-});
-
-
 export async function saveOrder(
-    input: z.infer<typeof SaveOrderInputSchema>
+    input: any
 ): Promise<{ success: boolean; message: string; orderId?: string; }> {
     console.log("[SERVER_ACTION] saveOrder called with input:", JSON.stringify(input, null, 2));
 
@@ -120,12 +87,7 @@ export async function saveOrder(
         return { success: false, message: errorMsg };
     }
     
-    const validation = SaveOrderInputSchema.safeParse(input);
-    if (!validation.success) {
-        console.error("[SERVER_ERROR] SaveOrder validation failed:", validation.error.flatten());
-        return { success: false, message: `Invalid order data provided. ${validation.error.message}` };
-    }
-    
+    // We assume validation happens in the calling action file.
     const { 
         userId, 
         cartItems, 
@@ -133,14 +95,14 @@ export async function saveOrder(
         shippingAddressId, 
         paymentDetails, 
         couponDetails 
-    } = validation.data;
+    } = input;
 
     try {
         const newOrderRef = adminDb.collection("orders").doc();
 
         const newOrderData = {
             userId,
-            items: cartItems.map(item => ({
+            items: cartItems.map((item: CartItem) => ({
                 productId: item.id,
                 name: item.name,
                 image: item.images[0],

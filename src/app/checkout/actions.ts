@@ -5,8 +5,7 @@ import Razorpay from "razorpay";
 import { z } from "zod";
 import { 
     saveOrder as saveOrderToDb, 
-    getCouponByCode,
-    SaveOrderInputSchema
+    getCouponByCode
 } from "@/services/orderService";
 import type { Coupon } from "@/services/couponService";
 
@@ -40,6 +39,38 @@ export async function createRazorpayOrder(amount: number) {
         throw new Error("Failed to create Razorpay order.");
     }
 }
+
+const CartItemSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  images: z.array(z.string().url()).min(1),
+  price: z.number(),
+  quantity: z.number().positive(),
+  category: z.string(),
+  sku: z.string(),
+  stock: z.number(),
+  tags: z.array(z.string()).optional(),
+});
+
+const PaymentDetailsSchema = z.object({
+  razorpay_payment_id: z.string(),
+  razorpay_order_id: z.string(),
+});
+
+const CouponDetailsSchema = z.object({
+  code: z.string(),
+  discountAmount: z.number(),
+}).optional();
+
+export const SaveOrderInputSchema = z.object({
+    userId: z.string(),
+    cartItems: z.array(CartItemSchema),
+    totalAmount: z.number(),
+    shippingAddressId: z.string(),
+    paymentDetails: PaymentDetailsSchema,
+    couponDetails: CouponDetailsSchema,
+});
+
 
 // This is now just a clean wrapper around the centralized service function.
 export async function saveOrder(
