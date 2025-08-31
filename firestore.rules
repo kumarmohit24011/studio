@@ -1,4 +1,3 @@
-
 rules_version = '2';
 
 service cloud.firestore {
@@ -13,60 +12,38 @@ service cloud.firestore {
     }
 
     function isUserAdmin(userId) {
-      // Check if the user is authenticated and their profile document has isAdmin set to true.
       return isUserAuthenticated() && get(/databases/$(database)/documents/users/$(userId)).data.isAdmin == true;
     }
     
-    // Rules for the 'users' collection
     match /users/{userId} {
-      // Users can read and write their own profile.
       allow read, write: if isUserProfileOwner(userId);
-      // Admins can list all users.
       allow list: if isUserAdmin(request.auth.uid);
     }
     
-    // Rules for the 'products' collection
     match /products/{productId} {
-      // Anyone can read products.
       allow read: if true;
-      // Only admins can create, update, or delete products.
       allow write: if isUserAdmin(request.auth.uid);
     }
 
-    // Rules for the 'categories' collection
     match /categories/{categoryId} {
-      // Anyone can read categories.
       allow read: if true;
-      // Only admins can write to categories.
       allow write: if isUserAdmin(request.auth.uid);
     }
     
-    // Rules for the 'coupons' collection
     match /coupons/{couponId} {
-      // Anyone can read coupons (to validate them).
       allow read: if true;
-      // Only admins can write coupons.
       allow write: if isUserAdmin(request.auth.uid);
     }
 
-    // Rules for the 'orders' collection
     match /orders/{orderId} {
-      // Allow reading an order only if the user is the owner or an admin.
-      allow read: if isUserProfileOwner(resource.data.userId) || isUserAdmin(request.auth.uid);
-      // Allow creating an order only if the user is authenticated.
-      // This is for client-side attempts; our server-side action bypasses this.
+      allow read: if isUserAuthenticated();
       allow create: if isUserAuthenticated();
-      // Only admins can update an order's status.
       allow update: if isUserAdmin(request.auth.uid);
-      // Nobody can delete orders for data integrity.
       allow delete: if false;
     }
 
-    // Rules for the 'settings' collection
     match /settings/{docId} {
-      // Anyone can read settings (for the homepage).
       allow read: if true;
-      // Only admins can write settings.
       allow write: if isUserAdmin(request.auth.uid);
     }
   }
