@@ -60,7 +60,7 @@ export async function saveOrder(
         discountAmount: number
     }
 ) {
-    console.log("---[SERVER]--- Starting saveOrder process for user:", userId, "with data:", { cartItems, totalAmount, shippingAddressId, paymentDetails, couponDetails });
+    console.log("---[SERVER]--- Starting saveOrder process for user:", userId);
     
     try {
         await runTransaction(db, async (transaction) => {
@@ -126,8 +126,8 @@ export async function saveOrder(
         return { success: true, message: "Order saved successfully." };
 
     } catch (error: any) {
-        console.error("---[SERVER]--- Error in saveOrder process:", error);
-        return { success: false, message: error.message || "Failed to save order due to a server error." };
+        console.error("---[SERVER]--- CRITICAL ERROR in saveOrder process:", error.toString());
+        return { success: false, message: error.message || "Failed to save order due to a critical server error." };
     }
 }
 
