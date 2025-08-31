@@ -62,7 +62,7 @@ const CouponDetailsSchema = z.object({
   discountAmount: z.number(),
 }).optional();
 
-export const SaveOrderInputSchema = z.object({
+const SaveOrderInputSchema = z.object({
     userId: z.string(),
     cartItems: z.array(CartItemSchema),
     totalAmount: z.number(),
