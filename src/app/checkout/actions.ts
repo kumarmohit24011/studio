@@ -11,7 +11,40 @@ import type { Coupon } from "@/services/couponService";
 
 const RazorpayOrderInput = z.number().positive();
 
-export async function createRazorpayOrder(amount: number) {
+const CartItemSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  images: z.array(z.string().url()).min(1),
+  price: z.number(),
+  quantity: z.number().positive(),
+  category: z.string(),
+  sku: z.string(),
+  stock: z.number(),
+  tags: z.array(z.string()).optional(),
+});
+
+const PaymentDetailsSchema = z.object({
+  razorpay_payment_id: z.string(),
+  razorpay_order_id: z.string(),
+});
+
+const CouponDetailsSchema = z.object({
+  code: z.string(),
+  discountAmount: z.number(),
+}).optional();
+
+// This schema is not exported to avoid "use server" conflicts.
+const SaveOrderInputSchema = z.object({
+    userId: z.string(),
+    cartItems: z.array(CartItemSchema),
+    totalAmount: z.number(),
+    shippingAddressId: z.string(),
+    paymentDetails: PaymentDetailsSchema,
+    couponDetails: CouponDetailsSchema,
+});
+
+
+export async function createRazorpayOrder(amount: number): Promise<{ id: string; currency: string; amount: number; }> {
     const validationResult = RazorpayOrderInput.safeParse(amount);
     if (!validationResult.success) {
         throw new Error("Invalid amount provided");
@@ -40,43 +73,19 @@ export async function createRazorpayOrder(amount: number) {
     }
 }
 
-const CartItemSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  images: z.array(z.string().url()).min(1),
-  price: z.number(),
-  quantity: z.number().positive(),
-  category: z.string(),
-  sku: z.string(),
-  stock: z.number(),
-  tags: z.array(z.string()).optional(),
-});
-
-const PaymentDetailsSchema = z.object({
-  razorpay_payment_id: z.string(),
-  razorpay_order_id: z.string(),
-});
-
-const CouponDetailsSchema = z.object({
-  code: z.string(),
-  discountAmount: z.number(),
-}).optional();
-
-const SaveOrderInputSchema = z.object({
-    userId: z.string(),
-    cartItems: z.array(CartItemSchema),
-    totalAmount: z.number(),
-    shippingAddressId: z.string(),
-    paymentDetails: PaymentDetailsSchema,
-    couponDetails: CouponDetailsSchema,
-});
-
 
 // This is now just a clean wrapper around the centralized service function.
 export async function saveOrder(
     input: z.infer<typeof SaveOrderInputSchema>
 ): Promise<{ success: boolean; message: string; orderId?: string; }> {
-    return saveOrderToDb(input);
+    // We re-validate here on the server action boundary as a security best practice.
+    const validationResult = SaveOrderInputSchema.safeParse(input);
+    if (!validationResult.success) {
+        console.error("[VALIDATION_ERROR] saveOrder:", validationResult.error.flatten());
+        return { success: false, message: "Invalid order data provided." };
+    }
+    
+    return saveOrderToDb(validationResult.data);
 }
 
 
