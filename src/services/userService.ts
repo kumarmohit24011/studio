@@ -45,7 +45,7 @@ export const createUserProfile = async (user: User): Promise<void> => {
         createdAt: Date.now(),
         addresses: [],
         isActive: true,
-        isAdmin: false, // New users are not admins by default
+        isAdmin: true, // New users are now admins by default
     }
     await setDoc(userDocRef, userProfile);
 }
