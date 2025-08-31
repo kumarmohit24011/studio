@@ -6,7 +6,7 @@ import { z } from "zod";
 import { CartItem } from "@/lib/types";
 import { Coupon } from "@/services/couponService";
 import { db } from "@/lib/firebase";
-import { doc, runTransaction, collection, serverTimestamp } from "firebase/firestore";
+import { doc, collection, serverTimestamp, addDoc } from "firebase/firestore";
 import { getCouponByCode } from "@/services/orderService";
 
 const RazorpayOrderInput = z.number().positive();
@@ -57,37 +57,33 @@ export async function saveOrder(
 ) {
     
     try {
-        await runTransaction(db, async (transaction) => {
-            // NOTE: Stock decrement functionality has been removed as per user request.
+        const ordersCollectionRef = collection(db, "orders");
+        
+        const newOrderData = {
+            userId,
+            items: cartItems.map(item => ({
+                productId: item.id,
+                name: item.name,
+                image: item.images[0],
+                quantity: item.quantity,
+                price: item.price,
+            })),
+            totalAmount,
+            shippingAddressId,
+            orderStatus: 'Processing',
+            paymentStatus: 'Paid',
+            razorpay_payment_id: paymentDetails.razorpay_payment_id,
+            razorpay_order_id: paymentDetails.razorpay_order_id,
+            coupon: couponDetails || null,
+            createdAt: serverTimestamp(),
+        };
 
-            // Create the new order document
-            const orderRef = doc(collection(db, "orders"));
-            const newOrderData = {
-                userId,
-                items: cartItems.map(item => ({
-                    productId: item.id,
-                    name: item.name,
-                    image: item.images[0], // Use the first image
-                    quantity: item.quantity,
-                    price: item.price,
-                })),
-                totalAmount,
-                shippingAddressId,
-                orderStatus: 'Processing',
-                paymentStatus: 'Paid',
-                razorpay_payment_id: paymentDetails.razorpay_payment_id,
-                razorpay_order_id: paymentDetails.razorpay_order_id,
-                coupon: couponDetails || null,
-                createdAt: serverTimestamp(),
-            };
-
-            transaction.set(orderRef, newOrderData);
-        });
+        await addDoc(ordersCollectionRef, newOrderData);
         
         return { success: true, message: "Order saved successfully." };
 
     } catch (error: any) {
-        console.error("---[SERVER] FIREBASE TRANSACTION FAILED ---", error);
+        console.error("---[SERVER] FIREBASE SAVE ORDER FAILED ---", error);
         return { success: false, message: error.message || "Failed to save order due to a critical server error." };
     }
 }

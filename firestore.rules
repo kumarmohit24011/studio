@@ -1,53 +1,55 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper function to check for admin role
-    function isAdmin() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+
+    function isUserAuthenticated() {
+      return request.auth != null;
     }
 
-    // Users collection rules
-    match /users/{userId} {
-      allow read, update, write: if request.auth != null && request.auth.uid == userId;
-      allow read: if request.auth != null && isAdmin();
+    function isUserProfileOwner(userId) {
+      return isUserAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isUserAdmin() {
+      return isUserAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
     
-    // Products collection rules
+    match /users/{userId} {
+      allow read, write: if isUserProfileOwner(userId);
+      allow list: if isUserAdmin();
+    }
+    
     match /products/{productId} {
       allow read: if true;
-      // Admins can create, update, and delete products
-      allow write: if request.auth != null && isAdmin();
+      allow write: if isUserAdmin();
     }
 
-    // Categories collection rules
     match /categories/{categoryId} {
       allow read: if true;
-      // Admins can create, update, and delete categories
-      allow write: if request.auth != null && isAdmin();
+      allow write: if isUserAdmin();
     }
     
-    // Coupons collection rules
     match /coupons/{couponId} {
-        allow read: if true;
-        // Admins can create, update, and delete coupons
-        allow write: if request.auth != null && isAdmin();
-    }
-    
-    // Settings collection rules
-    match /settings/{docId} {
-        allow read: if true;
-        // Admins can write to settings
-        allow write: if request.auth != null && isAdmin();
+      allow read: if true;
+      allow write: if isUserAdmin();
     }
 
-    // Orders collection rules
     match /orders/{orderId} {
-      allow read: if request.auth != null && (request.auth.uid == resource.data.userId || isAdmin());
-      // Allow authenticated users to create new orders.
-      allow create: if request.auth != null;
-      // Allow admins to update orders (e.g., change status)
-      allow update: if request.auth != null && isAdmin();
+      // Authenticated users can read their own orders. Admins can read all orders.
+      allow read: if (isUserAuthenticated() && resource.data.userId == request.auth.uid) || isUserAdmin();
+      // Any authenticated user can create an order.
+      allow create: if isUserAuthenticated();
+      // Only admins can update an order's status.
+      allow update: if isUserAdmin();
+      // Nobody can delete orders for data integrity.
+      allow delete: if false;
+    }
+
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isUserAdmin();
     }
   }
 }
