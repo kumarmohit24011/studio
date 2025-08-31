@@ -3,11 +3,11 @@
 
 import Razorpay from "razorpay";
 import { z } from "zod";
-import { getCouponByCode, createOrder } from "@/services/orderService";
 import { CartItem } from "@/lib/types";
 import { Coupon } from "@/services/couponService";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, runTransaction, setDoc } from "firebase/firestore";
+import { doc, getDoc, runTransaction, setDoc, collection, writeBatch } from "firebase/firestore";
+import { getCouponByCode } from "@/services/orderService";
 
 const RazorpayOrderInput = z.number().positive();
 
@@ -146,3 +146,5 @@ export async function applyCouponCode(code: string, subtotal: number): Promise<{
         message: "Coupon applied successfully.",
     };
 }
+
+    
