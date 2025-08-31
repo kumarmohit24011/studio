@@ -101,17 +101,29 @@ export default function Home() {
             Special Offers
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card className="overflow-hidden">
+            <Card className="overflow-hidden group">
               <CardContent className="p-0">
                 <div className="relative h-80">
-                    <Image src={homepageSettings?.offerImageUrl1 || "https://placehold.co/800x600.png"} alt="Seasonal Sale" fill className="object-cover" sizes="(min-width: 768px) 50vw, 100vw" data-ai-hint="jewelry sale"/>
+                    <Image src={homepageSettings?.offerImageUrl1 || "https://placehold.co/800x600.png"} alt="Seasonal Sale" fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(min-width: 768px) 50vw, 100vw" data-ai-hint="jewelry sale"/>
+                    <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center p-4">
+                       <h3 className="text-white text-3xl font-headline mb-4">Limited Time Offer</h3>
+                       <Button asChild>
+                           <Link href="/products?tag=sale">Shop Now</Link>
+                       </Button>
+                    </div>
                 </div>
               </CardContent>
             </Card>
-            <Card className="overflow-hidden">
+            <Card className="overflow-hidden group">
               <CardContent className="p-0">
                 <div className="relative h-80">
-                    <Image src={homepageSettings?.offerImageUrl2 || "https://placehold.co/800x600.png"} alt="Festive Discounts" fill className="object-cover" sizes="(min-width: 768px) 50vw, 100vw" data-ai-hint="diamond ring"/>
+                    <Image src={homepageSettings?.offerImageUrl2 || "https://placehold.co/800x600.png"} alt="Festive Discounts" fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(min-width: 768px) 50vw, 100vw" data-ai-hint="diamond ring"/>
+                    <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center p-4">
+                         <h3 className="text-white text-3xl font-headline mb-4">New Arrivals Sale</h3>
+                       <Button asChild>
+                           <Link href="/products?tag=new">Shop Now</Link>
+                       </Button>
+                    </div>
                 </div>
               </CardContent>
             </Card>
