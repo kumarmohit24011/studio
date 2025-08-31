@@ -1,16 +1,15 @@
 
 "use server";
 
-import { adminDb } from '@/lib/firebase-admin'; // Use the Admin SDK
-import { Order, OrderItem } from '@/lib/types';
-import { collection, getDocs, doc, addDoc, query, where, orderBy, DocumentData, QueryDocumentSnapshot, updateDoc, limit, getDoc, setDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
+import { adminDb } from '@/lib/firebase-admin';
+import type { Order, OrderItem, CartItem } from '@/lib/types';
+import { collection, getDocs, doc, query, where, orderBy, DocumentData, QueryDocumentSnapshot, updateDoc, limit, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Coupon } from './couponService';
-import { getAuth } from 'firebase/auth';
+import type { Coupon } from './couponService';
 import { z } from "zod";
-import type { CartItem } from "@/lib/types";
+import * as admin from 'firebase-admin';
 
-// These functions are called from the client-side (admin panel) and should use the client SDK.
+
 const orderCollection = collection(db, 'orders');
 const couponCollection = collection(db, 'coupons');
 
@@ -77,7 +76,7 @@ export const getCouponByCode = async (code: string): Promise<Coupon | null> => {
     };
 };
 
-// --- ZOD Schemas for robust validation ---
+
 const CartItemSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -110,11 +109,16 @@ export const SaveOrderInputSchema = z.object({
 });
 
 
-// This function is the server action, it MUST use the admin SDK
 export async function saveOrder(
     input: z.infer<typeof SaveOrderInputSchema>
 ): Promise<{ success: boolean; message: string; orderId?: string; }> {
     console.log("[SERVER_ACTION] saveOrder called with input:", JSON.stringify(input, null, 2));
+
+    if (!adminDb) {
+        const errorMsg = "Firebase Admin SDK is not initialized. Cannot save order.";
+        console.error(`[SERVER_ERROR] ${errorMsg}`);
+        return { success: false, message: errorMsg };
+    }
     
     const validation = SaveOrderInputSchema.safeParse(input);
     if (!validation.success) {
@@ -132,7 +136,7 @@ export async function saveOrder(
     } = validation.data;
 
     try {
-        const newOrderRef = adminDb.collection("orders").doc(); // Use adminDb
+        const newOrderRef = adminDb.collection("orders").doc();
 
         const newOrderData = {
             userId,
@@ -150,7 +154,7 @@ export async function saveOrder(
             razorpay_payment_id: paymentDetails.razorpay_payment_id,
             razorpay_order_id: paymentDetails.razorpay_order_id,
             coupon: couponDetails || null,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(), // Use admin timestamp
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
         };
 
         console.log("[SERVER_ACTION] Writing validated order data to Firestore with Admin SDK.");
