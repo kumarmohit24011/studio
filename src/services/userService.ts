@@ -1,16 +1,16 @@
 
 import { db } from '@/lib/firebase';
 import { doc, setDoc, getDoc, DocumentData, collection, getDocs, QueryDocumentSnapshot } from 'firebase/firestore';
-import { ShippingAddress, CartItem } from '@/lib/types';
+import { ShippingAddress } from '@/lib/types';
 
 export interface UserProfile {
     id: string;
     name: string;
     email: string;
-    phone: string;
+    phone?: string;
     createdAt: number;
     addresses: ShippingAddress[];
-    isActive?: boolean;
+    isActive: boolean;
 }
 
 const usersCollection = collection(db, 'users');
@@ -21,7 +21,7 @@ const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): UserProfi
         id: snapshot.id,
         name: data.name,
         email: data.email,
-        phone: data.phone,
+        phone: data.phone || '',
         createdAt: data.createdAt,
         addresses: data.addresses || [],
         isActive: data.isActive !== false, // default to true if not set
@@ -29,10 +29,10 @@ const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): UserProfi
 }
 
 
-export const createUserProfile = async (userId: string, data: Omit<UserProfile, 'isActive'>): Promise<void> => {
+export const createUserProfile = async (userId: string, data: Omit<UserProfile, 'isActive' | 'id'>): Promise<void> => {
     const userDocRef = doc(db, 'users', userId);
     // When creating, set isActive to true by default.
-    await setDoc(userDocRef, {...data, isActive: true});
+    await setDoc(userDocRef, {...data, id: userId, isActive: true});
 }
 
 export const getUserProfile = async (userId: string): Promise<UserProfile | null> => {
