@@ -10,16 +10,14 @@ import {
     doc, 
     runTransaction, 
     setDoc, 
-    serverTimestamp 
+    serverTimestamp,
+    collection,
+    where,
+    query,
+    limit,
+    getDocs
 } from "firebase/firestore";
-import { getCouponByCode } from "@/services/orderService";
 import { createLog } from "@/services/auditLogService";
-
-// Use secure env vars (not NEXT_PUBLIC for server side)
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID!,
-    key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
 
 const RazorpayOrderInput = z.number().positive();
 
@@ -31,6 +29,12 @@ export async function createRazorpayOrder(amount: number) {
     if (!validationResult.success) {
         throw new Error("Invalid amount provided");
     }
+
+    // Use secure env vars (not NEXT_PUBLIC for server side)
+    const razorpay = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID!,
+        key_secret: process.env.RAZORPAY_KEY_SECRET!,
+    });
 
     const options = {
         amount: Math.round(amount * 100), // convert to paise
@@ -121,7 +125,7 @@ export async function saveOrder(
             entityId: orderId,
             details: `Order of ₹${totalAmount.toFixed(2)} was placed.`,
             userId: userId,
-            userName: userName || "Customer",
+            userName: userName,
         });
 
 
@@ -145,11 +149,17 @@ export async function applyCouponCode(code: string, subtotal: number): Promise<{
     discountAmount?: number;
     message: string;
 }> {
-    const coupon = await getCouponByCode(code);
+    const couponCollection = collection(db, 'coupons');
+    const q = query(couponCollection, where("code", "==", code), limit(1));
+    const snapshot = await getDocs(q);
 
-    if (!coupon) {
+    if (snapshot.empty) {
         return { success: false, message: "Invalid coupon code." };
     }
+
+    const couponDoc = snapshot.docs[0];
+    const coupon = { id: couponDoc.id, ...couponDoc.data() } as Coupon;
+
 
     if (!coupon.isActive) {
         return { success: false, message: "This coupon is no longer active." };
