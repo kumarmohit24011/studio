@@ -3,7 +3,7 @@
 
 import Razorpay from "razorpay";
 import { z } from "zod";
-import { getCouponByCode } from "@/services/orderService";
+import { getCouponByCode, createOrder } from "@/services/orderService";
 import { CartItem } from "@/lib/types";
 import { Coupon } from "@/services/couponService";
 import { db } from "@/lib/firebase";
@@ -48,22 +48,15 @@ export async function saveOrder(
     paymentDetails: { razorpay_payment_id: string; razorpay_order_id: string },
     couponApplied?: { code: string; discountAmount: number }
 ) {
-    console.log("--- Starting saveOrder ---");
-    console.log("Received paymentDetails:", JSON.stringify(paymentDetails));
-
     if (!paymentDetails.razorpay_order_id) {
-        const errorMessage = "saveOrder failed: Missing razorpay_order_id.";
-        console.error(errorMessage);
-        return { success: false, message: errorMessage };
+        return { success: false, message: "saveOrder failed: Missing razorpay_order_id." };
     }
     
     try {
-        console.log("Step 1: Starting Firestore transaction for stock update.");
+        // Step 1: Update stock levels within a transaction for atomicity.
         await runTransaction(db, async (transaction) => {
-            console.log("Inside transaction...");
             for (const item of cartItems) {
                 const productRef = doc(db, 'products', item.id);
-                console.log(`Processing product ${item.id} in transaction.`);
                 const productDoc = await transaction.get(productRef);
 
                 if (!productDoc.exists()) {
@@ -72,23 +65,21 @@ export async function saveOrder(
 
                 const currentStock = productDoc.data().stock;
                 const newStock = currentStock - item.quantity;
-                console.log(`Product ${item.id}: Current stock ${currentStock}, new stock ${newStock}`);
 
                 if (newStock < 0) {
                     throw new Error(`Not enough stock for ${productDoc.data().name}. Only ${currentStock} left.`);
                 }
                 
                 transaction.update(productRef, { stock: newStock });
-                console.log(`Product ${item.id} stock update queued in transaction.`);
             }
-             console.log("All stock updates queued successfully.");
         });
-        console.log("Step 1: Firestore transaction for stock update completed successfully.");
         
-        console.log("Step 2: Creating the order document in Firestore.");
-        const orderDocRef = doc(db, 'orders', paymentDetails.razorpay_order_id);
+        // Step 2: Create the order document after the transaction is successful.
+        const orderId = paymentDetails.razorpay_order_id;
+        const orderDocRef = doc(db, 'orders', orderId);
+        
         await setDoc(orderDocRef, {
-             id: paymentDetails.razorpay_order_id,
+             id: orderId,
             userId,
             items: cartItems.map(item => ({
                 productId: item.id,
@@ -106,13 +97,11 @@ export async function saveOrder(
             createdAt: Date.now(),
             coupon: couponApplied,
         });
-        console.log(`Step 2: Order document ${paymentDetails.razorpay_order_id} created successfully.`);
 
-        console.log("--- saveOrder successful ---");
-        return { success: true, orderId: paymentDetails.razorpay_order_id };
+        return { success: true, orderId: orderId };
 
     } catch (error) {
-        console.error("--- ERROR in saveOrder process ---", error);
+        console.error("Error in saveOrder process:", error);
         const errorMessage = error instanceof Error ? error.message : "Failed to save the order due to an unexpected error.";
         return { success: false, message: errorMessage };
     }
