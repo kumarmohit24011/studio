@@ -19,8 +19,6 @@ const nextConfig: NextConfig = {
             value: "payment=(\"self\"), publickey-credentials-create=(\"self\"), publickey-credentials-get=(\"self\"), web-share=(\"self\"), otp-credentials=(\"self\"), camera=(\"self\"), clipboard-write=(\"self\")"
           }
         ]
-         
-        
       },
     ];
   },
@@ -29,6 +27,12 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'placehold.co',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
         port: '',
         pathname: '/**',
       },
