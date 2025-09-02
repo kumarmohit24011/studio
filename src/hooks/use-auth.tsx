@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } else {
         setProfileLoading(false);
     }
-  }, [user]);
+  }, [user, auth]);
 
   const signInWithGoogle = async () => {
     if (!auth) throw new Error("Firebase not initialized");
