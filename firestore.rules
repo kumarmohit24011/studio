@@ -7,54 +7,43 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isUserProfileOwner(userId) {
-      return isUserAuthenticated() && request.auth.uid == userId;
+    function isUserOwner(userId) {
+      return request.auth.uid == userId;
     }
 
     function isUserAdmin(userId) {
-      // Check for the existence of the isAdmin field and its value.
-      return isUserAuthenticated() && get(/databases/$(database)/documents/users/$(userId)).data.isAdmin == true;
+      return exists(/databases/$(database)/documents/users/$(userId)) &&
+             get(/databases/$(database)/documents/users/$(userId)).data.isAdmin == true;
     }
-    
+
     match /users/{userId} {
-      // Users can read and write their own profile.
-      allow read, write: if isUserProfileOwner(userId);
-      // Admins can list all users.
-      allow list: if isUserAdmin(request.auth.uid);
+      allow read, update: if isUserOwner(userId) || isUserAdmin(request.auth.uid);
+      allow create: if isUserAuthenticated();
     }
-    
+
     match /products/{productId} {
       allow read: if true;
-      allow write: if isUserAdmin(request.auth.uid);
+      allow create, update, delete: if isUserAdmin(request.auth.uid);
     }
 
     match /categories/{categoryId} {
       allow read: if true;
-      allow write: if isUserAdmin(request.auth.uid);
+      allow create, update, delete: if isUserAdmin(request.auth.uid);
     }
     
     match /coupons/{couponId} {
-      allow read: if true;
-      allow write: if isUserAdmin(request.auth.uid);
-    }
-
-    match /orders/{orderId} {
-      // A user can only read their own orders. An admin can read any order.
-      allow read: if isUserProfileOwner(resource.data.userId) || isUserAdmin(request.auth.uid);
-      
-      // IMPORTANT: No client-side creation is allowed. Orders are only created via the server action using the Admin SDK.
-      allow create: if false; 
-      
-      // Only admins can update the status of an order.
-      allow update: if isUserAdmin(request.auth.uid);
-      
-      // Orders can never be deleted.
-      allow delete: if false;
+        allow read: if true;
+        allow create, update, delete: if isUserAdmin(request.auth.uid);
     }
 
     match /settings/{docId} {
-      allow read: if true;
-      allow write: if isUserAdmin(request.auth.uid);
+        allow read: if true;
+        allow create, update, delete: if isUserAdmin(request.auth.uid);
+    }
+
+    match /orders/{orderId} {
+      allow read: if isUserOwner(resource.data.userId) || isUserAdmin(request.auth.uid);
+      allow create: if isUserAuthenticated(); // Note: Order creation is handled server-side
     }
   }
 }
