@@ -1,4 +1,3 @@
-
 rules_version = '2';
 
 service cloud.firestore {
@@ -8,44 +7,52 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isUserAdmin(userId) {
-      return get(/databases/$(database)/documents/users/$(userId)).data.isAdmin == true;
-    }
-    
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
 
+    function getUserData(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data;
+    }
+
+    function isUserAdmin(userId) {
+      return getUserData(userId).isAdmin == true;
+    }
+
     match /users/{userId} {
-      allow read, update: if isOwner(userId) || isUserAdmin(request.auth.uid);
+      allow read: if isUserAdmin(request.auth.uid) || isOwner(userId);
+      allow write: if isOwner(userId);
       allow create: if isUserAuthenticated();
     }
-    
-    match /products/{productId} {
+
+    match /categories/{categoryId} {
       allow read: if true;
       allow write: if isUserAdmin(request.auth.uid);
     }
     
-    match /categories/{categoryId} {
+    match /products/{productId} {
         allow read: if true;
         allow write: if isUserAdmin(request.auth.uid);
     }
 
     match /orders/{orderId} {
-      allow read: if isUserAdmin(request.auth.uid) || (isUserAuthenticated() && get(/databases/$(database)/documents/orders/$(orderId)).data.userId == request.auth.uid);
+      // Admins can get any order. Users can only get their own.
+      allow get: if isUserAdmin(request.auth.uid) || isOwner(get(/databases/$(database)/documents/orders/$(orderId)).data.userId);
+      // Admins can list all orders. Users can only list their own orders via a query.
+      allow list: if isUserAdmin(request.auth.uid) || (request.query.where.path == "userId" && request.query.where.op == "==" && request.query.where.value == request.auth.uid);
       allow create: if isUserAuthenticated();
       allow update: if isUserAdmin(request.auth.uid);
       allow delete: if false;
     }
-    
-    match /coupons/{couponId} {
-        allow read: if isUserAuthenticated();
-        allow write: if isUserAdmin(request.auth.uid);
-    }
 
-    match /settings/{docId} {
-      allow read: if true;
+    match /coupons/{couponId} {
+      allow read: if isUserAuthenticated();
       allow write: if isUserAdmin(request.auth.uid);
+    }
+    
+    match /settings/{docId} {
+        allow read: if true;
+        allow write: if isUserAdmin(request.auth.uid);
     }
   }
 }
