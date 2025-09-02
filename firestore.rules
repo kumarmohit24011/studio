@@ -2,13 +2,9 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
+    
     function isUserAuthenticated() {
       return request.auth != null;
-    }
-
-    function isUserOwner(userId) {
-      return request.auth.uid == userId;
     }
 
     function isUserAdmin(userId) {
@@ -16,34 +12,40 @@ service cloud.firestore {
              get(/databases/$(database)/documents/users/$(userId)).data.isAdmin == true;
     }
 
-    match /users/{userId} {
-      allow read, update: if isUserOwner(userId) || isUserAdmin(request.auth.uid);
-      allow create: if isUserAuthenticated();
+    function isOwner(userId) {
+      return request.auth.uid == userId;
     }
 
+    match /users/{userId} {
+      allow read: if isUserAdmin(request.auth.uid) || isOwner(userId);
+      allow write: if isOwner(userId);
+      allow create: if isOwner(userId);
+    }
+    
     match /products/{productId} {
       allow read: if true;
-      allow create, update, delete: if isUserAdmin(request.auth.uid);
+      allow write: if isUserAdmin(request.auth.uid);
     }
 
     match /categories/{categoryId} {
       allow read: if true;
-      allow create, update, delete: if isUserAdmin(request.auth.uid);
+      allow write: if isUserAdmin(request.auth.uid);
     }
-    
+
     match /coupons/{couponId} {
         allow read: if true;
-        allow create, update, delete: if isUserAdmin(request.auth.uid);
+        allow write: if isUserAdmin(request.auth.uid);
     }
 
     match /settings/{docId} {
-        allow read: if true;
-        allow create, update, delete: if isUserAdmin(request.auth.uid);
+      allow read: if true;
+      allow write: if isUserAdmin(request.auth.uid);
     }
 
     match /orders/{orderId} {
-      allow read: if isUserOwner(resource.data.userId) || isUserAdmin(request.auth.uid);
-      allow create: if isUserAuthenticated(); // Note: Order creation is handled server-side
+      allow create: if isUserAuthenticated();
+      allow read: if isUserAdmin(request.auth.uid) || resource.data.userId == request.auth.uid;
+      allow update, delete: if isUserAdmin(request.auth.uid);
     }
   }
 }
