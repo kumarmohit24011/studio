@@ -26,7 +26,7 @@ import { useCart } from "@/hooks/use-cart";
 import { Badge } from "./ui/badge";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { Skeleton } from "./ui/skeleton";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export function Header() {
@@ -35,6 +35,11 @@ export function Header() {
   const { wishlistCount } = useWishlist();
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && searchQuery.trim()) {
@@ -61,12 +66,8 @@ export function Header() {
           <Link href="/products" className="transition-colors hover:text-primary">Products</Link>
           <Link href="/#offers" className="transition-colors hover:text-primary">Offers</Link>
           <Link href="/#trending" className="transition-colors hover:text-primary">Trending</Link>
-          {profileLoading ? (
-            <Skeleton className="h-6 w-16" />
-          ) : (
-            userProfile?.isAdmin && (
-              <Link href="/admin" className="transition-colors hover:text-primary">Admin</Link>
-            )
+          {isMounted && !profileLoading && userProfile?.isAdmin && (
+            <Link href="/admin" className="transition-colors hover:text-primary">Admin</Link>
           )}
         </nav>
         <div className="flex flex-1 items-center justify-end space-x-4">
@@ -100,7 +101,7 @@ export function Header() {
             </Link>
           </Button>
 
-          {authLoading ? (
+          {(!isMounted || authLoading) ? (
             <Skeleton className="h-8 w-8 rounded-full" />
           ) : (
             <DropdownMenu>
