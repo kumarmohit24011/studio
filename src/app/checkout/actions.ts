@@ -4,7 +4,6 @@
 import Razorpay from "razorpay";
 import { z } from "zod";
 import { 
-    saveOrder as saveOrderToDb, 
     getCouponByCode
 } from "@/services/orderService";
 import type { Coupon } from "@/services/couponService";
@@ -85,7 +84,10 @@ export async function saveOrder(
         return { success: false, message: "Invalid order data provided." };
     }
     
-    return saveOrderToDb(validationResult.data);
+    // The call to the problematic service is removed.
+    // return saveOrderToDb(validationResult.data);
+    console.warn("Order saving is currently disabled.");
+    return { success: false, message: "Order saving is temporarily disabled." };
 }
 
 
