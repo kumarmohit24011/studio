@@ -33,9 +33,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  // Pass a dummy auth object if the real one failed to initialize
-  const safeAuth = auth || getAuth();
-  const [user, loading, error] = useAuthState(safeAuth);
+  // The 'auth' object from firebase.ts is now guaranteed to be either a valid auth instance or undefined.
+  const [user, loading, error] = useAuthState(auth);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
