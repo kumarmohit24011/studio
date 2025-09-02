@@ -9,44 +9,43 @@ service cloud.firestore {
     }
 
     function isUserAdmin(userId) {
-      return exists(/databases/$(database)/documents/users/$(userId)) &&
-             get(/databases/$(database)/documents/users/$(userId)).data.isAdmin == true;
+      return get(/databases/$(database)/documents/users/$(userId)).data.isAdmin == true;
     }
     
     function isOwner(userId) {
-        return request.auth.uid == userId;
+      return request.auth.uid == userId;
     }
 
     match /users/{userId} {
-      allow read: if isUserAuthenticated() && (isOwner(userId) || isUserAdmin(request.auth.uid));
-      allow write: if isUserAuthenticated() && isOwner(userId);
-    }
-
-    match /products/{productId} {
-      allow read: if true;
-      allow write: if isUserAuthenticated() && isUserAdmin(request.auth.uid);
-    }
-
-    match /categories/{categoryId} {
-      allow read: if true;
-      allow write: if isUserAuthenticated() && isUserAdmin(request.auth.uid);
+      allow read, update: if isOwner(userId) || isUserAdmin(request.auth.uid);
+      allow create: if isUserAuthenticated();
     }
     
-    match /coupons/{couponId} {
-        allow read: if true; // Coupons can be public
-        allow write: if isUserAuthenticated() && isUserAdmin(request.auth.uid);
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isUserAdmin(request.auth.uid);
+    }
+    
+    match /categories/{categoryId} {
+        allow read: if true;
+        allow write: if isUserAdmin(request.auth.uid);
     }
 
     match /orders/{orderId} {
-      allow read: if isUserAuthenticated() && (isOwner(resource.data.userId) || isUserAdmin(request.auth.uid));
+      allow read: if isUserAdmin(request.auth.uid) || (isUserAuthenticated() && get(/databases/$(database)/documents/orders/$(orderId)).data.userId == request.auth.uid);
       allow create: if isUserAuthenticated();
-      allow update: if isUserAuthenticated() && isUserAdmin(request.auth.uid);
+      allow update: if isUserAdmin(request.auth.uid);
       allow delete: if false;
     }
+    
+    match /coupons/{couponId} {
+        allow read: if isUserAuthenticated();
+        allow write: if isUserAdmin(request.auth.uid);
+    }
 
-    match /settings/{settingId} {
+    match /settings/{docId} {
       allow read: if true;
-      allow write: if isUserAuthenticated() && isUserAdmin(request.auth.uid);
+      allow write: if isUserAdmin(request.auth.uid);
     }
   }
 }
