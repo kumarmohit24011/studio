@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
-import { createRazorpayOrder, saveOrder, applyCouponCode } from "./actions";
+import { createRazorpayOrder, applyCouponCode, saveOrder } from "./actions";
 import { ShippingAddress } from "@/lib/types";
 import { getAddresses, addAddress } from "@/services/addressService";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -208,12 +208,30 @@ export default function CheckoutPage() {
         description: "Transaction for your beautiful jewelry",
         order_id: order.id,
         handler: async (response) => {
-            console.log("--- Payment Successful on client ---", response);
-            console.log("--- Calling saveOrder server action ---");
-             // The saveOrder call is now disabled. We will assume success.
-            toast({ title: "Payment Successful!", description: `Your order has been placed.` });
-            clearCart();
-            router.push("/profile?tab=orders");
+            const saveOrderInput = {
+              userId: user.uid,
+              cartItems: cartItems,
+              totalAmount: totalAmount,
+              shippingAddressId: selectedAddressId!,
+              paymentDetails: {
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+              },
+              couponDetails: appliedCoupon ? {
+                code: appliedCoupon.code,
+                discountAmount: discount
+              } : undefined
+            };
+
+            const result = await saveOrder(saveOrderInput);
+
+            if (result.success) {
+                toast({ title: "Payment Successful!", description: `Your order has been placed.` });
+                clearCart();
+                router.push("/profile?tab=orders");
+            } else {
+                 toast({ variant: 'destructive', title: "Order Save Error", description: result.message || "Could not save your order. Please contact support." });
+            }
         },
         prefill: {
           name: selectedAddress.name,

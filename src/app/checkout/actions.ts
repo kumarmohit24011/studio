@@ -7,6 +7,9 @@ import {
     getCouponByCode
 } from "@/services/orderService";
 import type { Coupon } from "@/services/couponService";
+import { db } from "@/lib/firebase";
+import { doc, setDoc } from "firebase/firestore";
+import type { CartItem } from "@/lib/types";
 
 const RazorpayOrderInput = z.number().positive();
 
@@ -78,4 +81,54 @@ export async function applyCouponCode(code: string, subtotal: number): Promise<{
         discountAmount,
         message: "Coupon applied successfully.",
     };
+}
+
+interface SaveOrderInput {
+    userId: string;
+    cartItems: CartItem[];
+    totalAmount: number;
+    shippingAddressId: string;
+    paymentDetails: {
+        razorpay_payment_id: string;
+        razorpay_order_id: string;
+    };
+    couponDetails?: {
+        code: string;
+        discountAmount: number;
+    };
+}
+
+export async function saveOrder(input: SaveOrderInput) {
+    try {
+        const { userId, cartItems, totalAmount, shippingAddressId, paymentDetails, couponDetails } = input;
+        
+        const newOrderRef = doc(db, "orders", paymentDetails.razorpay_order_id);
+
+        const orderData = {
+            id: paymentDetails.razorpay_order_id,
+            userId,
+            items: cartItems.map(item => ({
+                productId: item.id,
+                name: item.name,
+                image: item.images[0],
+                quantity: item.quantity,
+                price: item.price
+            })),
+            totalAmount,
+            shippingAddressId,
+            orderStatus: 'Processing',
+            paymentStatus: 'Paid',
+            razorpay_payment_id: paymentDetails.razorpay_payment_id,
+            razorpay_order_id: paymentDetails.razorpay_order_id,
+            coupon: couponDetails || null,
+            createdAt: Date.now(),
+        };
+
+        await setDoc(newOrderRef, orderData);
+
+        return { success: true, orderId: newOrderRef.id };
+    } catch (error) {
+        console.error("Error saving order:", error);
+        return { success: false, message: "Failed to save order." };
+    }
 }
