@@ -33,7 +33,9 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, loading, error] = useAuthState(auth);
+  // Pass a dummy auth object if the real one failed to initialize
+  const safeAuth = auth || getAuth();
+  const [user, loading, error] = useAuthState(safeAuth);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
@@ -49,10 +51,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   useEffect(() => {
-    fetchUserProfile(user);
+    if (auth) { // Only run if firebase initialized
+        fetchUserProfile(user);
+    } else {
+        setProfileLoading(false);
+    }
   }, [user]);
 
   const signInWithGoogle = async () => {
+    if (!auth) throw new Error("Firebase not initialized");
     const provider = new GoogleAuthProvider();
     try {
         const result = await signInWithPopup(auth, provider);
@@ -68,24 +75,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signInWithEmail = async (email: string, pass: string) => {
+    if (!auth) throw new Error("Firebase not initialized");
     return signInWithEmailAndPassword(auth, email, pass);
   }
 
   const signUpWithEmail = async (email: string, pass: string, name: string) => {
+    if (!auth) throw new Error("Firebase not initialized");
     const userCred = await createUserWithEmailAndPassword(auth, email, pass);
     await createUserProfile(userCred.user, name);
     return userCred;
   }
 
   const signOut = () => {
+    if (!auth) return;
     firebaseSignOut(auth);
   };
   
   const updateUserProfile = async (data: {displayName?: string, phoneNumber?: string}) => {
-      await updateProfile(data);
-      if (user) {
-          await fetchUserProfile(user); // Re-fetch profile after update
-      }
+      if (!user) throw new Error("User not authenticated");
+      await updateProfile(user, data);
+      await fetchUserProfile(user); // Re-fetch profile after update
   }
 
   const value = { user, userProfile, loading, profileLoading, error, signInWithGoogle, signInWithEmail, signUpWithEmail, signOut, updateUserProfile };

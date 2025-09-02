@@ -7,8 +7,8 @@ import { db } from '@/lib/firebase';
 import type { Coupon } from './couponService';
 
 
-const orderCollectionRef = collection(db, 'orders');
-const couponCollectionRef = collection(db, 'coupons');
+const orderCollectionRef = db ? collection(db, 'orders') : null;
+const couponCollectionRef = db ? collection(db, 'coupons') : null;
 
 const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): Order => {
     const data = snapshot.data();
@@ -36,23 +36,27 @@ const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): Order => 
 }
 
 export async function getOrdersForUser(userId: string): Promise<Order[]> {
+    if (!orderCollectionRef) return [];
     const q = query(orderCollectionRef, where("userId", "==", userId), orderBy("createdAt", "desc"));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(fromFirestore);
 }
 
 export async function getAllOrders(): Promise<Order[]> {
+    if (!orderCollectionRef) return [];
     const q = query(orderCollectionRef, orderBy("createdAt", "desc"));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(fromFirestore);
 }
 
 export async function updateOrderStatus(orderId: string, status: Order['orderStatus']): Promise<void> {
+    if (!db) throw new Error("Database not initialized");
     const orderDoc = doc(db, 'orders', orderId);
     await updateDoc(orderDoc, { orderStatus: status });
 };
 
 export async function getCouponByCode(code: string): Promise<Coupon | null> {
+    if (!couponCollectionRef) return null;
     const q = query(couponCollectionRef, where("code", "==", code), limit(1));
     const snapshot = await getDocs(q);
 
@@ -73,63 +77,3 @@ export async function getCouponByCode(code: string): Promise<Coupon | null> {
         isActive: data.isActive,
     };
 };
-
-// Disabling this function to prevent server errors.
-// export async function saveOrder(
-//     input: any
-// ): Promise<{ success: boolean; message: string; orderId?: string; }> {
-//     console.log("[SERVER_ACTION] saveOrder called with input:", JSON.stringify(input, null, 2));
-
-//     const adminDb = getAdminDb();
-//     if (!adminDb) {
-//         const errorMsg = "Firebase Admin SDK is not initialized. Cannot save order.";
-//         console.error(`[SERVER_ERROR] ${errorMsg}`);
-//         return { success: false, message: errorMsg };
-//     }
-    
-//     // We assume validation happens in the calling action file.
-//     const { 
-//         userId, 
-//         cartItems, 
-//         totalAmount, 
-//         shippingAddressId, 
-//         paymentDetails, 
-//         couponDetails 
-//     } = input;
-
-//     try {
-//         const newOrderRef = adminDb.collection("orders").doc();
-
-//         const newOrderData = {
-//             userId,
-//             items: cartItems.map((item: CartItem) => ({
-//                 productId: item.id,
-//                 name: item.name,
-//                 image: item.images[0],
-//                 quantity: item.quantity,
-//                 price: item.price,
-//             })),
-//             totalAmount,
-//             shippingAddressId,
-//             orderStatus: 'Processing',
-//             paymentStatus: 'Paid',
-//             razorpay_payment_id: paymentDetails.razorpay_payment_id,
-//             razorpay_order_id: paymentDetails.razorpay_order_id,
-//             coupon: couponDetails || null,
-//             createdAt: admin.firestore.FieldValue.serverTimestamp(),
-//         };
-
-//         console.log("[SERVER_ACTION] Writing validated order data to Firestore with Admin SDK.");
-//         await newOrderRef.set(newOrderData);
-        
-//         console.log(`[SERVER_ACTION] Order ${newOrderRef.id} saved successfully.`);
-//         return { success: true, message: "Order saved successfully.", orderId: newOrderRef.id };
-
-//     } catch (error: any) {
-//         console.error("[SERVER_ERROR] CRITICAL: FAILED TO SAVE ORDER TO FIRESTORE WITH ADMIN SDK", {
-//             message: error.message,
-//             stack: error.stack,
-//         });
-//         return { success: false, message: error.message || "A critical server error occurred while saving the order." };
-//     }
-// }

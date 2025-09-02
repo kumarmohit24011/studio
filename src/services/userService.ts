@@ -1,9 +1,9 @@
 
 
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import { doc, setDoc, getDoc, DocumentData, collection, getDocs, QueryDocumentSnapshot, updateDoc } from 'firebase/firestore';
 import { ShippingAddress } from '@/lib/types';
-import { User, getAuth, updateProfile as firebaseUpdateProfile } from 'firebase/auth';
+import { User, updateProfile as firebaseUpdateProfile } from 'firebase/auth';
 
 export interface UserProfile {
     id: string;
@@ -18,7 +18,7 @@ export interface UserProfile {
     wishlist?: string[];
 }
 
-const usersCollection = collection(db, 'users');
+const usersCollection = db ? collection(db, 'users') : null;
 
 const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): UserProfile => {
     const data = snapshot.data();
@@ -37,6 +37,7 @@ const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): UserProfi
 }
 
 export const createUserProfile = async (user: User, name?: string): Promise<void> => {
+    if (!db || !auth) throw new Error("Database not initialized");
     const userDocRef = doc(db, 'users', user.uid);
     
     // If a name is provided (from email signup form), update the auth profile first.
@@ -62,6 +63,7 @@ export const createUserProfile = async (user: User, name?: string): Promise<void
 }
 
 export const getUserProfile = async (userId: string): Promise<UserProfile | null> => {
+    if (!db) return null;
     const userDocRef = doc(db, 'users', userId);
     const docSnap = await getDoc(userDocRef);
     if (docSnap.exists()) {
@@ -83,9 +85,10 @@ export const getUserProfile = async (userId: string): Promise<UserProfile | null
 }
 
 export const getAllUsers = async (): Promise<UserProfile[]> => {
-    const auth = getAuth();
+    if (!auth) throw new Error("Authentication not initialized.");
     const currentUser = auth.currentUser;
     if (!currentUser) throw new Error("Authentication required.");
+    if (!usersCollection) return [];
 
     const profile = await getUserProfile(currentUser.uid);
     if (!profile?.isAdmin) {
@@ -97,27 +100,27 @@ export const getAllUsers = async (): Promise<UserProfile[]> => {
 };
 
 export const toggleUserStatus = async (userId: string, currentStatus: boolean): Promise<void> => {
+    if (!db) throw new Error("Database not initialized");
     const userDocRef = doc(db, 'users', userId);
     await updateDoc(userDocRef, { isActive: !currentStatus });
 };
 
 export const toggleAdminStatus = async (userId: string, currentStatus: boolean): Promise<void> => {
+    if (!db) throw new Error("Database not initialized");
     const userDocRef = doc(db, 'users', userId);
     await updateDoc(userDocRef, { isAdmin: !currentStatus });
 }
 
-export const auth = getAuth();
-export const updateProfile = async (data: {displayName?: string, phoneNumber?: string}) => {
-    const user = auth.currentUser;
-    if (user) {
-        await firebaseUpdateProfile(user, {
-            displayName: data.displayName
-        });
+export const updateProfile = async (user: User, data: {displayName?: string, phoneNumber?: string}) => {
+    if (!db || !auth) throw new Error("Database not initialized");
+    
+    await firebaseUpdateProfile(user, {
+        displayName: data.displayName
+    });
 
-        const userDocRef = doc(db, 'users', user.uid);
-        await updateDoc(userDocRef, {
-            name: data.displayName,
-            phone: data.phoneNumber
-        });
-    }
+    const userDocRef = doc(db, 'users', user.uid);
+    await updateDoc(userDocRef, {
+        name: data.displayName,
+        phone: data.phoneNumber
+    });
 }

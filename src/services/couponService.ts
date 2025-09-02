@@ -13,7 +13,7 @@ export interface Coupon {
   isActive: boolean;
 }
 
-const couponCollection = collection(db, 'coupons');
+const couponCollection = db ? collection(db, 'coupons') : null;
 
 const fromFirestore = (snapshot: QueryDocumentSnapshot<DocumentData>): Coupon => {
     const data = snapshot.data();
@@ -34,21 +34,25 @@ const getCurrentUser = () => {
 }
 
 export const getCoupons = async (): Promise<Coupon[]> => {
+    if (!couponCollection) return [];
     const snapshot = await getDocs(couponCollection);
     return snapshot.docs.map(fromFirestore);
 };
 
 export const addCoupon = async (coupon: Omit<Coupon, 'id'>): Promise<string> => {
+    if (!couponCollection) throw new Error("Database not initialized");
     const docRef = await addDoc(couponCollection, coupon);
     return docRef.id;
 };
 
 export const updateCoupon = async (id: string, coupon: Partial<Coupon>): Promise<void> => {
+    if (!db) throw new Error("Database not initialized");
     const couponDoc = doc(db, 'coupons', id);
     await updateDoc(couponDoc, coupon);
 };
 
 export const deleteCoupon = async (id: string): Promise<void> => {
+    if (!db) throw new Error("Database not initialized");
     const couponDoc = doc(db, 'coupons', id);
     await deleteDoc(couponDoc);
 };

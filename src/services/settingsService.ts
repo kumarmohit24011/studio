@@ -13,6 +13,7 @@ const settingsCollectionName = 'settings';
 const homepageDocName = 'homepage';
 
 export const getHomepageSettings = async (): Promise<HomepageSettings | null> => {
+    if (!db) return null;
     const docRef = doc(db, settingsCollectionName, homepageDocName);
     const docSnap = await getDoc(docRef);
 
@@ -34,15 +35,16 @@ export const getHomepageSettings = async (): Promise<HomepageSettings | null> =>
 };
 
 export const updateHomepageSettings = async (settings: Partial<HomepageSettings>): Promise<void> => {
+    if (!db) throw new Error("Database not initialized");
     const docRef = doc(db, settingsCollectionName, homepageDocName);
     // Use setDoc with merge: true to create or update the document
     await setDoc(docRef, settings, { merge: true });
 };
 
 export const uploadHomepageImage = async (file: File, path: string): Promise<string> => {
+  if (!storage) throw new Error("Storage not initialized");
   const storageRef = ref(storage, `${path}/${file.name}`);
   const snapshot = await uploadBytes(storageRef, file);
   const downloadURL = await getDownloadURL(snapshot.ref);
   return downloadURL;
 };
-
