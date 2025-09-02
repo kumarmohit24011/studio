@@ -258,7 +258,7 @@ export default function ProfilePage() {
       <div className="flex flex-col md:flex-row items-center gap-6 mb-8">
         <Avatar className="w-24 h-24">
             <AvatarImage src={user.photoURL || ''} alt={userProfile.name || 'User'}/>
-            <AvatarFallback>{userProfile.name?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
+            <AvatarFallback>{userProfile.name?.charAt(0) || user.email?.charAt(0) || 'U'}</AvatarFallback>
         </Avatar>
         <div>
             <h1 className="text-4xl font-headline">{userProfile.name || 'My Account'}</h1>
