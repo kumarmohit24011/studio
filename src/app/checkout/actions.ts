@@ -85,7 +85,6 @@ export async function saveOrder(
     }
     
     // The call to the problematic service is removed.
-    // return saveOrderToDb(validationResult.data);
     console.warn("Order saving is currently disabled.");
     return { success: false, message: "Order saving is temporarily disabled." };
 }
