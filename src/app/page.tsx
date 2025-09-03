@@ -91,6 +91,45 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      <section id="sale-banners" className="py-16 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="relative rounded-lg overflow-hidden h-64 flex items-center justify-center text-white text-center p-4">
+              <Image
+                src="https://picsum.photos/600/400"
+                alt="Festive sale on necklaces"
+                data-ai-hint="jewelry sale"
+                fill
+                className="object-cover brightness-75"
+              />
+              <div className="relative z-10">
+                <h3 className="text-2xl font-headline font-bold">Festive Discounts</h3>
+                <p className="mt-2">Up to 30% off on select necklaces</p>
+                <Button asChild className="mt-4" variant="secondary">
+                  <Link href="/products?category=Necklaces">Shop Now</Link>
+                </Button>
+              </div>
+            </div>
+            <div className="relative rounded-lg overflow-hidden h-64 flex items-center justify-center text-white text-center p-4">
+              <Image
+                src="https://picsum.photos/600/400?grayscale"
+                alt="Limited time offer on rings"
+                data-ai-hint="ring promotion"
+                fill
+                className="object-cover brightness-75"
+              />
+              <div className="relative z-10">
+                <h3 className="text-2xl font-headline font-bold">Limited Time Offer</h3>
+                <p className="mt-2">Buy one, get one 50% off on wedding rings</p>
+                <Button asChild className="mt-4" variant="secondary">
+                  <Link href="/products?category=Rings">Explore Rings</Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
