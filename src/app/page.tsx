@@ -1,17 +1,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { getAllCategories } from "@/services/categoryService";
 import { getNewArrivals } from "@/services/productService";
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 
 export default async function Home() {
-  const [newArrivals, categories] = await Promise.all([
-    getNewArrivals(4),
-    getAllCategories()
-  ]);
+  const newArrivals = await getNewArrivals(4);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -59,30 +55,6 @@ export default async function Home() {
                   </CardContent>
                 </Link>
               </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="categories" className="py-16 bg-secondary/30">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-headline text-center mb-8">Shop by Category</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {categories.map((category) => (
-              <Link href={`/products?category=${category.name}`} key={category.id} className="group">
-                <div className="relative h-64 overflow-hidden rounded-lg shadow-lg">
-                  <Image
-                    src={category.imageUrl || "https://picsum.photos/400/300"}
-                    alt={category.name}
-                    data-ai-hint={`${category.name} jewelry`}
-                    fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                    <h3 className="text-2xl font-headline text-white">{category.name}</h3>
-                  </div>
-                </div>
-              </Link>
             ))}
           </div>
         </div>
