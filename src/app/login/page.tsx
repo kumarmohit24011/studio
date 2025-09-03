@@ -15,6 +15,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { FirebaseError } from "firebase/app";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address."),
@@ -53,7 +54,7 @@ export default function LoginPage() {
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: error.message || "An unexpected error occurred.",
+        description: "Invalid email or password. Please try again.",
       });
     } finally {
       setLoading(false);
@@ -66,11 +67,19 @@ export default function LoginPage() {
       await signUpWithEmail(values.email, values.password, values.displayName);
       router.push('/');
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Sign Up Failed",
-        description: error.message || "An unexpected error occurred.",
-      });
+        if (error instanceof FirebaseError && error.code === 'auth/email-already-in-use') {
+             toast({
+                variant: "destructive",
+                title: "Sign Up Failed",
+                description: "This email is already in use. Please log in or use a different email.",
+            });
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Sign Up Failed",
+                description: error.message || "An unexpected error occurred.",
+            });
+        }
     } finally {
       setLoading(false);
     }
