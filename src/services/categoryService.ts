@@ -9,29 +9,11 @@ const MOCK_CATEGORIES: Category[] = [
     { id: 'bracelets', name: 'Bracelets', description: 'Charming bracelets to adorn your wrist.', imageUrl: 'https://picsum.photos/400/300?random=3' },
 ];
 
-async function isFirestoreOnline(dbInstance: any) {
-  try {
-    // Firestore doesn't have a direct 'isOnline' check. 
-    // A lightweight operation like getting a non-existent doc in a non-existent collection 
-    // can serve as a proxy, but it's not foolproof and can be slow.
-    // A simpler check might be to rely on the SDK's offline behavior and robust error handling.
-    // For this fix, we will rely on the catch block which triggers on network failures.
-    await getDoc(doc(dbInstance, 'healthcheck', 'status'));
-    return true;
-  } catch (e) {
-    // Errors like 'unavailable' or 'deadline-exceeded' suggest offline status.
-    const error = e as any;
-    if (error.code === 'unavailable' || error.code === 'deadline-exceeded' || error.message.includes('offline')) {
-      return false;
-    }
-    // If it's another kind of error (e.g. permission-denied), we might still be "online".
-    // However, for the user's issue, any failure to connect should serve mock data.
-    return false;
-  }
-}
-
-
 export const getAllCategories = async (): Promise<Category[]> => {
+    if (!db) {
+        console.warn("Firestore is not initialized. Returning mock categories.");
+        return MOCK_CATEGORIES;
+    }
     try {
         const categoriesCol = collection(db, 'categories');
         const snapshot = await getDocs(categoriesCol);
@@ -47,6 +29,10 @@ export const getAllCategories = async (): Promise<Category[]> => {
 };
 
 export const getCategoryById = async (id: string): Promise<Category | null> => {
+    if (!db) {
+        console.warn("Firestore is not initialized. Returning mock category.");
+        return MOCK_CATEGORIES.find(c => c.id === id) || null;
+    }
     try {
         const docRef = doc(db, 'categories', id);
         const docSnap = await getDoc(docRef);

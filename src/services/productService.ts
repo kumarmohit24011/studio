@@ -14,6 +14,10 @@ const MOCK_PRODUCTS: Product[] = [
 
 
 export const getAllProducts = async (): Promise<Product[]> => {
+    if (!db) {
+        console.warn("Firestore is not initialized. Returning mock products.");
+        return MOCK_PRODUCTS;
+    }
     try {
         const productsCol = collection(db, 'products');
         const snapshot = await getDocs(productsCol);
@@ -29,6 +33,10 @@ export const getAllProducts = async (): Promise<Product[]> => {
 };
 
 export const getProductById = async (id: string): Promise<Product | null> => {
+    if (!db) {
+        console.warn("Firestore is not initialized. Returning mock product.");
+        return MOCK_PRODUCTS.find(p => p.id === id) || null;
+    }
     try {
         const docRef = doc(db, 'products', id);
         const docSnap = await getDoc(docRef);
@@ -44,6 +52,10 @@ export const getProductById = async (id: string): Promise<Product | null> => {
 };
 
 export const getNewArrivals = async (count: number): Promise<Product[]> => {
+    if (!db) {
+        console.warn("Firestore is not initialized. Returning mock new arrivals.");
+        return MOCK_PRODUCTS.filter(p => p.tags?.includes('new')).slice(0, count);
+    }
     try {
         const productsRef = collection(db, 'products');
         const q = query(productsRef, where("tags", "array-contains", "new"), limit(count));
@@ -60,9 +72,13 @@ export const getNewArrivals = async (count: number): Promise<Product[]> => {
 };
 
 export const getTrendingProducts = async (count: number): Promise<Product[]> => {
+    if (!db) {
+        console.warn("Firestore is not initialized. Returning mock trending products.");
+        return MOCK_PRODUCTS.filter(p => p.tags?.includes('popular')).slice(0, count);
+    }
     try {
         const productsRef = collection(db, 'products');
-        const q = query(productsRef, where("tags", "array-contains", "popular"), limit(count));
+        const q = query(productsRef, where("tags",- "array-contains", "popular"), limit(count));
         const snapshot = await getDocs(q);
         if (snapshot.empty) {
             console.log('No trending products found, returning mock data.');
@@ -76,6 +92,10 @@ export const getTrendingProducts = async (count: number): Promise<Product[]> => 
 };
 
 export const getProductsByCategory = async (category: string): Promise<Product[]> => {
+    if (!db) {
+        console.warn("Firestore is not initialized. Returning mock products by category.");
+        return MOCK_PRODUCTS.filter(p => p.category === category);
+    }
     try {
         const productsRef = collection(db, 'products');
         const q = query(productsRef, where("category", "==", category));
