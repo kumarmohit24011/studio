@@ -83,13 +83,13 @@ export function Header() {
   };
   
   const navLinks = (
-    <>
+    <React.Fragment>
       <Link href="/products" className="hover:text-primary transition-colors">All Products</Link>
       <Link href="/products?category=Rings" className="hover:text-primary transition-colors">Rings</Link>
       <Link href="/products?category=Necklaces" className="hovertext-primary transition-colors">Necklaces</Link>
       <Link href="/products?category=Bracelets" className="hover:text-primary transition-colors">Bracelets</Link>
       <Link href="/contact" className="hover:text-primary transition-colors">Contact</Link>
-    </>
+    </React.Fragment>
   )
 
   return (
@@ -130,7 +130,7 @@ export function Header() {
                 <span className="sr-only">Open menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-full max-w-sm">
+            <SheetContent side="left" className="w-full max-w-sm p-0">
                 <div className="flex flex-col h-full">
                     <div className="flex justify-between items-center p-4 border-b">
                         <Link href="/" className="text-xl font-headline font-bold text-primary" onClick={() => setMobileMenuOpen(false)}>
@@ -142,7 +142,7 @@ export function Header() {
                     </div>
                     <nav className="flex flex-col gap-4 p-4 text-lg">
                         {React.Children.map(navLinks.props.children, child => 
-                            React.cloneElement(child, { onClick: () => setMobileMenuOpen(false) })
+                            child.type === Link ? React.cloneElement(child, { onClick: () => setMobileMenuOpen(false) }) : child
                         )}
                     </nav>
                     <div className="mt-auto p-4 border-t">
