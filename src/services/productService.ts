@@ -49,6 +49,7 @@ export const getNewArrivals = async (count: number): Promise<Product[]> => {
         const q = query(productsRef, where("tags", "array-contains", "new"), limit(count));
         const snapshot = await getDocs(q);
         if (snapshot.empty) {
+            console.log('No new arrivals found, returning mock data.');
             return MOCK_PRODUCTS.filter(p => p.tags?.includes('new')).slice(0, count);
         }
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
@@ -64,6 +65,7 @@ export const getTrendingProducts = async (count: number): Promise<Product[]> => 
         const q = query(productsRef, where("tags", "array-contains", "popular"), limit(count));
         const snapshot = await getDocs(q);
         if (snapshot.empty) {
+            console.log('No trending products found, returning mock data.');
             return MOCK_PRODUCTS.filter(p => p.tags?.includes('popular')).slice(0, count);
         }
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
@@ -79,6 +81,7 @@ export const getProductsByCategory = async (category: string): Promise<Product[]
         const q = query(productsRef, where("category", "==", category));
         const snapshot = await getDocs(q);
         if (snapshot.empty) {
+            console.log(`No products found for category ${category}, returning mock data.`);
             return MOCK_PRODUCTS.filter(p => p.category === category);
         }
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
