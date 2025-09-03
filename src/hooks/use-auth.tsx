@@ -1,10 +1,8 @@
 
 "use client";
 
-import React, { createContext, useContext, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, ReactNode, useState } from 'react';
 import {
-  getAuth,
-  onAuthStateChanged,
   User,
   GoogleAuthProvider,
   signInWithPopup,
@@ -15,7 +13,6 @@ import {
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
 import { createUserProfile, getUserProfile, UserProfile, updateProfile } from '@/services/userService';
-import { useState } from 'react';
 
 interface AuthContextType {
   user: User | null | undefined;
@@ -33,29 +30,25 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  // The 'auth' object from firebase.ts is now guaranteed to be either a valid auth instance or undefined.
   const [user, loading, error] = useAuthState(auth);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
   const fetchUserProfile = async (currentUser: User | null) => {
-      setProfileLoading(true);
-      if(currentUser) {
-          const profile = await getUserProfile(currentUser.uid);
-          setUserProfile(profile);
-      } else {
+      if (!currentUser) {
           setUserProfile(null);
+          setProfileLoading(false);
+          return;
       }
+      setProfileLoading(true);
+      const profile = await getUserProfile(currentUser.uid);
+      setUserProfile(profile);
       setProfileLoading(false);
   }
 
   useEffect(() => {
-    if (auth) { // Only run if firebase initialized
-        fetchUserProfile(user);
-    } else {
-        setProfileLoading(false);
-    }
-  }, [user, auth]);
+    fetchUserProfile(user);
+  }, [user]);
 
   const signInWithGoogle = async () => {
     if (!auth) throw new Error("Firebase not initialized");
@@ -63,8 +56,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
-        const userProfile = await getUserProfile(user.uid);
-        if (!userProfile) {
+        // Check if profile exists, if not, create it
+        const existingProfile = await getUserProfile(user.uid);
+        if (!existingProfile) {
             await createUserProfile(user);
         }
     } catch(e) {

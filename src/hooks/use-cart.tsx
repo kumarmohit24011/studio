@@ -24,43 +24,29 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Effect to handle cart synchronization
   useEffect(() => {
     const handleCartSync = async () => {
+      setLoading(true);
+
+      // Wait until Firebase auth state is resolved
       if (authLoading) {
-        setLoading(true);
         return;
       }
 
-      setLoading(true);
-
       if (user) {
-        // User is logged in
-        const remoteCart = await cartService.getCart(user.uid);
+        // User is logged in, sync local cart to remote
         const localCartString = localStorage.getItem('cart');
-        
-        if (localCartString) {
-          // If a local (guest) cart exists, merge it with the remote cart
-          const localCart = JSON.parse(localCartString) as CartItem[];
-          
-          const mergedCart = [...remoteCart];
+        const localCart = localCartString ? JSON.parse(localCartString) as CartItem[] : [];
 
-          localCart.forEach(localItem => {
-            const existingItemIndex = mergedCart.findIndex(item => item.id === localItem.id);
-            if (existingItemIndex > -1) {
-              // If item exists, sum quantities
-              mergedCart[existingItemIndex].quantity += localItem.quantity;
-            } else {
-              // If item doesn't exist, add it
-              mergedCart.push(localItem);
-            }
-          });
-
-          // Save the newly merged cart to Firestore and clear the local cart
-          await cartService.updateCart(user.uid, mergedCart);
-          localStorage.removeItem('cart');
-          setCartItems(mergedCart);
+        if (localCart.length > 0) {
+          // If there's a local cart, overwrite remote cart with it.
+          await cartService.updateCart(user.uid, localCart);
+          setCartItems(localCart);
+          localStorage.removeItem('cart'); // Clear local cart after sync
         } else {
           // No local cart, just load the remote cart
+          const remoteCart = await cartService.getCart(user.uid);
           setCartItems(remoteCart);
         }
       } else {
