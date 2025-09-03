@@ -57,7 +57,7 @@ export function ProductCard({ product }: { product: Product }) {
           <div className="p-4">
             <h3 className="font-headline text-lg truncate">{product.name}</h3>
             <div className="flex justify-between items-center mt-2">
-                <p className="text-primary font-semibold text-lg">${product.price.toFixed(2)}</p>
+                <p className="text-primary font-semibold text-lg">₹{product.price.toFixed(2)}</p>
                 <Button variant="outline" size="icon" onClick={handleAddToCart}>
                     <ShoppingCart className="w-5 h-5" />
                 </Button>

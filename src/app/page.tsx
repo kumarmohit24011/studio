@@ -51,7 +51,7 @@ export default async function Home() {
                     </div>
                     <div className="p-4">
                       <h3 className="font-headline text-lg">{product.name}</h3>
-                      <p className="text-muted-foreground mt-1">${product.price.toFixed(2)}</p>
+                      <p className="text-muted-foreground mt-1">₹{product.price.toFixed(2)}</p>
                     </div>
                   </CardContent>
                 </Link>
@@ -82,7 +82,7 @@ export default async function Home() {
                     </div>
                     <div className="p-4">
                       <h3 className="font-headline text-lg">{product.name}</h3>
-                      <p className="text-muted-foreground mt-1">${product.price.toFixed(2)}</p>
+                      <p className="text-muted-foreground mt-1">₹{product.price.toFixed(2)}</p>
                     </div>
                   </CardContent>
                 </Link>

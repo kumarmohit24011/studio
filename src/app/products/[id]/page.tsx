@@ -41,7 +41,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </div>
           </div>
 
-          <p className="text-3xl font-semibold text-primary">${product.price.toFixed(2)}</p>
+          <p className="text-3xl font-semibold text-primary">₹{product.price.toFixed(2)}</p>
           
           <p className="text-muted-foreground text-lg leading-relaxed">{product.description}</p>
           
