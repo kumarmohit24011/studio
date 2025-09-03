@@ -20,7 +20,7 @@ export const getAllCategories = async (): Promise<Category[]> => {
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
     } catch (error) {
         console.error("Error fetching categories, returning mock data: ", error);
-        return MOCK_PRODUCTS;
+        return MOCK_CATEGORIES;
     }
 };
 
