@@ -14,6 +14,7 @@ const MOCK_PRODUCTS: Product[] = [
 
 
 export const getAllProducts = async (): Promise<Product[]> => {
+    if (!db) return MOCK_PRODUCTS;
     try {
         const productsCol = collection(db, 'products');
         const snapshot = await getDocs(productsCol);
@@ -29,6 +30,7 @@ export const getAllProducts = async (): Promise<Product[]> => {
 };
 
 export const getProductById = async (id: string): Promise<Product | null> => {
+    if (!db) return MOCK_PRODUCTS.find(p => p.id === id) || null;
     try {
         const docRef = doc(db, 'products', id);
         const docSnap = await getDoc(docRef);
@@ -43,22 +45,24 @@ export const getProductById = async (id: string): Promise<Product | null> => {
     }
 };
 
-export const getFeaturedProducts = async (count: number): Promise<Product[]> => {
+export const getNewArrivals = async (count: number): Promise<Product[]> => {
+    if (!db) return MOCK_PRODUCTS.filter(p => p.tags?.includes('new')).slice(0, count);
     try {
         const productsRef = collection(db, 'products');
-        const q = query(productsRef, where("featured", "==", true), limit(count));
+        const q = query(productsRef, where("tags", "array-contains", "new"), limit(count));
         const snapshot = await getDocs(q);
         if (snapshot.empty) {
-            return MOCK_PRODUCTS.filter(p => p.featured).slice(0, count);
+            return MOCK_PRODUCTS.filter(p => p.tags?.includes('new')).slice(0, count);
         }
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
     } catch (error) {
-        console.error("Error fetching featured products: ", error);
-        return MOCK_PRODUCTS.filter(p => p.featured).slice(0, count);
+        console.error("Error fetching new arrivals: ", error);
+        return MOCK_PRODUCTS.filter(p => p.tags?.includes('new')).slice(0, count);
     }
 };
 
 export const getProductsByCategory = async (category: string): Promise<Product[]> => {
+    if (!db) return MOCK_PRODUCTS.filter(p => p.category === category);
     try {
         const productsRef = collection(db, 'products');
         const q = query(productsRef, where("category", "==", category));

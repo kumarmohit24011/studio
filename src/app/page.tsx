@@ -2,14 +2,14 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getAllCategories } from "@/services/categoryService";
-import { getFeaturedProducts } from "@/services/productService";
+import { getNewArrivals } from "@/services/productService";
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 
 export default async function Home() {
-  const [featuredProducts, categories] = await Promise.all([
-    getFeaturedProducts(4),
+  const [newArrivals, categories] = await Promise.all([
+    getNewArrivals(4),
     getAllCategories()
   ]);
 
@@ -33,11 +33,11 @@ export default async function Home() {
         </div>
       </section>
 
-      <section id="featured-products" className="py-16 bg-background">
+      <section id="new-arrivals" className="py-16 bg-background">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-headline text-center mb-8">Featured Collection</h2>
+          <h2 className="text-3xl font-headline text-center mb-8">New Arrival</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {featuredProducts.map((product) => (
+            {newArrivals.map((product) => (
               <Card key={product.id} className="overflow-hidden group">
                 <Link href={`/products/${product.id}`}>
                   <CardContent className="p-0">
