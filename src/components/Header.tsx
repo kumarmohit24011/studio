@@ -96,7 +96,7 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link href="/" className="text-xl font-headline font-bold text-primary">
-          Red Bow
+          Redbow
         </Link>
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
           {navLinks}
@@ -134,7 +134,7 @@ export function Header() {
                 <div className="flex flex-col h-full">
                     <div className="flex justify-between items-center p-4 border-b">
                         <Link href="/" className="text-xl font-headline font-bold text-primary" onClick={() => setMobileMenuOpen(false)}>
-                            Red Bow
+                            Redbow
                         </Link>
                         <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)}>
                             <X className="h-6 w-6" />

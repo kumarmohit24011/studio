@@ -35,7 +35,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Welcome Back</CardTitle>
-          <CardDescription>Sign in to continue to Red Bow</CardDescription>
+          <CardDescription>Sign in to continue to Redbow</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
