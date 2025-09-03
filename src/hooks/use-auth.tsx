@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
-import { onAuthStateChanged, User, signOut, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { onAuthStateChanged, User, signOut, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { createUserProfile, getUserProfile, UserProfile } from '@/services/userService';
 import { doc, onSnapshot } from '@firebase/firestore';
@@ -13,6 +13,8 @@ interface AuthContextType {
   userProfile: UserProfile | null;
   authLoading: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string, displayName: string) => Promise<void>;
   signOutUser: () => Promise<void>;
 }
 
@@ -71,6 +73,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       router.push('/');
     } catch (error) {
       console.error("Error signing in with Google: ", error);
+      throw error;
+    }
+  };
+
+  const signInWithEmail = async (email: string, password: string) => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      console.error("Error signing in with email: ", error);
+      throw error;
+    }
+  };
+
+  const signUpWithEmail = async (email: string, password: string, displayName: string) => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCredential.user, { displayName });
+      // The onAuthStateChanged listener will handle creating the user profile in Firestore
+    } catch (error) {
+       console.error("Error signing up with email: ", error);
+       throw error;
     }
   };
 
@@ -88,6 +111,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     userProfile,
     authLoading,
     signInWithGoogle,
+    signInWithEmail,
+    signUpWithEmail,
     signOutUser,
   };
 
