@@ -20,7 +20,7 @@ export const getAllCategories = async (): Promise<Category[]> => {
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
     } catch (error) {
         console.error("Error fetching categories, returning mock data: ", error);
-        return MOCK_CATEGORIES;
+        return MOCK_PRODUCTS;
     }
 };
 
@@ -31,9 +31,9 @@ export const getCategoryById = async (id: string): Promise<Category | null> => {
         if (docSnap.exists()) {
             return { id: docSnap.id, ...docSnap.data() } as Category;
         }
-        return null;
+        return MOCK_CATEGORIES.find(c => c.id === id) || null;
     } catch (error) {
-        console.error("Error fetching category by id: ", error);
+        console.error(`Error fetching category by id ${id}, returning mock data: `, error);
         return MOCK_CATEGORIES.find(c => c.id === id) || null;
     }
 };
