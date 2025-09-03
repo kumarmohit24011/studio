@@ -84,10 +84,9 @@ export function Header() {
   
   const navLinks = (
     <>
-      <Link href="/" className="hover:text-primary transition-colors">Home</Link>
       <Link href="/products" className="hover:text-primary transition-colors">All Products</Link>
       <Link href="/products?category=Rings" className="hover:text-primary transition-colors">Rings</Link>
-      <Link href="/products?category=Necklaces" className="hover:text-primary transition-colors">Necklaces</Link>
+      <Link href="/products?category=Necklaces" className="hovertext-primary transition-colors">Necklaces</Link>
       <Link href="/products?category=Bracelets" className="hover:text-primary transition-colors">Bracelets</Link>
       <Link href="/contact" className="hover:text-primary transition-colors">Contact</Link>
     </>
