@@ -78,7 +78,7 @@ export const getTrendingProducts = async (count: number): Promise<Product[]> => 
     }
     try {
         const productsRef = collection(db, 'products');
-        const q = query(productsRef, where("tags",- "array-contains", "popular"), limit(count));
+        const q = query(productsRef, where("tags", "array-contains", "popular"), limit(count));
         const snapshot = await getDocs(q);
         if (snapshot.empty) {
             console.log('No trending products found, returning mock data.');

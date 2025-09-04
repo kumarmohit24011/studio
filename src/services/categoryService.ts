@@ -1,7 +1,7 @@
 
 import { db } from '@/lib/firebase';
 import { Category } from '@/lib/types';
-import { collection, getDocs, doc, getDoc, getFirestore, terminate } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 
 const MOCK_CATEGORIES: Category[] = [
     { id: 'rings', name: 'Rings', description: 'Elegant rings for every occasion.', imageUrl: 'https://picsum.photos/400/300?random=1' },

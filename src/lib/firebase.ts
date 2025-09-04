@@ -14,10 +14,10 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "your-app-id"
 };
 
-let app: FirebaseApp;
-let auth: Auth;
-let db: Firestore;
-let storage: FirebaseStorage;
+let app: FirebaseApp | undefined;
+let auth: Auth | undefined;
+let db: Firestore | undefined;
+let storage: FirebaseStorage | undefined;
 
 // Check if all required environment variables are defined
 const allVarsDefined = Object.values(firebaseConfig).every(
@@ -42,6 +42,4 @@ if (allVarsDefined) {
   // The services are built to handle this gracefully by falling back to mock data.
 }
 
-
-// @ts-ignore
 export { app, auth, db, storage };
