@@ -6,6 +6,14 @@ import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firest
 export const createUserProfile = async (uid: string, email: string, name: string, photoURL?: string): Promise<void> => {
     try {
         const userRef = doc(db, 'users', uid);
+        const docSnap = await getDoc(userRef);
+
+        // Don't overwrite existing profile
+        if (docSnap.exists()) {
+            console.log(`Profile for user ${uid} already exists.`);
+            return;
+        }
+
         const userProfile: UserProfile = {
             uid,
             email,

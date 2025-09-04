@@ -31,10 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAuthLoading(true);
       if (user) {
         setUser(user);
-        const profile = await getUserProfile(user.uid);
-        if (!profile) {
-          await createUserProfile(user.uid, user.email || '', user.displayName || 'New User', user.photoURL || '');
-        }
+        // The profile will be loaded by the snapshot listener below.
       } else {
         setUser(null);
         setUserProfile(null);
@@ -52,6 +49,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       unsubscribe = onSnapshot(userRef, (doc) => {
         if (doc.exists()) {
           setUserProfile(doc.data() as UserProfile);
+        } else {
+          // This case might happen if the user document is deleted manually
+          // Or if there's a delay in creation, though we've moved creation to signup.
+          console.warn(`No profile found for user ${user.uid}, creating one.`);
+          createUserProfile(user.uid, user.email || '', user.displayName || 'New User', user.photoURL || '');
         }
       });
     } else {
@@ -60,11 +62,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe?.();
   }, [user, authLoading]);
 
+  const handleAuthSuccess = (userCredential: any) => {
+    router.push('/');
+    return userCredential;
+  }
+
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      router.push('/');
+      const result = await signInWithPopup(auth, provider);
+      const profile = await getUserProfile(result.user.uid);
+      if (!profile) {
+        await createUserProfile(result.user.uid, result.user.email!, result.user.displayName!, result.user.photoURL!);
+      }
+      handleAuthSuccess(result);
     } catch (error) {
       console.error("Error signing in with Google: ", error);
       throw error;
@@ -73,7 +84,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithEmail = async (email: string, password: string) => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      handleAuthSuccess(result);
     } catch (error) {
       console.error("Error signing in with email: ", error);
       throw error;
@@ -83,9 +95,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUpWithEmail = async (email: string, password: string, displayName: string) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      // The onAuthStateChanged listener will handle creating the user profile in Firestore
-      // We can still update the auth profile display name here
       await updateProfile(userCredential.user, { displayName });
+      // Immediately create the user profile in Firestore
+      await createUserProfile(userCredential.user.uid, email, displayName);
+      handleAuthSuccess(userCredential);
     } catch (error) {
        console.error("Error signing up with email: ", error);
        throw error;
