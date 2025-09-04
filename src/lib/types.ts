@@ -18,14 +18,28 @@ export interface Category {
     imageUrl?: string;
 }
 
+export interface CartItem { 
+    productId: string; 
+    quantity: number; 
+    // Optional: store product details to avoid extra lookups
+    name?: string;
+    price?: number;
+    imageUrl?: string;
+}
+
 export interface UserProfile {
     uid: string;
     email: string;
-    displayName: string;
+    name: string;
+    phone?: string;
+    address?: string;
     photoURL?: string;
     isAdmin?: boolean;
-    addresses?: Address[];
+    createdAt: any; // Firestore Timestamp
+    wishlist: string[]; // Array of product IDs
+    cart: CartItem[];
 }
+
 
 export interface Address {
     street: string;

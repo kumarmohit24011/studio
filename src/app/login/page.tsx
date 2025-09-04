@@ -23,7 +23,7 @@ const loginSchema = z.object({
 });
 
 const signUpSchema = z.object({
-  displayName: z.string().min(2, "Name must be at least 2 characters."),
+  name: z.string().min(2, "Name must be at least 2 characters."),
   email: z.string().email("Invalid email address."),
   password: z.string().min(6, "Password must be at least 6 characters."),
 });
@@ -42,7 +42,7 @@ export default function LoginPage() {
 
   const signUpForm = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
-    defaultValues: { displayName: "", email: "", password: "" },
+    defaultValues: { name: "", email: "", password: "" },
   });
 
   const onLoginSubmit = async (values: z.infer<typeof loginSchema>) => {
@@ -64,7 +64,7 @@ export default function LoginPage() {
   const onSignUpSubmit = async (values: z.infer<typeof signUpSchema>) => {
     setLoading(true);
     try {
-      await signUpWithEmail(values.email, values.password, values.displayName);
+      await signUpWithEmail(values.email, values.password, values.name);
       router.push('/');
     } catch (error: any) {
         if (error instanceof FirebaseError && error.code === 'auth/email-already-in-use') {
@@ -162,7 +162,7 @@ export default function LoginPage() {
                         <form onSubmit={signUpForm.handleSubmit(onSignUpSubmit)} className="space-y-4">
                              <FormField
                                 control={signUpForm.control}
-                                name="displayName"
+                                name="name"
                                 render={({ field }) => (
                                     <FormItem>
                                     <FormLabel>Display Name</FormLabel>

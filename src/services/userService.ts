@@ -1,18 +1,29 @@
 
 import { db } from '@/lib/firebase';
 import { UserProfile } from '@/lib/types';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 
-export const createUserProfile = async (userProfile: UserProfile): Promise<void> => {
+export const createUserProfile = async (uid: string, email: string, name: string, photoURL?: string): Promise<void> => {
     if (!db) {
         console.warn("Firestore is not initialized. Skipping create user profile.");
         return;
     }
     try {
-        const userRef = doc(db, 'users', userProfile.uid);
+        const userRef = doc(db, 'users', uid);
+        const userProfile: UserProfile = {
+            uid,
+            email,
+            name,
+            photoURL: photoURL || '',
+            createdAt: serverTimestamp(),
+            wishlist: [],
+            cart: [],
+            isAdmin: false, // Default to not admin
+        };
         await setDoc(userRef, userProfile);
     } catch (error) {
         console.error("Error creating user profile:", error);
+        throw error;
     }
 };
 
@@ -43,8 +54,9 @@ export const updateUserProfile = async (uid: string, data: Partial<UserProfile>)
     }
     try {
         const userRef = doc(db, 'users', uid);
-        await setDoc(userRef, data, { merge: true });
+        await updateDoc(userRef, data);
     } catch (error) {
         console.error("Error updating user profile:", error);
+        throw error;
     }
 };

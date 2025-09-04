@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { onAuthStateChanged, User, signOut, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { createUserProfile, getUserProfile, UserProfile } from '@/services/userService';
@@ -28,20 +28,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setAuthLoading(true);
       if (user) {
         setUser(user);
         const profile = await getUserProfile(user.uid);
         if (!profile) {
-          // If no profile exists, create one.
-          const newProfileData: UserProfile = {
-            uid: user.uid,
-            email: user.email || '',
-            displayName: user.displayName || 'New User',
-            photoURL: user.photoURL || '',
-            isAdmin: false,
-          };
-          await createUserProfile(newProfileData);
-          setUserProfile(newProfileData);
+          await createUserProfile(user.uid, user.email || '', user.displayName || 'New User', user.photoURL || '');
         }
       } else {
         setUser(null);
@@ -55,16 +47,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
-    if (user) {
+    if (user && !authLoading) {
       const userRef = doc(db, 'users', user.uid);
       unsubscribe = onSnapshot(userRef, (doc) => {
         if (doc.exists()) {
           setUserProfile(doc.data() as UserProfile);
         }
       });
+    } else {
+       setUserProfile(null);
     }
     return () => unsubscribe?.();
-  }, [user]);
+  }, [user, authLoading]);
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
@@ -89,8 +83,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUpWithEmail = async (email: string, password: string, displayName: string) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(userCredential.user, { displayName });
       // The onAuthStateChanged listener will handle creating the user profile in Firestore
+      // We can still update the auth profile display name here
+      await updateProfile(userCredential.user, { displayName });
     } catch (error) {
        console.error("Error signing up with email: ", error);
        throw error;

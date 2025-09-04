@@ -32,20 +32,21 @@ export function Header() {
   }, []);
 
   const cartItemCount = cart.reduce((count, item) => count + item.quantity, 0);
+  const wishlistItemCount = wishlist.length;
 
   const renderAuthComponent = () => {
     if (authLoading || !isClient) {
       return <Skeleton className="h-8 w-8 rounded-full" />;
     }
 
-    if (user) {
+    if (user && userProfile) {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={userProfile?.photoURL || user.photoURL || undefined} alt={userProfile?.displayName || user.displayName || 'User'} />
-                <AvatarFallback>{userProfile?.displayName?.[0] || user.displayName?.[0] || 'U'}</AvatarFallback>
+                <AvatarImage src={userProfile?.photoURL || user.photoURL || undefined} alt={userProfile?.name || user.displayName || 'User'} />
+                <AvatarFallback>{userProfile?.name?.[0] || user.displayName?.[0] || 'U'}</AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
@@ -111,7 +112,7 @@ export function Header() {
           <Button variant="ghost" size="icon" asChild>
             <Link href="/wishlist" className="relative">
               <Heart className="h-5 w-5" />
-              {isClient && wishlist.length > 0 && <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">{wishlist.length}</span>}
+              {isClient && wishlistItemCount > 0 && <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">{wishlistItemCount}</span>}
               <span className="sr-only">Wishlist</span>
             </Link>
           </Button>

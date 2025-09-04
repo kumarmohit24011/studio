@@ -16,9 +16,12 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
 
 const profileSchema = z.object({
-  displayName: z.string().min(2, "Display name must be at least 2 characters."),
+  name: z.string().min(2, "Display name must be at least 2 characters."),
+  phone: z.string().optional(),
+  address: z.string().optional(),
 });
 
 export default function AccountPage() {
@@ -29,7 +32,9 @@ export default function AccountPage() {
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
     values: {
-      displayName: userProfile?.displayName || "",
+      name: userProfile?.name || "",
+      phone: userProfile?.phone || "",
+      address: userProfile?.address || "",
     },
   });
 
@@ -38,7 +43,11 @@ export default function AccountPage() {
       router.push('/login');
     }
     if (userProfile) {
-        form.reset({ displayName: userProfile.displayName });
+        form.reset({
+          name: userProfile.name,
+          phone: userProfile.phone || "",
+          address: userProfile.address || "",
+        });
     }
   }, [authLoading, user, userProfile, router, form]);
 
@@ -70,6 +79,7 @@ export default function AccountPage() {
           <CardContent className="space-y-4">
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-20 w-full" />
             <Skeleton className="h-10 w-24" />
           </CardContent>
         </Card>
@@ -84,7 +94,7 @@ export default function AccountPage() {
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16">
                 <AvatarImage src={userProfile.photoURL} />
-                <AvatarFallback>{userProfile.displayName?.[0]}</AvatarFallback>
+                <AvatarFallback>{userProfile.name?.[0]}</AvatarFallback>
             </Avatar>
             <div>
                 <CardTitle className="text-2xl">Your Account</CardTitle>
@@ -101,12 +111,38 @@ export default function AccountPage() {
               </div>
               <FormField
                 control={form.control}
-                name="displayName"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Display Name</FormLabel>
                     <FormControl>
                       <Input placeholder="Your name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Your phone number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Your shipping address" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
