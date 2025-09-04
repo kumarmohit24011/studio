@@ -13,32 +13,11 @@ const firebaseConfig = {
   appId: "1:322692287326:web:cda79367be903bd6bb5dcf",
 };
 
-interface FirebaseServices {
-    app: FirebaseApp;
-    auth: Auth;
-    db: Firestore;
-    storage: FirebaseStorage;
-}
+// Initialize Firebase
+const app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-let services: FirebaseServices | null = null;
+const auth: Auth = getAuth(app);
+const db: Firestore = getFirestore(app);
+const storage: FirebaseStorage = getStorage(app);
 
-export const getFirebaseServices = (): FirebaseServices => {
-    if (services) {
-        return services;
-    }
-
-    let app: FirebaseApp;
-    if (!getApps().length) {
-        app = initializeApp(firebaseConfig);
-    } else {
-        app = getApp();
-    }
-
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
-    
-    services = { app, auth, db, storage };
-    
-    return services;
-};
+export { app, auth, db, storage };

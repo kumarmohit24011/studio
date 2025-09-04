@@ -1,5 +1,5 @@
 
-import { getFirebaseServices } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { Category } from '@/lib/types';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 
@@ -11,7 +11,6 @@ const MOCK_CATEGORIES: Category[] = [
 
 export const getAllCategories = async (): Promise<Category[]> => {
     try {
-        const { db } = getFirebaseServices();
         const categoriesCol = collection(db, 'categories');
         const snapshot = await getDocs(categoriesCol);
         if (snapshot.empty) {
@@ -27,7 +26,6 @@ export const getAllCategories = async (): Promise<Category[]> => {
 
 export const getCategoryById = async (id: string): Promise<Category | null> => {
     try {
-        const { db } = getFirebaseServices();
         const docRef = doc(db, 'categories', id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {

@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { onAuthStateChanged, User, signOut, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { getFirebaseServices } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { createUserProfile, getUserProfile, UserProfile } from '@/services/userService';
 import { doc, onSnapshot } from '@firebase/firestore';
 import { useRouter } from 'next/navigation';
@@ -27,7 +27,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const { auth } = getFirebaseServices();
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setAuthLoading(true);
       if (user) {
@@ -49,7 +48,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
     if (user && !authLoading) {
-      const { db } = getFirebaseServices();
       const userRef = doc(db, 'users', user.uid);
       unsubscribe = onSnapshot(userRef, (doc) => {
         if (doc.exists()) {
@@ -63,7 +61,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user, authLoading]);
 
   const signInWithGoogle = async () => {
-    const { auth } = getFirebaseServices();
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
@@ -75,7 +72,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signInWithEmail = async (email: string, password: string) => {
-    const { auth } = getFirebaseServices();
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
@@ -85,7 +81,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUpWithEmail = async (email: string, password: string, displayName: string) => {
-    const { auth } = getFirebaseServices();
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       // The onAuthStateChanged listener will handle creating the user profile in Firestore
@@ -98,7 +93,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOutUser = async () => {
-    const { auth } = getFirebaseServices();
     try {
       await signOut(auth);
       router.push('/');
