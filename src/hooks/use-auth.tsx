@@ -3,10 +3,10 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { onAuthStateChanged, User, signOut, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth, db } from '@/lib/firebase';
+import { auth } from '@/lib/firebase';
 import { createUserProfile, getUserProfile, UserProfile } from '@/services/userService';
-import { doc, onSnapshot } from '@firebase/firestore';
 import { useRouter } from 'next/navigation';
+import { FirebaseError } from 'firebase/app';
 
 interface AuthContextType {
   user: User | null;
@@ -31,7 +31,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAuthLoading(true);
       if (user) {
         setUser(user);
-        // The profile will be loaded by the snapshot listener below.
+        const profile = await getUserProfile(user.uid);
+        setUserProfile(profile);
       } else {
         setUser(null);
         setUserProfile(null);
@@ -42,53 +43,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    let unsubscribe: (() => void) | undefined;
-    if (user && !authLoading) {
-      const userRef = doc(db, 'users', user.uid);
-      unsubscribe = onSnapshot(userRef, (doc) => {
-        if (doc.exists()) {
-          setUserProfile(doc.data() as UserProfile);
-        } else {
-          // This case might happen if the user document is deleted manually
-          // Or if there's a delay in creation, though we've moved creation to signup.
-          console.warn(`No profile found for user ${user.uid}, creating one.`);
-          createUserProfile(user.uid, user.email || '', user.displayName || 'New User', user.photoURL || '');
-        }
-      });
-    } else {
-       setUserProfile(null);
-    }
-    return () => unsubscribe?.();
-  }, [user, authLoading]);
-
-  const handleAuthSuccess = (userCredential: any) => {
+  const handleAuthSuccess = (profile: UserProfile | null) => {
+    setUserProfile(profile);
     router.push('/');
-    return userCredential;
+  }
+
+  const handleAuthError = (error: any) => {
+    // This function can be expanded to handle different auth errors
+    console.error("Authentication error: ", error);
+    throw error;
   }
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
-      const profile = await getUserProfile(result.user.uid);
+      const { uid, email, displayName, photoURL } = result.user;
+      let profile = await getUserProfile(uid);
       if (!profile) {
-        await createUserProfile(result.user.uid, result.user.email!, result.user.displayName!, result.user.photoURL!);
+        profile = await createUserProfile(uid, email!, displayName!, photoURL!);
       }
-      handleAuthSuccess(result);
+      handleAuthSuccess(profile);
     } catch (error) {
-      console.error("Error signing in with Google: ", error);
-      throw error;
+      handleAuthError(error);
     }
   };
 
   const signInWithEmail = async (email: string, password: string) => {
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
-      handleAuthSuccess(result);
+      const profile = await getUserProfile(result.user.uid);
+      handleAuthSuccess(profile);
     } catch (error) {
-      console.error("Error signing in with email: ", error);
-      throw error;
+      handleAuthError(error);
     }
   };
 
@@ -96,19 +83,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName });
-      // Immediately create the user profile in Firestore
-      await createUserProfile(userCredential.user.uid, email, displayName);
-      handleAuthSuccess(userCredential);
+      const newProfile = await createUserProfile(userCredential.user.uid, email, displayName);
+      handleAuthSuccess(newProfile);
     } catch (error) {
-       console.error("Error signing up with email: ", error);
-       throw error;
+       handleAuthError(error);
     }
   };
 
   const signOutUser = async () => {
     try {
       await signOut(auth);
-      router.push('/');
+      setUser(null);
+      setUserProfile(null);
+      router.push('/login');
     } catch (error) {
       console.error("Error signing out: ", error);
     }
@@ -124,6 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signOutUser,
   };
 
+  // Render children only when auth state is resolved
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
