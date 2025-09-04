@@ -1,13 +1,10 @@
 
-import { db } from '@/lib/firebase';
+import { getFirebaseServices } from '@/lib/firebase';
 import { UserProfile } from '@/lib/types';
 import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 
 export const createUserProfile = async (uid: string, email: string, name: string, photoURL?: string): Promise<void> => {
-    if (!db) {
-        console.warn("Firestore is not initialized. Skipping create user profile.");
-        return;
-    }
+    const { db } = getFirebaseServices();
     try {
         const userRef = doc(db, 'users', uid);
         const userProfile: UserProfile = {
@@ -28,10 +25,7 @@ export const createUserProfile = async (uid: string, email: string, name: string
 };
 
 export const getUserProfile = async (uid: string): Promise<UserProfile | null> => {
-    if (!db) {
-        console.warn("Firestore is not initialized. Cannot get user profile.");
-        return null;
-    }
+    const { db } = getFirebaseServices();
     try {
         const userRef = doc(db, 'users', uid);
         const docSnap = await getDoc(userRef);
@@ -48,10 +42,7 @@ export const getUserProfile = async (uid: string): Promise<UserProfile | null> =
 };
 
 export const updateUserProfile = async (uid: string, data: Partial<UserProfile>): Promise<void> => {
-    if (!db) {
-        console.warn("Firestore is not initialized. Skipping update user profile.");
-        return;
-    }
+    const { db } = getFirebaseServices();
     try {
         const userRef = doc(db, 'users', uid);
         await updateDoc(userRef, data);
