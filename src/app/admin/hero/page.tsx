@@ -1,11 +1,18 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getHeroSection } from "@/services/siteContentService";
+import { getHeroSection, type PlainHeroData } from "@/services/siteContentService";
 import { HeroForm } from "./_components/hero-form";
 
 
 export default async function AdminHeroPage() {
   const heroData = await getHeroSection();
+
+  // Convert Firestore Timestamp to a serializable format
+  const plainHeroData: PlainHeroData = {
+    ...heroData,
+    updatedAt: heroData.updatedAt ? new Date(heroData.updatedAt.seconds * 1000).toISOString() : undefined,
+  };
+
 
   return (
     <div className="flex flex-col gap-4">
@@ -20,7 +27,7 @@ export default async function AdminHeroPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-            <HeroForm heroData={heroData} />
+            <HeroForm heroData={plainHeroData} />
         </CardContent>
       </Card>
     </div>

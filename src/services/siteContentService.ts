@@ -12,6 +12,10 @@ export interface HeroSectionData {
     updatedAt?: any;
 }
 
+// This is a serializable version of HeroSectionData safe for client components
+export type PlainHeroData = Omit<HeroSectionData, 'updatedAt'> & { updatedAt?: string };
+
+
 const siteContentRef = doc(db, 'siteContent', 'heroSection');
 
 export const getHeroSection = async (): Promise<HeroSectionData> => {

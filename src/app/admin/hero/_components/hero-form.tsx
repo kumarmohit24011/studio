@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { updateHeroSection, type HeroSectionData } from '@/services/siteContentService';
+import { updateHeroSection, type PlainHeroData } from '@/services/siteContentService';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useState } from 'react';
@@ -21,7 +21,8 @@ const heroSchema = z.object({
   image: z.any().optional(),
 });
 
-export function HeroForm({ heroData }: { heroData: HeroSectionData }) {
+
+export function HeroForm({ heroData }: { heroData: PlainHeroData }) {
   const { toast } = useToast();
   const router = useRouter();
   const [preview, setPreview] = useState<string | null>(heroData.imageUrl);
