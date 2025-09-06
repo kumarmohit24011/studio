@@ -1,4 +1,5 @@
 
+
 import { getAllProducts, getProductsByCategory } from "@/services/productService";
 import { getAllCategories } from "@/services/categoryService";
 import { ProductCard } from "./_components/product-card";
@@ -25,7 +26,14 @@ const toPlainObject = (product: any): Product => {
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   const { category } = searchParams;
-  const productsData = category ? await getProductsByCategory(category) : await getAllProducts();
+  let productsData;
+  if (category) {
+      productsData = await getProductsByCategory(category)
+  } else {
+      const allProducts = await getAllProducts();
+      productsData = allProducts.filter(p => p.isPublished);
+  }
+
   const categories = await getAllCategories();
 
   const products = productsData.map(toPlainObject);

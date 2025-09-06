@@ -11,6 +11,7 @@ export interface Product {
     imageUrls?: string[]; // Additional images
     stock: number;
     tags?: string[];
+    isPublished: boolean; // Controls visibility on the storefront
     featured?: boolean;
     createdAt?: any | string;
     updatedAt?: any | string;
@@ -96,4 +97,3 @@ export interface Coupon {
     isActive: boolean;
     createdAt: any; // Firestore Timestamp
 }
-

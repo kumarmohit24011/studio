@@ -28,16 +28,25 @@ import {
 } from "@/components/ui/alert-dialog"
 
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Pencil, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { MoreHorizontal, Pencil, Trash2, TrendingUp, Sparkles, Eye, EyeOff } from 'lucide-react';
 import type { Product } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { deleteProduct } from '@/services/productService';
+import { deleteProduct, updateProductStatus } from '@/services/productService';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
-export function ProductTable({ products }: { products: Product[] }) {
+interface ProductTableProps {
+    products: Product[];
+    selectedProducts: Product[];
+    setSelectedProducts: React.Dispatch<React.SetStateAction<Product[]>>;
+}
+
+export function ProductTable({ products, selectedProducts, setSelectedProducts }: ProductTableProps) {
     const { toast } = useToast();
     const router = useRouter();
 
@@ -51,11 +60,44 @@ export function ProductTable({ products }: { products: Product[] }) {
         }
     }
 
+    const handleToggleStatus = async (productId: string, statusType: 'isPublished' | 'isNew' | 'isTrending', value: boolean) => {
+        try {
+            await updateProductStatus(productId, { [statusType]: value });
+            toast({ title: "Status Updated", description: "Product status changed successfully." });
+            router.refresh();
+        } catch (error) {
+            toast({ variant: "destructive", title: "Error", description: "Failed to update product status." });
+        }
+    }
+
+    const handleSelectProduct = (product: Product, isSelected: boolean) => {
+        if (isSelected) {
+            setSelectedProducts(prev => [...prev, product]);
+        } else {
+            setSelectedProducts(prev => prev.filter(p => p.id !== product.id));
+        }
+    }
+
+    const handleSelectAll = (isSelected: boolean) => {
+        if (isSelected) {
+            setSelectedProducts(products);
+        } else {
+            setSelectedProducts([]);
+        }
+    }
+
   return (
     <div>
         <Table>
             <TableHeader>
                 <TableRow>
+                    <TableHead className="w-[40px]">
+                        <Checkbox 
+                            checked={selectedProducts.length === products.length && products.length > 0}
+                            onCheckedChange={(checked) => handleSelectAll(Boolean(checked))}
+                            aria-label="Select all"
+                        />
+                    </TableHead>
                     <TableHead className="hidden w-[100px] sm:table-cell">
                         <span className="sr-only">Image</span>
                     </TableHead>
@@ -72,7 +114,14 @@ export function ProductTable({ products }: { products: Product[] }) {
             </TableHeader>
             <TableBody>
                 {products.map((product) => (
-                <TableRow key={product.id}>
+                <TableRow key={product.id} data-state={selectedProducts.some(p => p.id === product.id) && "selected"}>
+                    <TableCell>
+                         <Checkbox 
+                            checked={selectedProducts.some(p => p.id === product.id)}
+                            onCheckedChange={(checked) => handleSelectProduct(product, Boolean(checked))}
+                            aria-label={`Select ${product.name}`}
+                        />
+                    </TableCell>
                     <TableCell className="hidden sm:table-cell">
                         <Image
                             alt="Product image"
@@ -88,9 +137,19 @@ export function ProductTable({ products }: { products: Product[] }) {
                     <TableCell>₹{product.price.toFixed(2)}</TableCell>
                     <TableCell>{product.stock}</TableCell>
                     <TableCell>
-                        <div className="flex flex-col gap-1">
-                             {product.tags?.includes('new') && <Badge variant="default">New</Badge>}
-                             {product.tags?.includes('popular') && <Badge variant="secondary">Trending</Badge>}
+                        <div className="flex flex-col gap-2 items-start">
+                           <div className="flex items-center space-x-2">
+                                <Switch id={`published-${product.id}`} checked={product.isPublished} onCheckedChange={(val) => handleToggleStatus(product.id, 'isPublished', val)} />
+                                <Label htmlFor={`published-${product.id}`} className="text-xs flex items-center gap-1">{product.isPublished ? <Eye className="h-3 w-3"/> : <EyeOff className="h-3 w-3"/>} Published</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <Switch id={`new-${product.id}`} checked={product.tags?.includes('new')} onCheckedChange={(val) => handleToggleStatus(product.id, 'isNew', val)}/>
+                                <Label htmlFor={`new-${product.id}`} className="text-xs flex items-center gap-1"><Sparkles className="h-3 w-3"/> New</Label>
+                            </div>
+                           <div className="flex items-center space-x-2">
+                                <Switch id={`trending-${product.id}`} checked={product.tags?.includes('popular')} onCheckedChange={(val) => handleToggleStatus(product.id, 'isTrending', val)}/>
+                                <Label htmlFor={`trending-${product.id}`} className="text-xs flex items-center gap-1"><TrendingUp className="h-3 w-3"/> Trending</Label>
+                            </div>
                         </div>
                     </TableCell>
                     <TableCell>

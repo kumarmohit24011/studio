@@ -8,7 +8,22 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { PlusCircle, Search } from 'lucide-react';
+import { PlusCircle, Search, Trash2, ShieldX } from 'lucide-react';
+import { deleteMultipleProducts } from '@/services/productService';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
 
 interface ProductActionsProps {
     products: Product[];
@@ -22,12 +37,16 @@ export function ProductActions({ products, categories }: ProductActionsProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [stockFilter, setStockFilter] = useState<StockStatus>('all');
+    const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
+    const { toast } = useToast();
+    const router = useRouter();
+
 
     const filteredProducts = useMemo(() => {
         return products.filter(product => {
             const matchesSearch = 
                 product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                product.sku?.toLowerCase().includes(searchQuery.toLowerCase());
+                (product.sku && product.sku.toLowerCase().includes(searchQuery.toLowerCase()));
 
             const matchesCategory = 
                 categoryFilter === 'all' || product.category === categoryFilter;
@@ -49,6 +68,18 @@ export function ProductActions({ products, categories }: ProductActionsProps) {
             return matchesSearch && matchesCategory && matchesStock();
         });
     }, [products, searchQuery, categoryFilter, stockFilter]);
+
+     const handleBulkDelete = async () => {
+        try {
+            await deleteMultipleProducts(selectedProducts);
+            toast({ title: "Success", description: `${selectedProducts.length} products deleted.` });
+            setSelectedProducts([]);
+            router.refresh();
+        } catch (error) {
+            toast({ variant: 'destructive', title: "Error", description: "Failed to delete products." });
+        }
+    };
+
 
     return (
         <div>
@@ -86,7 +117,28 @@ export function ProductActions({ products, categories }: ProductActionsProps) {
                         </SelectContent>
                     </Select>
                 </div>
-                 <div className="w-full md:w-auto">
+                 <div className="w-full md:w-auto flex items-center gap-2">
+                    {selectedProducts.length > 0 && (
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="destructive" size="sm" className="h-10">
+                                    <Trash2 className="mr-2 h-4 w-4" /> Delete ({selectedProducts.length})
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete {selectedProducts.length} product(s).
+                                </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleBulkDelete}>Continue</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    )}
                     <Button size="sm" className="h-10 gap-1 w-full" asChild>
                         <Link href="/admin/products/new">
                             <PlusCircle className="h-4 w-4" />
@@ -97,7 +149,11 @@ export function ProductActions({ products, categories }: ProductActionsProps) {
                     </Button>
                 </div>
             </div>
-            <ProductTable products={filteredProducts} />
+            <ProductTable 
+                products={filteredProducts} 
+                selectedProducts={selectedProducts}
+                setSelectedProducts={setSelectedProducts}
+            />
         </div>
     );
 }

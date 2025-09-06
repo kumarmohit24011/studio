@@ -16,7 +16,7 @@ import { useState } from 'react';
 import type { Product, Category } from '@/lib/types';
 import { addProduct, updateProduct } from '@/services/productService';
 import { Badge } from '@/components/ui/badge';
-import { X, UploadCloud, TrendingUp, Sparkles } from 'lucide-react';
+import { X, UploadCloud, TrendingUp, Sparkles, Eye } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
@@ -30,6 +30,7 @@ const productSchema = z.object({
   tags: z.array(z.string()).optional(),
   isNewArrival: z.boolean().optional(),
   isTrending: z.boolean().optional(),
+  isPublished: z.boolean().optional(),
   images: z.array(z.any()).optional(), // For new file uploads
 });
 
@@ -56,6 +57,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
       tags: product?.tags || [],
       isNewArrival: product?.tags?.includes('new') || false,
       isTrending: product?.tags?.includes('popular') || false,
+      isPublished: product?.isPublished ?? true,
       images: [],
     },
   });
@@ -298,6 +300,24 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                     <CardTitle>Product Status</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                     <FormField
+                        control={form.control}
+                        name="isPublished"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                            <div className="space-y-0.5">
+                                <FormLabel className="flex items-center gap-2"><Eye className="h-4 w-4 text-green-500" /> Published</FormLabel>
+                                <FormDescription>Make this product visible to customers.</FormDescription>
+                            </div>
+                            <FormControl>
+                                <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                />
+                            </FormControl>
+                            </FormItem>
+                        )}
+                    />
                     <FormField
                         control={form.control}
                         name="isNewArrival"
@@ -305,7 +325,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                             <div className="space-y-0.5">
                                 <FormLabel className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-yellow-500" /> New Arrival</FormLabel>
-                                <FormDescription>Show in the "New Arrivals" section on the homepage.</FormDescription>
+                                <FormDescription>Show in the "New Arrivals" section.</FormDescription>
                             </div>
                             <FormControl>
                                 <Switch
@@ -323,7 +343,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                             <div className="space-y-0.5">
                                 <FormLabel className="flex items-center gap-2"><TrendingUp className="h-4 w-4 text-blue-500" /> Trending</FormLabel>
-                                 <FormDescription>Show in the "Trending Products" section on the homepage.</FormDescription>
+                                 <FormDescription>Show in the "Trending Products" section.</FormDescription>
                             </div>
                             <FormControl>
                                 <Switch
