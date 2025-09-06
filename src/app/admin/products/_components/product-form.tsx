@@ -16,7 +16,9 @@ import { useState } from 'react';
 import type { Product, Category } from '@/lib/types';
 import { addProduct, updateProduct } from '@/services/productService';
 import { Badge } from '@/components/ui/badge';
-import { X, UploadCloud } from 'lucide-react';
+import { X, UploadCloud, TrendingUp, Sparkles } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 const productSchema = z.object({
   name: z.string().min(3, 'Product name must be at least 3 characters.'),
@@ -24,7 +26,10 @@ const productSchema = z.object({
   price: z.coerce.number().min(0, 'Price must be a positive number.'),
   stock: z.coerce.number().int().min(0, 'Stock must be a non-negative integer.'),
   category: z.string().min(1, 'Please select a category.'),
+  sku: z.string().optional(),
   tags: z.array(z.string()).optional(),
+  isNewArrival: z.boolean().optional(),
+  isTrending: z.boolean().optional(),
   images: z.array(z.any()).optional(), // For new file uploads
 });
 
@@ -47,7 +52,10 @@ export function ProductForm({ product, categories }: ProductFormProps) {
       price: product?.price || 0,
       stock: product?.stock || 0,
       category: product?.category || '',
+      sku: product?.sku || '',
       tags: product?.tags || [],
+      isNewArrival: product?.tags?.includes('new') || false,
+      isTrending: product?.tags?.includes('popular') || false,
       images: [],
     },
   });
@@ -68,24 +76,19 @@ export function ProductForm({ product, categories }: ProductFormProps) {
     newPreviews.splice(index, 1);
     setPreviews(newPreviews);
     
-    // We also need to handle removing the file from the form state if it's a new file
-    // And potentially marking existing files for deletion on the server
     const existingImagesCount = product?.imageUrls?.length || 0;
     if (index >= existingImagesCount) {
         const newImages = [...(form.getValues('images') || [])];
         newImages.splice(index - existingImagesCount, 1);
         form.setValue('images', newImages);
-    } else {
-        // If it's an existing image, we need to update what we pass to the server
-        // This is handled in onSubmit by using the `previews` state.
-    }
+    } 
     toast({ title: "Image marked for removal", description: "Save the product to confirm changes."});
   }
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
       e.preventDefault();
-      const newTag = tagInput.trim();
+      const newTag = tagInput.trim().toLowerCase();
       if (!form.getValues('tags')?.includes(newTag)) {
         form.setValue('tags', [...(form.getValues('tags') || []), newTag]);
       }
@@ -97,20 +100,29 @@ export function ProductForm({ product, categories }: ProductFormProps) {
     form.setValue('tags', form.getValues('tags')?.filter(tag => tag !== tagToRemove));
   };
 
-
   const onSubmit = async (values: z.infer<typeof productSchema>) => {
     try {
+      // Handle special tags from toggles
+      let finalTags = values.tags?.filter(tag => tag !== 'new' && tag !== 'popular') || [];
+      if (values.isNewArrival) {
+        finalTags.push('new');
+      }
+      if (values.isTrending) {
+        finalTags.push('popular');
+      }
+      
+      const productData = { ...values, tags: finalTags };
+      
       if (product) {
-        // Filter out blob URLs from previews to get existing images
         const existingImageUrls = previews.filter(p => p.startsWith('http'));
-        await updateProduct(product.id, { ...values, existingImageUrls }, values.images);
+        await updateProduct(product.id, { ...productData, existingImageUrls }, values.images);
         toast({ title: 'Success', description: 'Product updated successfully.' });
       } else {
         if (!values.images || values.images.length === 0) {
             form.setError('images', { type: 'manual', message: 'At least one product image is required.' });
             return;
         }
-        await addProduct(values, values.images);
+        await addProduct(productData, values.images);
         toast({ title: 'Success', description: 'Product added successfully.' });
       }
       router.push('/admin/products');
@@ -127,164 +139,259 @@ export function ProductForm({ product, categories }: ProductFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 space-y-6">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Product Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Elegant Diamond Ring" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="A detailed description of the product..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <div className="grid grid-cols-2 gap-4">
-                <FormField
-                    control={form.control}
-                    name="price"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Price (₹)</FormLabel>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Main Content Column */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Product Details</CardTitle>
+                    <CardDescription>Basic information about the product.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                     <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Product Name</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder="e.g. 1200" {...field} />
+                                <Input placeholder="e.g. Elegant Diamond Ring" {...field} />
                             </FormControl>
                             <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="stock"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Stock</FormLabel>
+                            </FormItem>
+                        )}
+                        />
+                    <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Description</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder="e.g. 10" {...field} />
+                                <Textarea placeholder="A detailed description of the product..." {...field} rows={5}/>
                             </FormControl>
                             <FormMessage />
-                        </FormItem>
-                    )}
-                />
-             </div>
-             <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Category</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select a category for the product" />
-                            </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                {categories.map(cat => (
-                                    <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                    </FormItem>
-                )}
-            />
-             <FormField
-                control={form.control}
-                name="tags"
-                render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Tags</FormLabel>
-                        <FormControl>
-                           <div>
-                             <Input 
-                                placeholder="Add tags (press Enter or comma)" 
-                                value={tagInput}
-                                onChange={(e) => setTagInput(e.target.value)}
-                                onKeyDown={handleAddTag}
-                             />
-                              <div className="flex flex-wrap gap-2 mt-2">
-                                {field.value?.map(tag => (
-                                    <Badge key={tag} variant="secondary">
-                                        {tag}
-                                        <button type="button" onClick={() => handleRemoveTag(tag)} className="ml-2 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                                            <X className="h-3 w-3" />
-                                        </button>
-                                    </Badge>
-                                ))}
-                            </div>
-                           </div>
-                        </FormControl>
-                        <FormDescription>Tags help with searching and filtering (e.g. `new`, `popular`, `sale`).</FormDescription>
-                        <FormMessage />
-                    </FormItem>
-                )}
-            />
+                            </FormItem>
+                        )}
+                    />
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Pricing & Inventory</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <FormField
+                            control={form.control}
+                            name="price"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Price (₹)</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="e.g. 1200" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="stock"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Stock</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="e.g. 10" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="sku"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>SKU</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g. RDBW-001" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                 <CardHeader>
+                    <CardTitle>Organization</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                     <FormField
+                        control={form.control}
+                        name="category"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Category</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a category for the product" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {categories.map(cat => (
+                                            <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="tags"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Custom Tags</FormLabel>
+                                <FormControl>
+                                <div>
+                                    <Input 
+                                        placeholder="Add tags (press Enter or comma)" 
+                                        value={tagInput}
+                                        onChange={(e) => setTagInput(e.target.value)}
+                                        onKeyDown={handleAddTag}
+                                        disabled={field.value?.includes('new') || field.value?.includes('popular')}
+                                    />
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                        {field.value?.filter(tag => tag !== 'new' && tag !== 'popular').map(tag => (
+                                            <Badge key={tag} variant="secondary">
+                                                {tag}
+                                                <button type="button" onClick={() => handleRemoveTag(tag)} className="ml-2 rounded-full hover:bg-muted-foreground/20 p-0.5">
+                                                    <X className="h-3 w-3" />
+                                                </button>
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                </div>
+                                </FormControl>
+                                <FormDescription>Tags help with searching and filtering (e.g. `sale`, `gift`).</FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </CardContent>
+            </Card>
           </div>
-          <div className="space-y-4">
-            <FormField
-                control={form.control}
-                name="images"
-                render={() => (
-                    <FormItem>
-                        <FormLabel>Product Images</FormLabel>
-                         <FormControl>
-                            <div className="relative w-full border-2 border-dashed border-muted-foreground/50 rounded-lg p-4 text-center hover:bg-muted/50 transition-colors">
-                                <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
-                                <p className="mt-2 text-sm text-muted-foreground">Drag & drop files here, or click to browse</p>
-                                <Input 
-                                    type="file" 
-                                    accept="image/*" 
-                                    multiple 
-                                    onChange={onFileChange} 
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          
+          {/* Sidebar Column */}
+          <div className="space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Product Status</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <FormField
+                        control={form.control}
+                        name="isNewArrival"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                            <div className="space-y-0.5">
+                                <FormLabel className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-yellow-500" /> New Arrival</FormLabel>
+                                <FormDescription>Show in the "New Arrivals" section on the homepage.</FormDescription>
+                            </div>
+                            <FormControl>
+                                <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
                                 />
+                            </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="isTrending"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                            <div className="space-y-0.5">
+                                <FormLabel className="flex items-center gap-2"><TrendingUp className="h-4 w-4 text-blue-500" /> Trending</FormLabel>
+                                 <FormDescription>Show in the "Trending Products" section on the homepage.</FormDescription>
                             </div>
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )}
-             />
-             {previews.length > 0 && (
-                <div className="grid grid-cols-3 gap-2">
-                    {previews.map((src, index) => (
-                        <div key={index} className="relative group aspect-square rounded-md overflow-hidden border">
-                            <Image src={src} alt={`Preview ${index + 1}`} fill className="object-cover"/>
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                <Button
-                                    type="button"
-                                    variant="destructive"
-                                    size="icon"
-                                    className="h-7 w-7"
-                                    onClick={() => handleRemovePreview(index)}
-                                >
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            </div>
+                            <FormControl>
+                                <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                />
+                            </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Product Images</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <FormField
+                        control={form.control}
+                        name="images"
+                        render={() => (
+                            <FormItem>
+                                <FormLabel>Upload Images</FormLabel>
+                                <FormControl>
+                                    <div className="relative w-full border-2 border-dashed border-muted-foreground/50 rounded-lg p-4 text-center hover:bg-muted/50 transition-colors">
+                                        <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
+                                        <p className="mt-2 text-sm text-muted-foreground">Drag & drop files here, or click to browse</p>
+                                        <Input 
+                                            type="file" 
+                                            accept="image/*" 
+                                            multiple 
+                                            onChange={onFileChange} 
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                        />
+                                    </div>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    {previews.length > 0 && (
+                        <div className="grid grid-cols-3 gap-2">
+                            {previews.map((src, index) => (
+                                <div key={index} className="relative group aspect-square rounded-md overflow-hidden border">
+                                    <Image src={src} alt={`Preview ${index + 1}`} fill className="object-cover"/>
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="icon"
+                                            className="h-7 w-7"
+                                            onClick={() => handleRemovePreview(index)}
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                    {index === 0 && <Badge className="absolute bottom-1 left-1">Cover</Badge>}
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
-             )}
+                    )}
+                </CardContent>
+            </Card>
+
           </div>
         </div>
-        <Button type="submit" disabled={form.formState.isSubmitting}>
+        <Button type="submit" disabled={form.formState.isSubmitting} size="lg">
           {form.formState.isSubmitting ? "Saving..." : (product ? "Update Product" : "Add Product")}
         </Button>
       </form>

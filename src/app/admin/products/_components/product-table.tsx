@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/alert-dialog"
 
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Pencil, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import type { Product } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
@@ -43,7 +43,7 @@ export function ProductTable({ products }: { products: Product[] }) {
 
     const handleDelete = async (product: Product) => {
         try {
-            await deleteProduct(product.id, product.imageUrl);
+            await deleteProduct(product.id, product.imageUrls);
             toast({ title: "Success", description: "Product deleted successfully." });
             router.refresh();
         } catch (error) {
@@ -60,9 +60,11 @@ export function ProductTable({ products }: { products: Product[] }) {
                         <span className="sr-only">Image</span>
                     </TableHead>
                     <TableHead>Name</TableHead>
+                    <TableHead>SKU</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Price</TableHead>
                     <TableHead>Stock</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>
                         <span className="sr-only">Actions</span>
                     </TableHead>
@@ -81,9 +83,16 @@ export function ProductTable({ products }: { products: Product[] }) {
                         />
                     </TableCell>
                     <TableCell className="font-medium">{product.name}</TableCell>
+                    <TableCell>{product.sku || 'N/A'}</TableCell>
                     <TableCell><Badge variant="outline">{product.category}</Badge></TableCell>
                     <TableCell>₹{product.price.toFixed(2)}</TableCell>
                     <TableCell>{product.stock}</TableCell>
+                    <TableCell>
+                        <div className="flex flex-col gap-1">
+                             {product.tags?.includes('new') && <Badge variant="default">New</Badge>}
+                             {product.tags?.includes('popular') && <Badge variant="secondary">Trending</Badge>}
+                        </div>
+                    </TableCell>
                     <TableCell>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
