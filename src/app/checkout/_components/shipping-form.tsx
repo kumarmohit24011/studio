@@ -3,7 +3,7 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@zod/resolvers/zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import {
@@ -58,9 +58,11 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
 
   useEffect(() => {
     const addresses = userProfile?.addresses || [];
-    if (addresses.length > 0) {
+    if (addresses.length > 0 && !showNewAddressForm) {
       const defaultAddress = addresses.find(a => a.isDefault) || addresses[0];
-      handleAddressSelection(defaultAddress.id);
+      if(defaultAddress) {
+        handleAddressSelection(defaultAddress.id);
+      }
     } else {
       setShowNewAddressForm(true);
       setSelectedAddressId(null);
@@ -72,7 +74,7 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
          saveAddress: true, isDefault: false,
       });
     }
-  }, [userProfile]); 
+  }, [userProfile, showNewAddressForm]); 
 
   const handleAddressSelection = (addressId: string) => {
     setShowNewAddressForm(false);
@@ -322,3 +324,5 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
     </Form>
   );
 }
+
+    
