@@ -47,10 +47,14 @@ export default function AccountPage() {
       router.push('/login');
     }
     if (userProfile) {
+        const addressString = userProfile.address 
+            ? `${userProfile.address.street}, ${userProfile.address.city}, ${userProfile.address.state} - ${userProfile.address.zipCode}`
+            : "No address saved. It will be added at checkout.";
+
         form.reset({
           name: userProfile.name,
           phone: userProfile.phone || "",
-          address: userProfile.address ? `${userProfile.address.street}, ${userProfile.address.city}, ${userProfile.address.state} - ${userProfile.address.zipCode}` : ""
+          address: addressString,
         });
     }
   }, [authLoading, user, userProfile, router, form]);
@@ -65,7 +69,7 @@ export default function AccountPage() {
   const onSubmit = async (values: z.infer<typeof profileSchema>) => {
     if (!user) return;
     try {
-      // This is simplified. In a real app, you'd have a proper address form here.
+      // Address is managed at checkout, so we only update name and phone here.
       await updateUserProfile(user.uid, { name: values.name, phone: values.phone });
       toast({
         title: "Success",
@@ -163,7 +167,7 @@ export default function AccountPage() {
                             <FormItem>
                                 <FormLabel>Saved Address</FormLabel>
                                 <FormControl>
-                                <Textarea placeholder="Your shipping address (managed at checkout)" {...field} disabled />
+                                <Textarea placeholder="Your shipping address (managed at checkout)" {...field} disabled rows={3} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -187,4 +191,3 @@ export default function AccountPage() {
     </div>
   );
 }
-

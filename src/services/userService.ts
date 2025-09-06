@@ -67,19 +67,7 @@ export const updateUserProfile = async (uid: string, data: Partial<Omit<UserProf
     }
     try {
         const userRef = doc(db, 'users', uid);
-        
-        const updateData: { [key: string]: any } = { ...data };
-
-        // Handle nested address object
-        if (data.address) {
-            Object.entries(data.address).forEach(([key, value]) => {
-                if(value !== undefined) {
-                    updateData[`address.${key}`] = value;
-                }
-            });
-        }
-        
-        await updateDoc(userRef, updateData);
+        await updateDoc(userRef, data);
     } catch (error) {
         console.error("Error updating user profile:", error);
         throw error;
