@@ -1,7 +1,7 @@
 
 import { db, storage } from '@/lib/firebase';
 import { Product } from '@/lib/types';
-import { collection, getDocs, query, where, limit, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc, orderBy, getCountFromServer, writeBatch } from 'firebase/firestore';
+import { collection, getDocs, query, where, limit, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc, orderBy, getCountFromServer, writeBatch, documentId } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
 
@@ -29,6 +29,30 @@ export const getAllProducts = async (): Promise<Product[]> => {
         return MOCK_PRODUCTS;
     }
 };
+
+export const getProductsByIds = async (ids: string[]): Promise<Product[]> => {
+    if (ids.length === 0) {
+        return [];
+    }
+    try {
+        const products: Product[] = [];
+        // Firestore 'in' query is limited to 30 items in a single query.
+        // We chunk the IDs to handle more than 30.
+        for (let i = 0; i < ids.length; i += 30) {
+            const chunk = ids.slice(i, i + 30);
+            const productsRef = collection(db, 'products');
+            const q = query(productsRef, where(documentId(), "in", chunk));
+            const snapshot = await getDocs(q);
+            const chunkProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+            products.push(...chunkProducts);
+        }
+        return products;
+    } catch (error) {
+        console.error("Error fetching products by IDs: ", error);
+        return [];
+    }
+}
+
 
 export const getTotalProducts = async (): Promise<number> => {
     try {
@@ -250,26 +274,24 @@ export const updateProductStatus = async (
         }
 
         const productData = productSnap.data() as Product;
-        const currentTags = productData.tags || [];
-
-        let newTags = [...currentTags];
-
+        let currentTags = productData.tags || [];
+        
         if (status.isNew !== undefined) {
-            newTags = newTags.filter(tag => tag !== 'new');
+            currentTags = currentTags.filter(tag => tag !== 'new');
             if (status.isNew) {
-                newTags.push('new');
+                currentTags.push('new');
             }
         }
         
         if (status.isTrending !== undefined) {
-            newTags = newTags.filter(tag => tag !== 'popular');
+            currentTags = currentTags.filter(tag => tag !== 'popular');
             if (status.isTrending) {
-                newTags.push('popular');
+                currentTags.push('popular');
             }
         }
 
         const updateData: any = {
-            tags: newTags,
+            tags: currentTags,
             updatedAt: serverTimestamp(),
         };
 
