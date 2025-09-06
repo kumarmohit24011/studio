@@ -25,6 +25,7 @@ import { Switch } from '@/components/ui/switch';
 import type { StoredAddress } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface ShippingFormProps {
     onFormSubmit: (data: z.infer<typeof shippingSchema> | null) => void;
@@ -297,4 +298,3 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
     </Form>
   );
 }
-
