@@ -5,6 +5,7 @@ import { ProductCard } from "./_components/product-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import type { Product } from "@/lib/types";
 
 type ProductsPageProps = {
   searchParams: {
@@ -12,10 +13,22 @@ type ProductsPageProps = {
   };
 };
 
+// Helper to convert Firestore Timestamps
+const toPlainObject = (product: any): Product => {
+    return {
+        ...product,
+        createdAt: product.createdAt?.seconds ? new Date(product.createdAt.seconds * 1000).toISOString() : null,
+        updatedAt: product.updatedAt?.seconds ? new Date(product.updatedAt.seconds * 1000).toISOString() : null,
+    };
+};
+
+
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   const { category } = searchParams;
-  const products = category ? await getProductsByCategory(category) : await getAllProducts();
+  const productsData = category ? await getProductsByCategory(category) : await getAllProducts();
   const categories = await getAllCategories();
+
+  const products = productsData.map(toPlainObject);
 
   return (
     <div className="container mx-auto px-4 py-8">
