@@ -33,6 +33,12 @@ export function CheckoutClientPage() {
     }
   }, [authLoading, user, router]);
 
+  useEffect(() => {
+    if (cart.length === 0 && !cartLoading) {
+      router.push('/products');
+    }
+  }, [cart.length, cartLoading, router]);
+
   const subtotal = useMemo(() => cart.reduce((acc, item) => acc + (item.price || 0) * item.quantity, 0), [cart]);
   const shippingCost = useMemo(() => (subtotal > 1000 ? 0 : 50), [subtotal]);
 
@@ -73,7 +79,7 @@ export function CheckoutClientPage() {
     setIsSubmitting(false);
   }
 
-  if (authLoading || cartLoading || !userProfile) {
+  if (authLoading || cartLoading || !userProfile || (cart.length === 0 && !cartLoading)) {
     return (
         <div className="container mx-auto px-4 py-12">
             <div className="grid lg:grid-cols-2 gap-12">
@@ -86,11 +92,6 @@ export function CheckoutClientPage() {
             </div>
         </div>
     );
-  }
-
-  if (cart.length === 0 && !cartLoading) {
-     router.push('/products');
-     return null;
   }
 
   return (
