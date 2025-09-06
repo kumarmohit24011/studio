@@ -60,6 +60,23 @@ export const getUserProfile = async (uid: string): Promise<UserProfile | null> =
     }
 };
 
+export const getAllCustomers = async (): Promise<UserProfile[]> => {
+     try {
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, orderBy("createdAt", "desc"));
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+            return [];
+        }
+
+        return snapshot.docs.map(doc => doc.data() as UserProfile);
+    } catch (error) {
+        console.error("Error fetching all customers: ", error);
+        return [];
+    }
+}
+
 export const getTotalCustomers = async (): Promise<number> => {
     try {
         const usersCol = collection(db, 'users');
