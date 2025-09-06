@@ -1,4 +1,5 @@
 
+
 export interface Product {
     id: string;
     name: string;
@@ -32,7 +33,7 @@ export interface UserProfile {
     email: string;
     name: string;
     phone?: string;
-    address?: string;
+    address?: Address;
     photoURL?: string;
     isAdmin?: boolean;
     createdAt: any; // Firestore Timestamp
@@ -42,6 +43,8 @@ export interface UserProfile {
 
 
 export interface Address {
+    name: string;
+    phone: string;
     street: string;
     city: string;
     state: string;
@@ -61,6 +64,8 @@ export interface Order {
     total: number;
     status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
     shippingAddress: Address;
+    razorpayPaymentId: string;
     createdAt: any; // Firestore Timestamp
     updatedAt: any; // Firestore Timestamp
 }
+
