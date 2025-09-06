@@ -35,8 +35,8 @@ export const createOrder = async (orderData: Omit<Order, 'id' | 'createdAt' | 'u
 export const getOrdersByUserId = async (userId: string): Promise<Order[]> => {
     try {
         const ordersRef = collection(db, 'orders');
-        // Removed orderBy to avoid needing a composite index. Sorting will be done client-side.
-        const q = query(ordersRef, where("userId", "==", userId));
+        // Sort by date descending to show newest first
+        const q = query(ordersRef, where("userId", "==", userId), orderBy("createdAt", "desc"));
         const snapshot = await getDocs(q);
         
         if (snapshot.empty) {

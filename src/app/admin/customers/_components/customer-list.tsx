@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import Link from 'next/link';
 
 interface CustomerListProps {
     customers: UserProfile[];
@@ -67,8 +68,12 @@ export function CustomerList({ customers }: CustomerListProps) {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                                        <DropdownMenuItem>View Orders</DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <Link href={`/admin/customers/${customer.uid}`}>View Details</Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <Link href={`/admin/orders?customerId=${customer.uid}`}>View Orders</Link>
+                                        </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </TableCell>

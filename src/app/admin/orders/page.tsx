@@ -1,11 +1,21 @@
 
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getAllOrders } from "@/services/orderService";
+import { getAllOrders, getOrdersByUserId } from "@/services/orderService";
 import { OrderActions } from "./_components/order-actions";
 import type { Order } from "@/lib/types";
+import { getUserProfile } from "@/services/userService";
 
-export default async function AdminOrdersPage() {
-  const ordersData = await getAllOrders();
+interface AdminOrdersPageProps {
+  searchParams?: {
+    customerId?: string;
+  }
+}
+
+export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageProps) {
+  const customerId = searchParams?.customerId;
+  const ordersData = customerId ? await getOrdersByUserId(customerId) : await getAllOrders();
+  const customer = customerId ? await getUserProfile(customerId) : null;
   
   // Ensure all data passed to the client component is serializable
   const orders = ordersData.map(o => ({
@@ -13,6 +23,9 @@ export default async function AdminOrdersPage() {
     createdAt: new Date(o.createdAt.seconds * 1000).toISOString(),
     updatedAt: new Date(o.updatedAt.seconds * 1000).toISOString(),
   })) as unknown as Order[];
+
+  const title = customerId && customer ? `Orders for ${customer.name}` : 'Manage Orders';
+  const description = customerId ? `Viewing all orders placed by ${customer?.email}` : 'View and process customer orders. Filter by status using the tabs below.';
 
 
   return (
@@ -22,10 +35,8 @@ export default async function AdminOrdersPage() {
        </div>
         <Card>
             <CardHeader>
-            <CardTitle>Manage Orders</CardTitle>
-            <CardDescription>
-                View and process customer orders. Filter by status using the tabs below.
-            </CardDescription>
+            <CardTitle>{title}</CardTitle>
+            <CardDescription>{description}</CardDescription>
             </CardHeader>
             <CardContent>
                 <OrderActions orders={orders} />
