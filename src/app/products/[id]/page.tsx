@@ -1,15 +1,10 @@
 
-'use client';
-
-import { getProductById } from "@/services/productService";
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
+import { getProductById, getProductsByCategory } from "@/services/productService";
 import { notFound } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
-import { AddToCartButton } from "./_components/add-to-cart-button";
-import { AddToWishlistButton } from "./_components/add-to-wishlist-button";
-import { useEffect, useState } from "react";
 import type { Product } from "@/lib/types";
+import { ProductDetailsClient } from "./_components/product-details-client";
+import { Separator } from "@/components/ui/separator";
+import { ProductCard } from "../_components/product-card";
 
 type ProductPageProps = {
   params: {
@@ -17,89 +12,48 @@ type ProductPageProps = {
   };
 };
 
-export default function ProductPage({ params }: ProductPageProps) {
-  const [product, setProduct] = useState<Product | null>(null);
-  const [mainImage, setMainImage] = useState<string | undefined>(undefined);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchProduct = async () => {
-      setLoading(true);
-      const fetchedProduct = await getProductById(params.id);
-      if (fetchedProduct) {
-        setProduct(fetchedProduct);
-        setMainImage(fetchedProduct.imageUrl || (fetchedProduct.imageUrls && fetchedProduct.imageUrls[0]));
-      }
-      setLoading(false);
+// Helper to convert Firestore Timestamps to a serializable format
+const toPlainObject = (product: any): Product => {
+    return {
+        ...product,
+        createdAt: product.createdAt?.seconds ? new Date(product.createdAt.seconds * 1000).toISOString() : null,
+        updatedAt: product.updatedAt?.seconds ? new Date(product.updatedAt.seconds * 1000).toISOString() : null,
     };
-    fetchProduct();
-  }, [params.id]);
+};
 
+export default async function ProductPage({ params }: ProductPageProps) {
+  const productData = await getProductById(params.id);
 
-  if (loading) {
-    return <div>Loading...</div>
-  }
-
-  if (!product) {
+  if (!productData || !productData.isPublished) {
     notFound();
   }
+  
+  const product = toPlainObject(productData);
 
-  const allImages = [product.imageUrl, ...(product.imageUrls || [])].filter(
-    (url, index, self) => url && self.indexOf(url) === index
-  ) as string[];
+  // Fetch related products (from the same category, excluding the current one)
+  const relatedProductsData = await getProductsByCategory(product.category);
+  const relatedProducts = relatedProductsData
+    .filter(p => p.id !== product.id)
+    .slice(0, 4)
+    .map(toPlainObject);
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="grid md:grid-cols-2 gap-12 items-start">
-        <div className="flex flex-col gap-4">
-             <div className="relative aspect-square rounded-lg overflow-hidden border">
-                <Image
-                    src={mainImage || "https://picsum.photos/600/600"}
-                    alt={product.name}
-                    data-ai-hint="jewelry product"
-                    fill
-                    className="object-cover"
-                />
+    <div className="container mx-auto px-4 py-8 md:py-12">
+        <ProductDetailsClient product={product} />
+        
+        {relatedProducts.length > 0 && (
+            <div className="mt-16 md:mt-24">
+                <Separator />
+                <div className="py-12">
+                    <h2 className="text-3xl font-headline text-center mb-8">You Might Also Like</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                        {relatedProducts.map((relatedProduct) => (
+                            <ProductCard key={relatedProduct.id} product={relatedProduct} />
+                        ))}
+                    </div>
+                </div>
             </div>
-             {allImages.length > 1 && (
-                 <div className="grid grid-cols-5 gap-2">
-                     {allImages.map((img, index) => (
-                         <button key={index} onClick={() => setMainImage(img)} className={`relative aspect-square rounded-md overflow-hidden border-2 ${mainImage === img ? 'border-primary' : 'border-transparent'}`}>
-                             <Image
-                                src={img}
-                                alt={`${product.name} thumbnail ${index + 1}`}
-                                fill
-                                className="object-cover"
-                             />
-                         </button>
-                     ))}
-                 </div>
-             )}
-        </div>
-
-        <div className="flex flex-col gap-6">
-          <div>
-            <h1 className="text-4xl font-headline font-bold">{product.name}</h1>
-            <div className="flex items-center gap-2 mt-2">
-                {product.tags?.map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
-            </div>
-          </div>
-
-          <p className="text-3xl font-semibold text-primary">₹{product.price.toFixed(2)}</p>
-          
-          <p className="text-muted-foreground text-lg leading-relaxed">{product.description}</p>
-          
-          <div className="flex items-center gap-4">
-            <AddToCartButton product={product} />
-            <AddToWishlistButton product={product} />
-          </div>
-
-          <div className="mt-4 text-sm text-muted-foreground">
-            <p>Category: <Button variant="link" className="p-0 h-auto" asChild><a href={`/products?category=${product.category}`}>{product.category}</a></Button></p>
-            <p>In Stock: {product.stock > 0 ? `${product.stock} units` : 'Out of Stock'}</p>
-          </div>
-        </div>
-      </div>
+        )}
     </div>
   );
 }
