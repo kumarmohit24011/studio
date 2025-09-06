@@ -15,14 +15,16 @@ export default async function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       <section className="relative h-[60vh] flex items-center justify-center text-center text-white bg-gray-800">
-        <Image
-          src={heroData.imageUrl}
-          alt="Elegant jewelry on a dark background"
-          data-ai-hint="jewelry dark"
-          fill
-          className="object-cover"
-          priority
-        />
+        {heroData.imageUrl && (
+          <Image
+            src={heroData.imageUrl}
+            alt="Elegant jewelry on a dark background"
+            data-ai-hint="jewelry dark"
+            fill
+            className="object-cover"
+            priority
+          />
+        )}
         <div className="relative z-10 p-4 bg-black bg-opacity-40 rounded-lg">
           <h1 className="text-5xl font-headline font-bold">{heroData.headline}</h1>
           <p className="mt-4 text-xl">{heroData.subtitle}</p>
