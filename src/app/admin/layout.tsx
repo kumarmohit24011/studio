@@ -15,6 +15,7 @@ import {
   Settings,
   LayoutGrid, // Added category icon
   Tag, // Coupon Icon
+  Presentation, // Hero Icon
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -145,6 +146,13 @@ export default function AdminLayout({
         >
           <Users className="h-4 w-4" />
           Customers
+        </Link>
+         <Link
+          href="/admin/hero"
+          className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${isActive('/admin/hero') ? 'bg-muted text-primary' : ''}`}
+        >
+          <Presentation className="h-4 w-4" />
+          Hero Section
         </Link>
         <Link
           href="/admin/settings"

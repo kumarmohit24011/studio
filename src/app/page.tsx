@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getNewArrivals, getTrendingProducts } from "@/services/productService";
+import { getHeroSection } from "@/services/siteContentService";
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
@@ -9,12 +10,13 @@ import { Badge } from "@/components/ui/badge";
 export default async function Home() {
   const newArrivals = await getNewArrivals(4);
   const trendingProducts = await getTrendingProducts(4);
+  const heroData = await getHeroSection();
 
   return (
     <div className="flex flex-col min-h-screen">
       <section className="relative h-[60vh] flex items-center justify-center text-center text-white bg-gray-800">
         <Image
-          src="https://picsum.photos/1800/1000"
+          src={heroData.imageUrl}
           alt="Elegant jewelry on a dark background"
           data-ai-hint="jewelry dark"
           fill
@@ -22,10 +24,10 @@ export default async function Home() {
           priority
         />
         <div className="relative z-10 p-4 bg-black bg-opacity-40 rounded-lg">
-          <h1 className="text-5xl font-headline font-bold">Timeless Elegance, Redefined</h1>
-          <p className="mt-4 text-xl">Discover our exclusive collection of handcrafted jewelry.</p>
+          <h1 className="text-5xl font-headline font-bold">{heroData.headline}</h1>
+          <p className="mt-4 text-xl">{heroData.subtitle}</p>
           <Button asChild className="mt-6">
-            <Link href="/products">Shop Now</Link>
+            <Link href={heroData.buttonLink}>{heroData.buttonText}</Link>
           </Button>
         </div>
       </section>
