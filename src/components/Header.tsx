@@ -102,7 +102,7 @@ export function Header({ categories = [] }: HeaderProps) {
             {category.name}
         </Link>
       ))}
-      <Link href="/contact" className="hover:text-primary transition-colors">Contact</Link>
+      <Link href="/#contact" className="hover:text-primary transition-colors">Contact</Link>
     </React.Fragment>
   )
 
