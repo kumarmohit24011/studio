@@ -9,19 +9,6 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          {
-            key: "Permissions-Policy",
-            value: "payment=(\"self\"), publickey-credentials-create=(\"self\"), publickey-credentials-get=(\"self\"), web-share=(\"self\"), otp-credentials=(\"self\"), camera=(\"self\"), clipboard-write=(\"self\")"
-          }
-        ]
-      },
-    ];
-  },
   images: {
     remotePatterns: [
       {
