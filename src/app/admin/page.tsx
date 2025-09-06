@@ -1,15 +1,24 @@
 
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Package, ShoppingCart, Users } from "lucide-react";
+import { DollarSign, Package, ShoppingCart, Users, LayoutGrid } from "lucide-react";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { getAllOrders } from "@/services/orderService";
+import { getRecentCustomers, getTotalCustomers } from "@/services/userService";
+import { getAllProducts, getRecentProducts, getTotalProducts } from "@/services/productService";
+import { getAllCategories } from "@/services/categoryService";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default async function AdminDashboard() {
     const recentOrders = await getAllOrders(); // In a real app, you'd paginate this.
+    const recentCustomers = await getRecentCustomers(5);
+    const recentProducts = await getRecentProducts(5);
+    const totalCustomers = await getTotalCustomers();
+    const totalProducts = await getTotalProducts();
+    const totalCategories = (await getAllCategories()).length;
+    const totalRevenue = recentOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+
 
   return (
     <div className="flex flex-col gap-4">
@@ -25,9 +34,9 @@ export default async function AdminDashboard() {
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">₹45,231.89</div>
+                    <div className="text-2xl font-bold">₹{totalRevenue.toFixed(2)}</div>
                     <p className="text-xs text-muted-foreground">
-                        +20.1% from last month
+                        From all processed orders
                     </p>
                 </CardContent>
             </Card>
@@ -37,21 +46,21 @@ export default async function AdminDashboard() {
                     <ShoppingCart className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">+12,234</div>
+                    <div className="text-2xl font-bold">+{recentOrders.length}</div>
                      <p className="text-xs text-muted-foreground">
-                        +19% from last month
+                        Total orders placed
                     </p>
                 </CardContent>
             </Card>
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">New Customers</CardTitle>
+                    <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
                     <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">+573</div>
+                    <div className="text-2xl font-bold">{totalCustomers}</div>
                     <p className="text-xs text-muted-foreground">
-                        +201 since last month
+                        Total registered users
                     </p>
                 </CardContent>
             </Card>
@@ -61,9 +70,9 @@ export default async function AdminDashboard() {
                     <Package className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">142</div>
+                    <div className="text-2xl font-bold">{totalProducts}</div>
                      <p className="text-xs text-muted-foreground">
-                        +5 since last month
+                        Across {totalCategories} categories
                     </p>
                 </CardContent>
             </Card>
@@ -72,9 +81,9 @@ export default async function AdminDashboard() {
             <Card className="xl:col-span-2">
                 <CardHeader className="flex flex-row items-center">
                     <div className="grid gap-2">
-                        <CardTitle>Transactions</CardTitle>
+                        <CardTitle>Recent Orders</CardTitle>
                         <CardDescription>
-                            Recent transactions from your store.
+                            The latest transactions from your store.
                         </CardDescription>
                     </div>
                     <Button asChild size="sm" className="ml-auto gap-1">
@@ -96,6 +105,7 @@ export default async function AdminDashboard() {
                                 <TableRow key={order.id}>
                                     <TableCell>
                                         <div className="font-medium">{order.shippingAddress.name}</div>
+                                        <div className="text-sm text-muted-foreground">Order #{order.id.slice(0,7)}</div>
                                     </TableCell>
                                     <TableCell className="text-right">₹{order.totalAmount.toFixed(2)}</TableCell>
                                 </TableRow>
@@ -111,23 +121,82 @@ export default async function AdminDashboard() {
             </Card>
             <Card>
                 <CardHeader>
-                    <CardTitle>Recent Sales</CardTitle>
+                    <CardTitle>Recent Customers</CardTitle>
+                     <CardDescription>
+                        The latest users who signed up.
+                    </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-8">
-                     {recentOrders.slice(0, 2).map(order => (
-                        <div key={order.id} className="flex items-center gap-4">
+                     {recentCustomers.map(customer => (
+                        <div key={customer.uid} className="flex items-center gap-4">
+                           <Avatar className="hidden h-9 w-9 sm:flex">
+                                <AvatarImage src={customer.photoURL} alt="Avatar" />
+                                <AvatarFallback>{customer.name?.[0]}</AvatarFallback>
+                            </Avatar>
                             <div className="grid gap-1">
-                                <p className="text-sm font-medium leading-none">{order.shippingAddress.name}</p>
+                                <p className="text-sm font-medium leading-none">{customer.name}</p>
                                 <p className="text-sm text-muted-foreground">
-                                    {order.items.length} item(s)
+                                    {customer.email}
                                 </p>
                             </div>
-                            <div className="ml-auto font-medium">+₹{order.totalAmount.toFixed(2)}</div>
                         </div>
                      ))}
-                     {recentOrders.length === 0 && (
+                     {recentCustomers.length === 0 && (
                         <div className="text-center text-muted-foreground pt-4">
-                            <p>No recent sales.</p>
+                            <p>No new customers yet.</p>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </div>
+         <div className="grid gap-4 md:gap-8">
+             <Card>
+                <CardHeader className="flex flex-row items-center">
+                    <div className="grid gap-2">
+                        <CardTitle>Recently Added Products</CardTitle>
+                        <CardDescription>
+                            The newest items in your inventory.
+                        </CardDescription>
+                    </div>
+                    <Button asChild size="sm" className="ml-auto gap-1">
+                        <Link href="/admin/products">
+                            View All
+                        </Link>
+                    </Button>
+                </CardHeader>
+                <CardContent>
+                     <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="hidden w-[100px] sm:table-cell">Image</TableHead>
+                                <TableHead>Name</TableHead>
+                                <TableHead>Category</TableHead>
+                                <TableHead className="text-right">Price</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                             {recentProducts.map(product => (
+                                <TableRow key={product.id}>
+                                     <TableCell className="hidden sm:table-cell">
+                                        <Avatar className="h-12 w-12 rounded-md">
+                                             <AvatarImage src={product.imageUrl} alt={product.name} className="object-cover" />
+                                             <AvatarFallback><Package/></AvatarFallback>
+                                        </Avatar>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="font-medium">{product.name}</div>
+                                    </TableCell>
+                                     <TableCell>
+                                        <div className="font-medium">{product.category}</div>
+                                    </TableCell>
+                                    <TableCell className="text-right">₹{product.price.toFixed(2)}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                     {recentProducts.length === 0 && (
+                        <div className="text-center text-muted-foreground py-12">
+                            <p>No products have been added yet.</p>
                         </div>
                     )}
                 </CardContent>

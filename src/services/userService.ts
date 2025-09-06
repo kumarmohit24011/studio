@@ -1,8 +1,7 @@
 
-
 import { db } from '@/lib/firebase';
 import { UserProfile, StoredAddress } from '@/lib/types';
-import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, updateDoc, collection, query, orderBy, limit, getDocs, getCountFromServer } from 'firebase/firestore';
 
 export const createUserProfile = async (uid: string, email: string, name: string, photoURL?: string): Promise<UserProfile> => {
     const userRef = doc(db, 'users', uid);
@@ -60,6 +59,35 @@ export const getUserProfile = async (uid: string): Promise<UserProfile | null> =
         return null;
     }
 };
+
+export const getTotalCustomers = async (): Promise<number> => {
+    try {
+        const usersCol = collection(db, 'users');
+        const snapshot = await getCountFromServer(usersCol);
+        return snapshot.data().count;
+    } catch (error) {
+        console.error("Error fetching user count: ", error);
+        return 0;
+    }
+};
+
+export const getRecentCustomers = async (count: number): Promise<UserProfile[]> => {
+     try {
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, orderBy("createdAt", "desc"), limit(count));
+        const snapshot = await getDocs(q);
+        
+        if (snapshot.empty) {
+            return [];
+        }
+
+        return snapshot.docs.map(doc => doc.data() as UserProfile);
+    } catch (error) {
+        console.error("Error fetching recent customers: ", error);
+        return [];
+    }
+}
+
 
 export const updateUserProfile = async (uid: string, data: Partial<Omit<UserProfile, 'uid' | 'email' | 'createdAt'>>): Promise<void> => {
     if (!db) {

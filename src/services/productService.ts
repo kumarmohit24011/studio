@@ -1,7 +1,7 @@
 
 import { db, storage } from '@/lib/firebase';
 import { Product } from '@/lib/types';
-import { collection, getDocs, query, where, limit, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, limit, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc, orderBy,getCountFromServer } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
 
@@ -29,6 +29,18 @@ export const getAllProducts = async (): Promise<Product[]> => {
         return MOCK_PRODUCTS;
     }
 };
+
+export const getTotalProducts = async (): Promise<number> => {
+    try {
+        const productsCol = collection(db, 'products');
+        const snapshot = await getCountFromServer(productsCol);
+        return snapshot.data().count;
+    } catch (error) {
+        console.error("Error fetching product count, returning mock data length: ", error);
+        return MOCK_PRODUCTS.length;
+    }
+};
+
 
 export const getProductById = async (id: string): Promise<Product | null> => {
     try {
@@ -60,6 +72,22 @@ export const getNewArrivals = async (count: number): Promise<Product[]> => {
         return MOCK_PRODUCTS.filter(p => p.tags?.includes('new')).slice(0, count);
     }
 };
+
+export const getRecentProducts = async (count: number): Promise<Product[]> => {
+    try {
+        const productsRef = collection(db, 'products');
+        const q = query(productsRef, orderBy("createdAt", "desc"), limit(count));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) {
+            console.log('No recent products found, returning mock data.');
+            return MOCK_PRODUCTS.slice(0, count);
+        }
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+    } catch (error) {
+        console.error("Error fetching recent products, returning mock data: ", error);
+        return MOCK_PRODUCTS.slice(0, count);
+    }
+}
 
 export const getTrendingProducts = async (count: number): Promise<Product[]> => {
     try {
