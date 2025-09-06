@@ -6,7 +6,7 @@ import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage
 
 
 const MOCK_PRODUCTS: Product[] = [
-    { id: '1', name: 'Elegant Diamond Ring', description: 'A timeless piece with a brilliant-cut diamond.', price: 1200, category: 'Rings', stock: 10, tags: ['new', 'diamond', 'popular'], imageUrl: 'https://picsum.photos/400/400?random=10' },
+    { id: '1', name: 'Elegant Diamond Ring', description: 'A timeless piece with a brilliant-cut diamond.', price: 1200, category: 'Rings', stock: 10, tags: ['new', 'diamond', 'popular'], imageUrl: 'https://picsum.photos/400/400?random=10', imageUrls: ['https://picsum.photos/400/400?random=10', 'https://picsum.photos/400/400?random=11'] },
     { id: '2', name: 'Sapphire Necklace', description: 'Deep blue sapphire pendant on a silver chain.', price: 850, category: 'Necklaces', stock: 5, tags: ['sale', 'popular'], imageUrl: 'https://picsum.photos/400/400?random=11' },
     { id: '3', name: 'Gold Charm Bracelet', description: 'A beautiful gold bracelet with customizable charms.', price: 450, category: 'Bracelets', stock: 15, tags: ['popular'], imageUrl: 'https://picsum.photos/400/400?random=12' },
     { id: '4', name: 'Pearl Stud Earrings', description: 'Classic pearl earrings for a touch of class.', price: 150, category: 'Earrings', stock: 20, tags: ['popular'], imageUrl: 'https://picsum.photos/400/400?random=13' },
@@ -97,19 +97,24 @@ const uploadImage = async (imageFile: File): Promise<string> => {
     const storageRef = ref(storage, `products/${imageFile.name}-${Date.now()}`);
     const snapshot = await uploadBytes(storageRef, imageFile);
     return await getDownloadURL(snapshot.ref);
-}
+};
 
-export const addProduct = async (productData: Omit<Product, 'id' | 'imageUrl'> & { image?: File }, imageFile: File): Promise<void> => {
+const uploadImages = async (imageFiles: File[]): Promise<string[]> => {
+    const uploadPromises = imageFiles.map(file => uploadImage(file));
+    return Promise.all(uploadPromises);
+};
+
+export const addProduct = async (productData: Omit<Product, 'id' | 'imageUrl' | 'imageUrls'> & { images?: File[] }, imageFiles: File[]): Promise<void> => {
     try {
-        const imageUrl = await uploadImage(imageFile);
+        const imageUrls = await uploadImages(imageFiles);
         const productsCol = collection(db, 'products');
         
-        // Exclude the File object before saving to Firestore
-        const { image, ...dataToSave } = productData;
+        const { images, ...dataToSave } = productData;
 
         await addDoc(productsCol, {
             ...dataToSave,
-            imageUrl,
+            imageUrl: imageUrls[0] || '', // First image as primary
+            imageUrls,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
         });
@@ -119,20 +124,31 @@ export const addProduct = async (productData: Omit<Product, 'id' | 'imageUrl'> &
     }
 }
 
-export const updateProduct = async (id: string, productData: Partial<Omit<Product, 'id'>> & { image?: File }, imageFile?: File): Promise<void> => {
+export const updateProduct = async (
+    id: string, 
+    productData: Partial<Omit<Product, 'id' | 'imageUrls' | 'imageUrl'>> & { existingImageUrls?: string[] }, 
+    newImageFiles: File[] = []
+): Promise<void> => {
     try {
         const productRef = doc(db, 'products', id);
         
-        const { image, ...dataToSave } = productData;
-        
-        if (imageFile) {
-            (dataToSave as any).imageUrl = await uploadImage(imageFile);
+        const { existingImageUrls, ...dataToSave } = productData;
+
+        let finalImageUrls = existingImageUrls || [];
+
+        if (newImageFiles.length > 0) {
+            const newImageUrls = await uploadImages(newImageFiles);
+            finalImageUrls = [...finalImageUrls, ...newImageUrls];
         }
 
-        await updateDoc(productRef, {
+        const updatePayload: any = {
             ...dataToSave,
+            imageUrls: finalImageUrls,
+            imageUrl: finalImageUrls[0] || '',
             updatedAt: serverTimestamp(),
-        });
+        };
+
+        await updateDoc(productRef, updatePayload);
 
     } catch (error) {
         console.error("Error updating product:", error);
@@ -143,21 +159,27 @@ export const updateProduct = async (id: string, productData: Partial<Omit<Produc
 export const deleteProduct = async (id: string, imageUrl?: string): Promise<void> => {
      try {
         const productRef = doc(db, 'products', id);
+        const productSnap = await getDoc(productRef);
+        const productData = productSnap.data() as Product;
+
         await deleteDoc(productRef);
 
-        if (imageUrl) {
-            // Check if the URL is a Firebase Storage URL
-            if(imageUrl.includes('firebasestorage.googleapis.com')) {
-                const imageRef = ref(storage, imageUrl);
-                await deleteObject(imageRef);
+        const imageUrlsToDelete = productData.imageUrls || (productData.imageUrl ? [productData.imageUrl] : []);
+
+        for (const url of imageUrlsToDelete) {
+             if (url.includes('firebasestorage.googleapis.com')) {
+                try {
+                    const imageRef = ref(storage, url);
+                    await deleteObject(imageRef);
+                } catch (error: any) {
+                     if (error.code !== 'storage/object-not-found') {
+                        console.error(`Failed to delete image ${url}:`, error);
+                    }
+                }
             }
         }
     } catch (error) {
-        // Don't throw if image deletion fails, but log it
-        console.error("Error deleting product image, but product document was deleted:", error);
-        // if the error is not 'object-not-found', then it's a real issue
-        if ((error as any).code !== 'storage/object-not-found') {
-            throw error;
-        }
+        console.error("Error deleting product and its images:", error);
+        throw error;
     }
 }

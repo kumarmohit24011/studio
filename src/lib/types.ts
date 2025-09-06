@@ -6,7 +6,8 @@ export interface Product {
     description: string;
     price: number;
     category: string;
-    imageUrl?: string;
+    imageUrl?: string; // Primary image
+    imageUrls?: string[]; // Additional images
     stock: number;
     tags?: string[];
     featured?: boolean;

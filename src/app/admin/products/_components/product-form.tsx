@@ -16,7 +16,7 @@ import { useState } from 'react';
 import type { Product, Category } from '@/lib/types';
 import { addProduct, updateProduct } from '@/services/productService';
 import { Badge } from '@/components/ui/badge';
-import { X } from 'lucide-react';
+import { X, UploadCloud } from 'lucide-react';
 
 const productSchema = z.object({
   name: z.string().min(3, 'Product name must be at least 3 characters.'),
@@ -25,7 +25,7 @@ const productSchema = z.object({
   stock: z.coerce.number().int().min(0, 'Stock must be a non-negative integer.'),
   category: z.string().min(1, 'Please select a category.'),
   tags: z.array(z.string()).optional(),
-  image: z.any().optional(),
+  images: z.array(z.any()).optional(), // For new file uploads
 });
 
 interface ProductFormProps {
@@ -36,7 +36,7 @@ interface ProductFormProps {
 export function ProductForm({ product, categories }: ProductFormProps) {
   const { toast } = useToast();
   const router = useRouter();
-  const [preview, setPreview] = useState<string | null>(product?.imageUrl || null);
+  const [previews, setPreviews] = useState<string[]>(product?.imageUrls || (product?.imageUrl ? [product.imageUrl] : []));
   const [tagInput, setTagInput] = useState('');
 
   const form = useForm<z.infer<typeof productSchema>>({
@@ -48,17 +48,45 @@ export function ProductForm({ product, categories }: ProductFormProps) {
       stock: product?.stock || 0,
       category: product?.category || '',
       tags: product?.tags || [],
+      images: [],
     },
   });
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      form.setValue('image', file);
-      const previewUrl = URL.createObjectURL(file);
-      setPreview(previewUrl);
+    if (e.target.files) {
+        const files = Array.from(e.target.files);
+        const currentFiles = form.getValues('images') || [];
+        form.setValue('images', [...currentFiles, ...files]);
+        
+        const newPreviews = files.map(file => URL.createObjectURL(file));
+        setPreviews(prev => [...prev, ...newPreviews]);
     }
   };
+  
+  const handleRemovePreview = (index: number, isExisting: boolean) => {
+    if (isExisting) {
+        // This is a simplified approach. A real app might need a way to mark images for deletion on the server.
+        const newPreviews = previews.filter((_, i) => i !== index);
+        setPreviews(newPreviews);
+        // Here you would also handle telling the backend to delete this image URL on submit.
+        // For now, we'll just update the client side. We can improve this later.
+         toast({ title: "Image marked for removal", description: "Save the product to permanently remove the image."});
+    } else {
+        // This handles removing newly added files that haven't been uploaded yet.
+        const currentFiles = form.getValues('images') || [];
+        const fileToRemove = previews[index];
+        
+        // Find which file created this object URL to remove it from the form's `images` array.
+        // This is a bit tricky since we only have the URL. A more robust solution might store file info alongside the URL.
+        // For this implementation, we assume the order is maintained.
+        const newFiles = currentFiles.filter((_, i) => i !== (index - (product?.imageUrls?.length || 0)));
+        form.setValue('images', newFiles);
+
+        const newPreviews = previews.filter((_, i) => i !== index);
+        setPreviews(newPreviews);
+        URL.revokeObjectURL(fileToRemove); // Clean up memory
+    }
+  }
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
@@ -79,14 +107,15 @@ export function ProductForm({ product, categories }: ProductFormProps) {
   const onSubmit = async (values: z.infer<typeof productSchema>) => {
     try {
       if (product) {
-        await updateProduct(product.id, values, values.image);
+        // For editing, we need to pass existing image URLs and new files separately
+        await updateProduct(product.id, { ...values, existingImageUrls: previews.filter(p => p.startsWith('http')) }, values.images);
         toast({ title: 'Success', description: 'Product updated successfully.' });
       } else {
-        if (!values.image) {
-            form.setError('image', { type: 'manual', message: 'Product image is required.' });
+        if (!values.images || values.images.length === 0) {
+            form.setError('images', { type: 'manual', message: 'At least one product image is required.' });
             return;
         }
-        await addProduct(values, values.image);
+        await addProduct(values, values.images);
         toast({ title: 'Success', description: 'Product added successfully.' });
       }
       router.push('/admin/products');
@@ -214,25 +243,53 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                 )}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-4">
             <FormField
                 control={form.control}
-                name="image"
+                name="images"
                 render={() => (
                     <FormItem>
-                        <FormLabel>Product Image</FormLabel>
-                        {preview && (
-                            <div className="relative w-full aspect-square rounded-md overflow-hidden border">
-                                <Image src={preview} alt="Product image preview" fill className="object-cover" />
+                        <FormLabel>Product Images</FormLabel>
+                         <FormControl>
+                            <div className="relative w-full border-2 border-dashed border-muted-foreground/50 rounded-lg p-4 text-center hover:bg-muted/50 transition-colors">
+                                <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
+                                <p className="mt-2 text-sm text-muted-foreground">Drag & drop files here, or click to browse</p>
+                                <Input 
+                                    type="file" 
+                                    accept="image/*" 
+                                    multiple 
+                                    onChange={onFileChange} 
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                />
                             </div>
-                        )}
-                        <FormControl>
-                            <Input type="file" accept="image/*" onChange={onFileChange} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
                 )}
              />
+             {previews.length > 0 && (
+                <div className="grid grid-cols-3 gap-2">
+                    {previews.map((src, index) => {
+                         const isExisting = src.startsWith('http');
+                        return (
+                            <div key={index} className="relative group aspect-square rounded-md overflow-hidden border">
+                                <Image src={src} alt={`Preview ${index + 1}`} fill className="object-cover"/>
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="icon"
+                                        className="h-7 w-7"
+                                        onClick={() => handleRemovePreview(index, isExisting)}
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+             )}
           </div>
         </div>
         <Button type="submit" disabled={form.formState.isSubmitting}>

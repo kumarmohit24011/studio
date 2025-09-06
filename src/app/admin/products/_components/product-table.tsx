@@ -110,7 +110,7 @@ export function ProductTable({ products }: { products: Product[] }) {
                                 <AlertDialogHeader>
                                 <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete the product and its image from the server.
+                                    This action cannot be undone. This will permanently delete the product and all its images from the server.
                                 </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -134,4 +134,3 @@ export function ProductTable({ products }: { products: Product[] }) {
     </div>
   );
 }
-
