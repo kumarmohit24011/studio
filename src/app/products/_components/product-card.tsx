@@ -5,16 +5,12 @@ import type { Product } from "@/lib/types";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Heart } from "lucide-react";
-import { useCart } from "@/hooks/use-cart";
+import { Heart, ShoppingCart } from "lucide-react";
 import { useWishlist } from "@/hooks/use-wishlist";
-import { useToast } from "@/hooks/use-toast";
 import { AddToCartButton } from "../[id]/_components/add-to-cart-button";
 
 export function ProductCard({ product }: { product: Product }) {
-  const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
-  const { toast } = useToast();
   const inWishlist = isInWishlist(product.id);
 
   const handleToggleWishlist = (e: React.MouseEvent) => {
@@ -41,16 +37,21 @@ export function ProductCard({ product }: { product: Product }) {
             />
             {product.tags?.includes('sale') && <Badge variant="destructive" className="absolute top-2 left-2">Sale</Badge>}
 
-            {/* Overlay for buttons on hover */}
-            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-4">
-                <div className="flex gap-2">
-                    <AddToCartButton product={product} size="icon" />
-                    <Button variant="outline" size="icon" onClick={handleToggleWishlist} className="bg-background/80 hover:bg-background">
-                        <Heart className={`w-5 h-5 ${inWishlist ? 'text-red-500 fill-red-500' : 'text-foreground'}`}/>
-                    </Button>
-                </div>
-            </div>
+            {/* Wishlist Button - Always Visible */}
+            <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleToggleWishlist} 
+                className="absolute top-2 right-2 bg-background/60 hover:bg-background/90 rounded-full h-8 w-8"
+                aria-label="Toggle Wishlist"
+            >
+                <Heart className={`w-4 h-4 ${inWishlist ? 'text-red-500 fill-red-500' : 'text-foreground'}`}/>
+            </Button>
+            
+            {/* Add to Cart Button - Always Visible */}
+            <AddToCartButton product={product} size="icon" className="absolute bottom-2 right-2 bg-background/60 hover:bg-background/90 rounded-full h-8 w-8"/>
           </div>
+
           <div className="p-4 text-center">
             <h3 className="font-headline text-lg truncate">{product.name}</h3>
             <p className="text-primary font-semibold text-lg mt-1">₹{product.price.toFixed(2)}</p>
