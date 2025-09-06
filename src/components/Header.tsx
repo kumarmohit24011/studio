@@ -39,6 +39,8 @@ export function Header({ categories = [] }: HeaderProps) {
   const cartItemCount = cart.reduce((count, item) => count + item.quantity, 0);
   const wishlistItemCount = wishlist.length;
 
+  const featuredCategories = categories.filter(c => c.isFeatured);
+
   const renderAuthComponent = () => {
     if (authLoading || !isClient) {
       return <Skeleton className="h-8 w-8 rounded-full" />;
@@ -91,7 +93,7 @@ export function Header({ categories = [] }: HeaderProps) {
   const navLinks = (
     <React.Fragment>
       <Link href="/products" className="hover:text-primary transition-colors">All Products</Link>
-      {categories.slice(0, 3).map(category => (
+      {featuredCategories.map(category => (
         <Link 
             key={category.id} 
             href={`/products?category=${category.name}`} 

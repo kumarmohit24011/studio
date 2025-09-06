@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PlusCircle, MoreHorizontal, Trash2, Pencil } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Trash2, Pencil, Star } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -59,11 +59,14 @@ import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { addCategory, updateCategory, deleteCategory } from '@/services/categoryService';
 import { useRouter } from 'next/navigation';
+import { Switch } from '@/components/ui/switch';
+import { cn } from '@/lib/utils';
 
 const categorySchema = z.object({
   id: z.string().optional(),
   name: z.string().min(2, 'Category name must be at least 2 characters.'),
   description: z.string().min(10, 'Description must be at least 10 characters.'),
+  isFeatured: z.boolean().optional(),
 });
 
 export function CategoryActions({ categories }: { categories: Category[] }) {
@@ -77,6 +80,7 @@ export function CategoryActions({ categories }: { categories: Category[] }) {
     defaultValues: {
       name: '',
       description: '',
+      isFeatured: false,
     },
   });
 
@@ -87,9 +91,10 @@ export function CategoryActions({ categories }: { categories: Category[] }) {
         id: category.id,
         name: category.name,
         description: category.description,
+        isFeatured: category.isFeatured || false,
       });
     } else {
-      form.reset({ name: '', description: '' });
+      form.reset({ name: '', description: '', isFeatured: false });
     }
     setDialogOpen(true);
   };
@@ -103,6 +108,16 @@ export function CategoryActions({ categories }: { categories: Category[] }) {
         toast({ variant: "destructive", title: "Error", description: "Failed to delete category." });
     }
   }
+
+  const handleToggleFeatured = async (category: Category) => {
+    try {
+      await updateCategory(category.id, { isFeatured: !category.isFeatured });
+      toast({ title: "Success", description: `Category "${category.name}" has been ${!category.isFeatured ? 'featured' : 'unfeatured'}.` });
+      router.refresh();
+    } catch (error) {
+       toast({ variant: "destructive", title: "Error", description: "Failed to update category status." });
+    }
+  };
 
   const onSubmit = async (values: z.infer<typeof categorySchema>) => {
     try {
@@ -170,6 +185,26 @@ export function CategoryActions({ categories }: { categories: Category[] }) {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="isFeatured"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                      <div className="space-y-0.5">
+                        <FormLabel>Feature in Header</FormLabel>
+                         <p className="text-sm text-muted-foreground">
+                            Show this category in the main site navigation.
+                        </p>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
                 <DialogFooter>
                     <DialogClose asChild>
                         <Button type="button" variant="ghost">Cancel</Button>
@@ -189,6 +224,7 @@ export function CategoryActions({ categories }: { categories: Category[] }) {
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Description</TableHead>
+            <TableHead>Featured</TableHead>
             <TableHead>
               <span className="sr-only">Actions</span>
             </TableHead>
@@ -199,6 +235,13 @@ export function CategoryActions({ categories }: { categories: Category[] }) {
             <TableRow key={category.id}>
               <TableCell className="font-medium">{category.name}</TableCell>
               <TableCell>{category.description}</TableCell>
+              <TableCell>
+                 <Switch
+                    checked={category.isFeatured}
+                    onCheckedChange={() => handleToggleFeatured(category)}
+                    aria-label="Toggle featured status"
+                  />
+              </TableCell>
               <TableCell>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
