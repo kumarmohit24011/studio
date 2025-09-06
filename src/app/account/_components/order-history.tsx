@@ -17,7 +17,9 @@ export function OrderHistory({ userId }: { userId: string }) {
     const fetchOrders = async () => {
       setLoading(true);
       const userOrders = await getOrdersByUserId(userId);
-      setOrders(userOrders);
+      // Sort orders by date client-side
+      const sortedOrders = userOrders.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
+      setOrders(sortedOrders);
       setLoading(false);
     };
     fetchOrders();

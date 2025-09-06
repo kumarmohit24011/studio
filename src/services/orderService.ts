@@ -35,7 +35,8 @@ export const createOrder = async (orderData: Omit<Order, 'id' | 'createdAt' | 'u
 export const getOrdersByUserId = async (userId: string): Promise<Order[]> => {
     try {
         const ordersRef = collection(db, 'orders');
-        const q = query(ordersRef, where("userId", "==", userId), orderBy("createdAt", "desc"));
+        // Removed orderBy to avoid needing a composite index. Sorting will be done client-side.
+        const q = query(ordersRef, where("userId", "==", userId));
         const snapshot = await getDocs(q);
         
         if (snapshot.empty) {
