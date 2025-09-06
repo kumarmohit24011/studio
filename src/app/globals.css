@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -32,6 +33,15 @@ h1, h2, h3, h4, h5, h6 {
     --input: 220 13% 89%;
     --ring: 224 71.4% 4.1%;
     --radius: 0.5rem;
+
+    --sidebar-background: 220 13% 96%;
+    --sidebar-foreground: 224 71.4% 4.1%;
+    --sidebar-border: 220 13% 89%;
+    --sidebar-ring: 224 71.4% 4.1%;
+    --sidebar-accent: 220 13% 91%;
+    --sidebar-accent-foreground: 224 71.4% 4.1%;
+    --sidebar-primary: 346.8 77.2% 49.8%;
+    --sidebar-primary-foreground: 355.7 100% 97.3%;
   }
 
   .dark {
@@ -54,6 +64,15 @@ h1, h2, h3, h4, h5, h6 {
     --border: 215 27.9% 16.9%;
     --input: 215 27.9% 16.9%;
     --ring: 346.8 77.2% 49.8%;
+
+    --sidebar-background: 224 71.4% 4.1%;
+    --sidebar-foreground: 210 20% 98%;
+    --sidebar-border: 215 27.9% 16.9%;
+    --sidebar-ring: 346.8 77.2% 49.8%;
+    --sidebar-accent: 215 27.9% 16.9%;
+    --sidebar-accent-foreground: 210 20% 98%;
+    --sidebar-primary: 346.8 77.2% 49.8%;
+    --sidebar-primary-foreground: 355.7 100% 97.3%;
   }
 }
 

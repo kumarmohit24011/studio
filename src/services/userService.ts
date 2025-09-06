@@ -12,6 +12,8 @@ export const createUserProfile = async (uid: string, email: string, name: string
         return docSnap.data() as UserProfile;
     }
 
+    const isAdmin = email === 'admin@redbow.com';
+
     const userProfile: UserProfile = {
         uid,
         email,
@@ -20,7 +22,7 @@ export const createUserProfile = async (uid: string, email: string, name: string
         createdAt: serverTimestamp(),
         wishlist: [],
         cart: [],
-        isAdmin: false,
+        isAdmin,
     };
     
     try {
