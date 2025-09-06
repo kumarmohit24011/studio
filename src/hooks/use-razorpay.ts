@@ -19,6 +19,12 @@ declare global {
     }
 }
 
+interface OrderDetails {
+    couponCode?: string;
+    discountAmount?: number;
+}
+
+
 export function useRazorpay() {
     const { toast } = useToast();
     const { user, userProfile } = useAuth();
@@ -38,7 +44,7 @@ export function useRazorpay() {
         };
     }, []);
 
-    const processPayment = async (amount: number, shippingAddress: ShippingAddress) => {
+    const processPayment = async (amount: number, shippingAddress: ShippingAddress, orderDetails: OrderDetails = {}) => {
         if (!isScriptLoaded) {
             toast({
                 variant: 'destructive',
@@ -81,6 +87,8 @@ export function useRazorpay() {
                         orderStatus: 'processing',
                         paymentStatus: 'paid',
                         razorpayPaymentId: response.razorpay_payment_id,
+                        couponCode: orderDetails.couponCode,
+                        discountAmount: orderDetails.discountAmount,
                     });
                     
                     toast({

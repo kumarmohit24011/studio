@@ -3,15 +3,22 @@
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/hooks/use-cart";
+import type { Coupon } from "@/lib/types";
 import Image from "next/image";
+import { CouponForm } from "./coupon-form";
+import { Badge } from "@/components/ui/badge";
 
 interface OrderSummaryProps {
     subtotal: number;
     shippingCost: number;
     total: number;
+    discount: number;
+    appliedCoupon: Coupon | null;
+    applyCoupon: (coupon: Coupon) => void;
+    removeCoupon: () => void;
 }
 
-export function OrderSummary({ subtotal, shippingCost, total }: OrderSummaryProps) {
+export function OrderSummary({ subtotal, shippingCost, total, discount, appliedCoupon, applyCoupon, removeCoupon }: OrderSummaryProps) {
     const { cart } = useCart();
 
     return (
@@ -51,6 +58,15 @@ export function OrderSummary({ subtotal, shippingCost, total }: OrderSummaryProp
                         <span className="text-muted-foreground">Shipping</span>
                         <span>{shippingCost === 0 ? 'Free' : `₹${shippingCost.toFixed(2)}`}</span>
                     </div>
+                     {appliedCoupon && (
+                        <div className="flex justify-between text-primary">
+                            <span className="text-muted-foreground">
+                                Discount ({appliedCoupon.code})
+                                <Badge variant="secondary" className="ml-2 cursor-pointer" onClick={removeCoupon}>Remove</Badge>
+                            </span>
+                            <span>- ₹{discount.toFixed(2)}</span>
+                        </div>
+                    )}
                 </div>
                 <Separator />
                 <div className="flex justify-between font-bold text-lg">
@@ -58,6 +74,9 @@ export function OrderSummary({ subtotal, shippingCost, total }: OrderSummaryProp
                     <span>₹{total.toFixed(2)}</span>
                 </div>
             </CardContent>
+            <CardFooter>
+                {!appliedCoupon && <CouponForm applyCoupon={applyCoupon} />}
+            </CardFooter>
         </Card>
     );
 }

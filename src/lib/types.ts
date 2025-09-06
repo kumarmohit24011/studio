@@ -74,8 +74,17 @@ export interface Order {
     paymentStatus: 'paid' | 'pending';
     shippingAddress: ShippingAddress;
     razorpayPaymentId?: string;
+    couponCode?: string;
+    discountAmount?: number;
     createdAt: any; // Firestore Timestamp
     updatedAt: any; // Firestore Timestamp
 }
 
-
+export interface Coupon {
+    id: string;
+    code: string;
+    discountType: 'percentage' | 'fixed';
+    discountValue: number;
+    isActive: boolean;
+    createdAt: any; // Firestore Timestamp
+}
