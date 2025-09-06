@@ -2,7 +2,6 @@
 'use client';
 
 import { useCart } from "@/hooks/use-cart";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
@@ -16,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Coupon } from "@/lib/types";
 import { CreditCard } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 export default function CheckoutPage() {
   const { cart, cartLoading } = useCart();
@@ -76,10 +76,9 @@ export default function CheckoutPage() {
   if (authLoading || cartLoading) {
     return (
         <div className="container mx-auto px-4 py-12">
-            <Skeleton className="h-8 w-1/4 mb-8" />
-            <div className="grid lg:grid-cols-2 gap-12 items-start">
-                <div className="space-y-8"><Skeleton className="h-96 w-full" /></div>
-                <div className="lg:col-span-1"><Skeleton className="h-64 w-full" /></div>
+            <div className="grid md:grid-cols-2 gap-12">
+                <div><Skeleton className="h-[500px] w-full" /></div>
+                <div><Skeleton className="h-[300px] w-full" /></div>
             </div>
         </div>
     );
@@ -87,62 +86,57 @@ export default function CheckoutPage() {
 
   if (cart.length === 0 && !cartLoading) {
      router.push('/products');
-     return null; // or a message, but redirecting is better
+     return null;
   }
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="text-center mb-12">
-          <h1 className="text-4xl font-headline font-bold">Checkout</h1>
-          <p className="text-muted-foreground mt-2">Complete your order below.</p>
-      </div>
-      <div className="grid lg:grid-cols-2 gap-12 items-start">
-        
-        <div className="space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Shipping Information</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ShippingForm onFormSubmit={setShippingAddress} />
-              </CardContent>
-            </Card>
-             <Card>
-              <CardHeader>
-                <CardTitle>Payment Method</CardTitle>
-              </CardHeader>
-              <CardContent>
-                 <div className="flex items-center justify-between p-4 rounded-md border bg-muted">
-                    <div className="flex items-center gap-3">
-                        <CreditCard className="h-6 w-6"/>
-                        <p className="font-semibold">Pay with Razorpay</p>
+    <div className="container mx-auto px-4 py-8">
+        <main className="grid lg:grid-cols-2 gap-x-12">
+            <div className="py-8">
+                <h1 className="text-3xl font-headline font-bold mb-8">Checkout</h1>
+                
+                <section>
+                    <h2 className="text-xl font-semibold mb-4">Shipping Information</h2>
+                    <ShippingForm onFormSubmit={setShippingAddress} />
+                </section>
+                
+                <Separator className="my-8"/>
+
+                <section>
+                    <h2 className="text-xl font-semibold mb-4">Payment Method</h2>
+                    <div className="p-4 rounded-md border bg-muted/50">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <CreditCard className="h-6 w-6 text-muted-foreground"/>
+                                <p className="font-semibold">Pay with Razorpay</p>
+                            </div>
+                            <p className="text-sm text-muted-foreground">Cards, UPI, Netbanking</p>
+                        </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">Cards, UPI, Netbanking</p>
-                 </div>
-                 <Button 
-                    className="w-full mt-6" 
+                </section>
+
+                <Button 
+                    className="w-full mt-8" 
                     size="lg" 
                     onClick={handlePayment} 
                     disabled={!shippingAddress || isSubmitting || !isReady}
                 >
                     {isSubmitting ? "Processing..." : (isReady ? `Pay ₹${total.toFixed(2)}` : "Loading Payment...")}
                 </Button>
-              </CardContent>
-            </Card>
-        </div>
-
-        <div className="sticky top-24">
-            <OrderSummary 
-                subtotal={subtotal} 
-                shippingCost={shippingCost} 
-                discount={discount}
-                total={total}
-                appliedCoupon={appliedCoupon}
-                applyCoupon={setAppliedCoupon}
-                removeCoupon={removeCoupon}
-            />
-        </div>
-      </div>
+            </div>
+            
+            <div className="py-8 lg:bg-muted/50 lg:px-8 lg:rounded-lg">
+                <OrderSummary 
+                    subtotal={subtotal} 
+                    shippingCost={shippingCost} 
+                    discount={discount}
+                    total={total}
+                    appliedCoupon={appliedCoupon}
+                    applyCoupon={setAppliedCoupon}
+                    removeCoupon={removeCoupon}
+                />
+            </div>
+        </main>
     </div>
   );
 }

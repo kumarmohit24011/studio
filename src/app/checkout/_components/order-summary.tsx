@@ -1,6 +1,5 @@
 
 'use client';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/hooks/use-cart";
 import type { Coupon } from "@/lib/types";
@@ -22,66 +21,64 @@ export function OrderSummary({ subtotal, shippingCost, total, discount, appliedC
     const { cart } = useCart();
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Order Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
-                     {cart.map(item => (
-                        <div key={item.productId} className="flex items-center justify-between text-sm">
-                           <div className="flex items-center gap-3">
-                             <div className="relative h-12 w-12 rounded-md overflow-hidden border">
-                                <Image 
-                                    src={item.imageUrl || "https://picsum.photos/100/100"} 
-                                    alt={item.name || 'product image'} 
-                                    fill 
-                                    className="object-cover"
-                                />
-                             </div>
-                             <div>
-                                <p className="font-medium truncate max-w-[150px]">{item.name}</p>
-                                <p className="text-muted-foreground">Qty: {item.quantity}</p>
-                             </div>
-                           </div>
-                           <p className="font-medium">₹{(item.price! * item.quantity).toFixed(2)}</p>
-                        </div>
-                    ))}
-                </div>
-                <Separator />
-                 <div className="p-4 bg-muted rounded-md">
-                     {!appliedCoupon ? (
-                        <CouponForm applyCoupon={applyCoupon} />
-                    ) : (
-                         <div className="flex justify-between items-center">
-                            <p className="text-sm font-medium text-primary">Coupon Applied: {appliedCoupon.code}</p>
-                            <Badge variant="secondary" className="cursor-pointer" onClick={removeCoupon}>Remove</Badge>
+        <div className="space-y-6">
+            <h2 className="text-2xl font-semibold">Order Summary</h2>
+            <div className="space-y-4 max-h-80 overflow-y-auto pr-3 -mr-3">
+                 {cart.map(item => (
+                    <div key={item.productId} className="flex items-start justify-between text-sm gap-4">
+                       <div className="flex items-start gap-4">
+                         <div className="relative h-20 w-20 rounded-md overflow-hidden border flex-shrink-0">
+                            <Image 
+                                src={item.imageUrl || "https://picsum.photos/100/100"} 
+                                alt={item.name || 'product image'} 
+                                fill 
+                                className="object-cover"
+                            />
                          </div>
-                    )}
-                </div>
-                <Separator />
-                <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                        <span className="text-muted-foreground">Subtotal</span>
-                        <span>₹{subtotal.toFixed(2)}</span>
+                         <div>
+                            <p className="font-medium leading-tight">{item.name}</p>
+                            <p className="text-muted-foreground mt-1">Qty: {item.quantity}</p>
+                         </div>
+                       </div>
+                       <p className="font-medium text-right flex-shrink-0">₹{(item.price! * item.quantity).toFixed(2)}</p>
                     </div>
-                    <div className="flex justify-between">
-                        <span className="text-muted-foreground">Shipping</span>
-                        <span>{shippingCost === 0 ? 'Free' : `₹${shippingCost.toFixed(2)}`}</span>
+                ))}
+            </div>
+            
+            <Separator />
+
+            {!appliedCoupon ? (
+                <CouponForm applyCoupon={applyCoupon} />
+            ) : (
+                <div className="flex justify-between items-center text-sm">
+                    <p className="font-medium text-primary">Coupon Applied: <span className="font-bold">{appliedCoupon.code}</span></p>
+                    <button onClick={removeCoupon} className="font-semibold text-muted-foreground hover:text-foreground">Remove</button>
+                </div>
+            )}
+
+            <Separator />
+
+            <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span className="font-medium">₹{subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                    <span className="text-muted-foreground">Shipping</span>
+                    <span className="font-medium">{shippingCost === 0 ? 'Free' : `₹${shippingCost.toFixed(2)}`}</span>
+                </div>
+                 {appliedCoupon && (
+                    <div className="flex justify-between text-primary">
+                        <span className="text-muted-foreground">Discount</span>
+                        <span className="font-medium">- ₹{discount.toFixed(2)}</span>
                     </div>
-                     {appliedCoupon && (
-                        <div className="flex justify-between text-primary font-medium">
-                            <span className="text-muted-foreground">Discount</span>
-                            <span>- ₹{discount.toFixed(2)}</span>
-                        </div>
-                    )}
-                </div>
-                <Separator />
-                <div className="flex justify-between font-bold text-lg">
-                    <span>Total</span>
-                    <span>₹{total.toFixed(2)}</span>
-                </div>
-            </CardContent>
-        </Card>
+                )}
+            </div>
+            <Separator />
+            <div className="flex justify-between font-bold text-lg">
+                <span>Total</span>
+                <span>₹{total.toFixed(2)}</span>
+            </div>
+        </div>
     );
 }

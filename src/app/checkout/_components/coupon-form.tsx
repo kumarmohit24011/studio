@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { getCouponByCode } from "@/services/couponService";
 import type { Coupon } from "@/lib/types";
+import { ArrowRight } from "lucide-react";
 
 interface CouponFormProps {
     applyCoupon: (coupon: Coupon) => void;
@@ -43,13 +44,14 @@ export function CouponForm({ applyCoupon }: CouponFormProps) {
     return (
         <form onSubmit={handleApplyCoupon} className="flex items-center gap-2">
             <Input 
-                placeholder="Gift card or discount code" 
+                placeholder="Discount code" 
                 value={couponCode}
                 onChange={(e) => setCouponCode(e.target.value)}
                 disabled={loading}
+                className="bg-background"
             />
-            <Button type="submit" disabled={loading}>
-                {loading ? 'Applying...' : 'Apply'}
+            <Button type="submit" disabled={loading} variant="secondary" className="px-3">
+                {loading ? 'Applying...' : <ArrowRight className="h-5 w-5"/>}
             </Button>
         </form>
     );
