@@ -40,6 +40,7 @@ export function HeroForm({ heroData }: { heroData: PlainHeroData }) {
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
+      console.log("File selected in form:", file);
       form.setValue('image', file);
       const previewUrl = URL.createObjectURL(file);
       setPreview(previewUrl);
@@ -47,6 +48,7 @@ export function HeroForm({ heroData }: { heroData: PlainHeroData }) {
   };
 
   const onSubmit = async (values: z.infer<typeof heroSchema>) => {
+    console.log("Submitting hero form with values:", values);
     try {
       await updateHeroSection({
         headline: values.headline,
@@ -58,6 +60,7 @@ export function HeroForm({ heroData }: { heroData: PlainHeroData }) {
       toast({ title: 'Success', description: 'Hero section updated successfully.' });
       router.refresh(); // Refresh data on the page
     } catch (error) {
+      console.error("Error submitting hero form:", error);
       toast({
         variant: 'destructive',
         title: 'Error',
