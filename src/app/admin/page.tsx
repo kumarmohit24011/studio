@@ -1,12 +1,16 @@
 
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, Package, ShoppingCart, Users } from "lucide-react";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { getAllOrders } from "@/services/orderService";
 
-export default function AdminDashboard() {
+export default async function AdminDashboard() {
+    const recentOrders = await getAllOrders(); // In a real app, you'd paginate this.
+
   return (
     <div className="flex flex-col gap-4">
         <div className="flex items-center">
@@ -88,35 +92,21 @@ export default function AdminDashboard() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow>
-                            <TableCell>
-                                <div className="font-medium">Liam Johnson</div>
-                                <div className="hidden text-sm text-muted-foreground md:inline">
-                                liam@example.com
-                                </div>
-                            </TableCell>
-                            <TableCell className="text-right">₹250.00</TableCell>
-                            </TableRow>
-                            <TableRow>
-                            <TableCell>
-                                <div className="font-medium">Olivia Smith</div>
-                                <div className="hidden text-sm text-muted-foreground md:inline">
-                                olivia@example.com
-                                </div>
-                            </TableCell>
-                            <TableCell className="text-right">₹150.00</TableCell>
-                            </TableRow>
-                            <TableRow>
-                            <TableCell>
-                                <div className="font-medium">Noah Williams</div>
-                                <div className="hidden text-sm text-muted-foreground md:inline">
-                                noah@example.com
-                                </div>
-                            </TableCell>
-                            <TableCell className="text-right">₹350.00</TableCell>
-                            </TableRow>
+                             {recentOrders.slice(0, 5).map(order => (
+                                <TableRow key={order.id}>
+                                    <TableCell>
+                                        <div className="font-medium">{order.shippingAddress.name}</div>
+                                    </TableCell>
+                                    <TableCell className="text-right">₹{order.totalAmount.toFixed(2)}</TableCell>
+                                </TableRow>
+                            ))}
                         </TableBody>
                     </Table>
+                     {recentOrders.length === 0 && (
+                        <div className="text-center text-muted-foreground py-12">
+                            <p>No recent transactions.</p>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
             <Card>
@@ -124,24 +114,22 @@ export default function AdminDashboard() {
                     <CardTitle>Recent Sales</CardTitle>
                 </CardHeader>
                 <CardContent className="grid gap-8">
-                    <div className="flex items-center gap-4">
-                        <div className="grid gap-1">
-                            <p className="text-sm font-medium leading-none">Olivia Martin</p>
-                            <p className="text-sm text-muted-foreground">
-                            olivia.martin@email.com
-                            </p>
+                     {recentOrders.slice(0, 2).map(order => (
+                        <div key={order.id} className="flex items-center gap-4">
+                            <div className="grid gap-1">
+                                <p className="text-sm font-medium leading-none">{order.shippingAddress.name}</p>
+                                <p className="text-sm text-muted-foreground">
+                                    {order.items.length} item(s)
+                                </p>
+                            </div>
+                            <div className="ml-auto font-medium">+₹{order.totalAmount.toFixed(2)}</div>
                         </div>
-                        <div className="ml-auto font-medium">+₹1,999.00</div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <div className="grid gap-1">
-                            <p className="text-sm font-medium leading-none">Jackson Lee</p>
-                            <p className="text-sm text-muted-foreground">
-                            isabella.nguyen@email.com
-                            </p>
+                     ))}
+                     {recentOrders.length === 0 && (
+                        <div className="text-center text-muted-foreground pt-4">
+                            <p>No recent sales.</p>
                         </div>
-                        <div className="ml-auto font-medium">+₹39.00</div>
-                    </div>
+                    )}
                 </CardContent>
             </Card>
         </div>

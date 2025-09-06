@@ -1,9 +1,10 @@
 
+
 'use client';
 
 import { useToast } from './use-toast';
 import { useAuth } from './use-auth';
-import type { CartItem, UserProfile } from '@/lib/types';
+import type { CartItem, UserProfile, ShippingAddress } from '@/lib/types';
 import { createOrder } from '@/services/orderService';
 import { useCart } from './use-cart';
 import { useRouter } from 'next/navigation';
@@ -16,10 +17,6 @@ declare global {
     interface Window {
         Razorpay: any;
     }
-}
-interface UseRazorpayOptions {
-    onPaymentSuccess: (response: any) => void;
-    onPaymentError: (error: any) => void;
 }
 
 export function useRazorpay() {
@@ -41,7 +38,7 @@ export function useRazorpay() {
         };
     }, []);
 
-    const processPayment = async (amount: number, shippingAddress: any) => {
+    const processPayment = async (amount: number, shippingAddress: ShippingAddress) => {
         if (!isScriptLoaded) {
             toast({
                 variant: 'destructive',
@@ -79,9 +76,10 @@ export function useRazorpay() {
                             price: item.price || 0,
                             quantity: item.quantity,
                         })),
-                        total: amount,
+                        totalAmount: amount,
                         shippingAddress,
-                        status: 'processing' as const,
+                        orderStatus: 'processing',
+                        paymentStatus: 'paid',
                         razorpayPaymentId: response.razorpay_payment_id,
                     });
                     

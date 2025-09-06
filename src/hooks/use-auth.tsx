@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
@@ -45,7 +46,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const handleAuthSuccess = (profile: UserProfile | null) => {
     setUserProfile(profile);
-    router.push('/');
+    if(profile?.isAdmin) {
+        router.push('/admin');
+    } else {
+        router.push('/');
+    }
   }
 
   const handleAuthError = (error: any) => {

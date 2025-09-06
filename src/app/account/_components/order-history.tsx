@@ -74,8 +74,8 @@ export function OrderHistory({ userId }: { userId: string }) {
                             </p>
                         </div>
                         <div className="text-right">
-                           <p className="font-semibold">₹{order.total.toFixed(2)}</p>
-                            <Badge variant={order.status === 'delivered' ? 'default' : 'secondary'} className='capitalize mt-1'>{order.status}</Badge>
+                           <p className="font-semibold">₹{order.totalAmount.toFixed(2)}</p>
+                            <Badge variant={order.orderStatus === 'delivered' ? 'default' : 'secondary'} className='capitalize mt-1'>{order.orderStatus}</Badge>
                         </div>
                     </div>
                     </AccordionTrigger>
@@ -106,4 +106,3 @@ export function OrderHistory({ userId }: { userId: string }) {
     </Card>
   );
 }
-

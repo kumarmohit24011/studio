@@ -1,6 +1,7 @@
 
+
 import { db } from '@/lib/firebase';
-import { UserProfile, Address } from '@/lib/types';
+import { UserProfile, StoredAddress } from '@/lib/types';
 import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 
 export const createUserProfile = async (uid: string, email: string, name: string, photoURL?: string): Promise<UserProfile> => {
@@ -59,7 +60,7 @@ export const getUserProfile = async (uid: string): Promise<UserProfile | null> =
     }
 };
 
-export const updateUserProfile = async (uid: string, data: { name?: string; phone?: string; address?: Partial<Address> }): Promise<void> => {
+export const updateUserProfile = async (uid: string, data: Partial<Omit<UserProfile, 'uid' | 'email' | 'createdAt'>>): Promise<void> => {
     if (!db) {
         console.error("Firestore not initialized");
         return;
@@ -67,10 +68,9 @@ export const updateUserProfile = async (uid: string, data: { name?: string; phon
     try {
         const userRef = doc(db, 'users', uid);
         
-        // To update nested address fields, we need to use dot notation
-        const updateData: { [key: string]: any } = {};
-        if (data.name) updateData.name = data.name;
-        if (data.phone) updateData.phone = data.phone;
+        const updateData: { [key: string]: any } = { ...data };
+
+        // Handle nested address object
         if (data.address) {
             Object.entries(data.address).forEach(([key, value]) => {
                 if(value !== undefined) {

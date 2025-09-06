@@ -33,7 +33,7 @@ export interface UserProfile {
     email: string;
     name: string;
     phone?: string;
-    address?: Address;
+    address?: StoredAddress;
     photoURL?: string;
     isAdmin?: boolean;
     createdAt: any; // Firestore Timestamp
@@ -42,14 +42,22 @@ export interface UserProfile {
 }
 
 
-export interface Address {
-    name: string;
-    phone: string;
+export interface StoredAddress {
     street: string;
     city: string;
     state: string;
     zipCode: string;
     country: string;
+}
+
+export interface ShippingAddress {
+      name: string;
+      phone: string;
+      street: string;
+      city: string;
+      state: string;
+      zipCode: string;
+      country: string;
 }
 
 export interface Order {
@@ -61,11 +69,13 @@ export interface Order {
         price: number;
         quantity: number;
     }[];
-    total: number;
-    status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-    shippingAddress: Address;
-    razorpayPaymentId: string;
+    totalAmount: number;
+    orderStatus: 'processing' | 'shipped' | 'delivered' | 'cancelled';
+    paymentStatus: 'paid' | 'pending';
+    shippingAddress: ShippingAddress;
+    razorpayPaymentId?: string;
     createdAt: any; // Firestore Timestamp
     updatedAt: any; // Firestore Timestamp
 }
+
 
