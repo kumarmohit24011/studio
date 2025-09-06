@@ -24,13 +24,15 @@ import {
 } from '@/components/ui/accordion';
 
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PackageCheck, Truck, XCircle, CircleAlert } from 'lucide-react';
+import { MoreHorizontal, PackageCheck, Truck, XCircle, CircleAlert, ExternalLink } from 'lucide-react';
 import type { Order } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { updateOrderStatus } from '@/services/orderService';
 import { Separator } from '@/components/ui/separator';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 type OrderStatus = Order['orderStatus'];
 
@@ -124,8 +126,11 @@ export function OrderActions({ orders }: { orders: Order[] }) {
                                 <h4 className="font-semibold mb-2">Order Items</h4>
                                 <ul className="space-y-2">
                                     {order.items.map(item => (
-                                        <li key={item.productId} className='flex justify-between text-sm'>
-                                            <span>{item.name} (x{item.quantity})</span>
+                                        <li key={item.productId} className='flex justify-between items-center text-sm gap-2'>
+                                            <Link href={`/admin/products/${item.productId}/edit`} className="flex items-center gap-2 hover:underline">
+                                                <span>{item.name} (x{item.quantity})</span>
+                                                <ExternalLink className="h-3 w-3 text-muted-foreground"/>
+                                            </Link>
                                             <span>₹{(item.price * item.quantity).toFixed(2)}</span>
                                         </li>
                                     ))}
@@ -160,6 +165,3 @@ export function OrderActions({ orders }: { orders: Order[] }) {
      </Accordion>
   );
 }
-
-// Small helper to avoid className clutter
-const cn = (...classes: string[]) => classes.filter(Boolean).join(' ');
