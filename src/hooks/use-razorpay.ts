@@ -116,7 +116,7 @@ export function useRazorpay() {
                 address: `${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.state} - ${shippingAddress.zipCode}`,
             },
             theme: {
-                color: '#E11D48', // Your primary theme color
+                color: '#A30D2D', // Your primary theme color
             },
         };
 

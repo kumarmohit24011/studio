@@ -55,4 +55,3 @@ export const getAllOrders = async (): Promise<Order[]> => {
         return [];
     }
 }
-
