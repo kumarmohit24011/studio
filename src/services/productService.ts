@@ -95,13 +95,12 @@ export const getTrendingProducts = async (count: number): Promise<Product[]> => 
         const q = query(productsRef, where("tags", "array-contains", "popular"), where("isPublished", "==", true), limit(count));
         const snapshot = await getDocs(q);
         if (snapshot.empty) {
-            console.log('No trending products found, returning mock data.');
-            return MOCK_PRODUCTS.filter(p => p.tags?.includes('popular') && p.isPublished).slice(0, count);
+            return [];
         }
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
     } catch (error) {
-        console.error("Error fetching trending products, returning mock data: ", error);
-        return MOCK_PRODUCTS.filter(p => p.tags?.includes('popular') && p.isPublished).slice(0, count);
+        console.error("Error fetching trending products, returning empty array: ", error);
+        return [];
     }
 };
 
