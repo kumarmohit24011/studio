@@ -14,7 +14,7 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <section className="relative h-[60vh] flex items-center justify-center text-center text-white bg-gray-800">
+      <section className="relative h-[50vh] flex items-center justify-center text-center text-white bg-gray-800">
         {heroData.imageUrl && (
           <Image
             src={heroData.imageUrl}
