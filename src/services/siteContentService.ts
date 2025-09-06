@@ -61,6 +61,7 @@ export const updateHeroSection = async (data: Omit<HeroSectionData, 'imageUrl' |
             updateData.imageUrl = imageUrl;
         }
 
+        // Use setDoc with merge to create or update the document
         await setDoc(siteContentRef, updateData, { merge: true });
 
     } catch (error) {
