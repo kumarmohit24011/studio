@@ -11,8 +11,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['"PT Sans"', 'sans-serif'],
-        headline: ['"Playfair Display"', 'serif'],
+        body: ['system-ui', 'sans-serif'],
+        headline: ['system-ui', 'serif'],
         code: ['monospace'],
       },
       colors: {
