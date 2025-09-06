@@ -8,8 +8,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyDmt1LTc3f_CBB8pd3viCJLHlQtKVhMEU8",
   authDomain: "redbow-24723.firebaseapp.com",
   projectId: "redbow-24723",
-  // IMPORTANT: Replace this with your actual bucket name from the Firebase Console
-  storageBucket: "[YOUR_ACTUAL_BUCKET_NAME].appspot.com",
+  storageBucket: "redbow-24723.appspot.com",
   messagingSenderId: "322692287326",
   appId: "1:322692287326:web:cda79367be903bd6bb5dcf",
 };
