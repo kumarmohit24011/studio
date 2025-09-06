@@ -1,5 +1,6 @@
 
 
+
 import { db } from '@/lib/firebase';
 import { UserProfile, StoredAddress } from '@/lib/types';
 import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
@@ -23,6 +24,7 @@ export const createUserProfile = async (uid: string, email: string, name: string
         createdAt: serverTimestamp(),
         wishlist: [],
         cart: [],
+        addresses: [], // Initialize with empty addresses array
         isAdmin,
     };
     
@@ -67,9 +69,24 @@ export const updateUserProfile = async (uid: string, data: Partial<Omit<UserProf
     }
     try {
         const userRef = doc(db, 'users', uid);
+
+        // If updating addresses, ensure any new default address unsets the old one
+        if (data.addresses) {
+            const newAddresses = [...data.addresses];
+            const newDefaultIndex = newAddresses.findIndex(addr => addr.isDefault);
+
+            if (newDefaultIndex > -1) {
+                data.addresses = newAddresses.map((addr, index) => ({
+                    ...addr,
+                    isDefault: index === newDefaultIndex
+                }));
+            }
+        }
+        
         await updateDoc(userRef, data);
     } catch (error) {
         console.error("Error updating user profile:", error);
         throw error;
     }
 };
+

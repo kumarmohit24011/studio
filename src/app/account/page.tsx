@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useAuth } from "@/hooks/use-auth";
@@ -19,11 +20,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OrderHistory } from "./_components/order-history";
+import { Badge } from "@/components/ui/badge";
+import { Home } from "lucide-react";
 
 const profileSchema = z.object({
   name: z.string().min(2, "Display name must be at least 2 characters."),
   phone: z.string().optional(),
-  address: z.string().optional(),
 });
 
 export default function AccountPage() {
@@ -38,7 +40,6 @@ export default function AccountPage() {
     values: {
       name: userProfile?.name || "",
       phone: userProfile?.phone || "",
-      address: userProfile?.address ? `${userProfile.address.street}, ${userProfile.address.city}` : "",
     },
   });
 
@@ -47,14 +48,9 @@ export default function AccountPage() {
       router.push('/login');
     }
     if (userProfile) {
-        const addressString = userProfile.address 
-            ? `${userProfile.address.street}, ${userProfile.address.city}, ${userProfile.address.state} - ${userProfile.address.zipCode}`
-            : "No address saved. It will be added at checkout.";
-
         form.reset({
           name: userProfile.name,
           phone: userProfile.phone || "",
-          address: addressString,
         });
     }
   }, [authLoading, user, userProfile, router, form]);
@@ -122,67 +118,86 @@ export default function AccountPage() {
                 <TabsTrigger value="orders">Order History</TabsTrigger>
             </TabsList>
             <TabsContent value="profile">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Your Profile</CardTitle>
-                        <CardDescription>Manage your profile information.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                        <div>
-                            <Label htmlFor="email">Email</Label>
-                            <Input id="email" type="email" value={user.email || ''} disabled />
-                        </div>
-                        <FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Display Name</FormLabel>
-                                <FormControl>
-                                <Input placeholder="Your name" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="phone"
-                            render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Phone Number</FormLabel>
-                                <FormControl>
-                                <Input placeholder="Your phone number" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="address"
-                            render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Saved Address</FormLabel>
-                                <FormControl>
-                                <Textarea placeholder="Your shipping address (managed at checkout)" {...field} disabled rows={3} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                            )}
-                        />
-                        <div className="flex justify-between">
-                            <Button type="submit" disabled={form.formState.isSubmitting}>
-                            {form.formState.isSubmitting ? "Saving..." : "Save Changes"}
-                            </Button>
-                            <Button variant="outline" onClick={signOutUser}>Sign Out</Button>
-                        </div>
-                        </form>
-                    </Form>
-                    </CardContent>
-                </Card>
+                <div className="grid md:grid-cols-3 gap-8">
+                    <div className="md:col-span-2">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Your Profile</CardTitle>
+                                <CardDescription>Manage your profile information.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                            <Form {...form}>
+                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                                <div>
+                                    <Label htmlFor="email">Email</Label>
+                                    <Input id="email" type="email" value={user.email || ''} disabled />
+                                </div>
+                                <FormField
+                                    control={form.control}
+                                    name="name"
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Display Name</FormLabel>
+                                        <FormControl>
+                                        <Input placeholder="Your name" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="phone"
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Phone Number</FormLabel>
+                                        <FormControl>
+                                        <Input placeholder="Your phone number" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+                                <div className="flex justify-between">
+                                    <Button type="submit" disabled={form.formState.isSubmitting}>
+                                    {form.formState.isSubmitting ? "Saving..." : "Save Changes"}
+                                    </Button>
+                                    <Button variant="outline" onClick={signOutUser}>Sign Out</Button>
+                                </div>
+                                </form>
+                            </Form>
+                            </CardContent>
+                        </Card>
+                    </div>
+                     <div>
+                        <Card>
+                             <CardHeader>
+                                <CardTitle>Saved Addresses</CardTitle>
+                                <CardDescription>Your saved shipping addresses.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {userProfile.addresses && userProfile.addresses.length > 0 ? (
+                                    userProfile.addresses.map(addr => (
+                                        <div key={addr.id} className="text-sm p-3 rounded-md border bg-muted/30 relative">
+                                            {addr.isDefault && <Badge className="absolute -top-2 -right-2">Default</Badge>}
+                                            <p className="font-semibold">{addr.name}</p>
+                                            <p className="text-muted-foreground">{addr.street}, {addr.city}</p>
+                                            <p className="text-muted-foreground">{addr.state}, {addr.zipCode}</p>
+                                            <p className="text-muted-foreground">{addr.country}</p>
+                                            <p className="text-muted-foreground mt-2">{addr.phone}</p>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8 text-muted-foreground text-sm">
+                                        <Home className="mx-auto h-8 w-8 mb-2" />
+                                        <p>No saved addresses.</p>
+                                        <p>Your addresses will appear here after you save them during checkout.</p>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                     </div>
+                </div>
             </TabsContent>
             <TabsContent value="orders">
                 <OrderHistory userId={user.uid} />
@@ -191,3 +206,4 @@ export default function AccountPage() {
     </div>
   );
 }
+

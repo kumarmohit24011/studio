@@ -1,4 +1,5 @@
 
+
 export interface Product {
     id: string;
     name: string;
@@ -36,7 +37,7 @@ export interface UserProfile {
     email: string;
     name: string;
     phone?: string;
-    address?: StoredAddress;
+    addresses?: StoredAddress[]; // Changed from 'address' to 'addresses'
     photoURL?: string;
     isAdmin?: boolean;
     createdAt: any; // Firestore Timestamp
@@ -46,11 +47,15 @@ export interface UserProfile {
 
 
 export interface StoredAddress {
+    id: string; // Use a unique ID for each address
+    name: string;
     street: string;
     city: string;
     state: string;
     zipCode: string;
     country: string;
+    phone: string;
+    isDefault: boolean;
 }
 
 export interface ShippingAddress {
@@ -91,3 +96,4 @@ export interface Coupon {
     isActive: boolean;
     createdAt: any; // Firestore Timestamp
 }
+

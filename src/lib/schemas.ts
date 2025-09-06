@@ -1,4 +1,5 @@
 
+
 import * as z from 'zod';
 
 export const shippingSchema = z.object({
@@ -10,3 +11,4 @@ export const shippingSchema = z.object({
   country: z.string(),
   phone: z.string().min(10, "A valid phone number is required."),
 });
+
