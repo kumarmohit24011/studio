@@ -28,6 +28,7 @@ export default async function Home() {
         <div className="relative z-10 p-4 bg-black bg-opacity-40 rounded-lg">
           <h1 className="text-5xl font-headline font-bold">{heroData.headline}</h1>
           <p className="mt-4 text-xl">{heroData.subtitle}</p>
+
           <Button asChild className="mt-6">
             <Link href={heroData.buttonLink}>{heroData.buttonText}</Link>
           </Button>
