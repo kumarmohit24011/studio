@@ -8,11 +8,23 @@ import { collection, addDoc, serverTimestamp, query, where, getDocs, orderBy } f
 export const createOrder = async (orderData: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
         const orderCol = collection(db, 'orders');
-        await addDoc(orderCol, {
+        
+        const dataToSave: any = {
             ...orderData,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
-        });
+        };
+
+        // Firestore does not allow `undefined` values.
+        // We'll clean the object before saving.
+        if (dataToSave.couponCode === undefined) {
+            delete dataToSave.couponCode;
+        }
+        if (dataToSave.discountAmount === undefined) {
+            delete dataToSave.discountAmount;
+        }
+
+        await addDoc(orderCol, dataToSave);
     } catch (error) {
         console.error("Error creating order: ", error);
         throw error;
