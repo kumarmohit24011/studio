@@ -12,47 +12,87 @@ export interface HeroSectionData {
     updatedAt?: any;
 }
 
-// This is a serializable version of HeroSectionData safe for client components
-export type PlainHeroData = Omit<HeroSectionData, 'updatedAt'> & { updatedAt?: string };
+export interface PromoBannerData {
+    headline: string;
+    subtitle: string;
+    buttonText: string;
+    buttonLink: string;
+    imageUrl: string;
+    updatedAt?: any;
+}
+
+export interface SiteContent {
+    heroSection: HeroSectionData;
+    promoBanner1: PromoBannerData;
+    promoBanner2: PromoBannerData;
+}
+
+// This is a serializable version of the data safe for client components
+export type PlainSiteContent = {
+    heroSection: Omit<HeroSectionData, 'updatedAt'> & { updatedAt?: string };
+    promoBanner1: Omit<PromoBannerData, 'updatedAt'> & { updatedAt?: string };
+    promoBanner2: Omit<PromoBannerData, 'updatedAt'> & { updatedAt?: string };
+};
 
 
-const siteContentRef = doc(db, 'siteContent', 'heroSection');
+const siteContentRef = doc(db, 'siteContent', 'global');
 
-export const getHeroSection = async (): Promise<HeroSectionData> => {
-    try {
-        const docSnap = await getDoc(siteContentRef);
-        if (docSnap.exists()) {
-            return docSnap.data() as HeroSectionData;
-        } else {
-            console.log("Hero section document doesn't exist, creating one with default data.");
-            const defaultData: HeroSectionData = {
-                headline: 'Timeless Elegance, Redefined',
-                subtitle: 'Discover our exclusive collection of handcrafted jewelry.',
-                buttonText: 'Shop Now',
-                buttonLink: '/products',
-                imageUrl: 'https://picsum.photos/1800/1000',
-                updatedAt: serverTimestamp()
-            };
-            await setDoc(siteContentRef, defaultData);
-            return defaultData;
-        }
-    } catch (error) {
-        console.error("Error fetching hero section data, returning defaults: ", error);
-        return {
-            headline: 'Timeless Elegance, Redefined',
-            subtitle: 'Discover our exclusive collection of handcrafted jewelry.',
-            buttonText: 'Shop Now',
-            buttonLink: '/products',
-            imageUrl: 'https://picsum.photos/1800/1000'
-        };
+const defaultPromoBanner: PromoBannerData = {
+    headline: 'Festive Discounts',
+    subtitle: 'Up to 30% off on select necklaces',
+    buttonText: 'Shop Now',
+    buttonLink: '/products?category=Necklaces',
+    imageUrl: 'https://picsum.photos/600/400',
+    updatedAt: new Date()
+};
+
+const defaultData: SiteContent = {
+    heroSection: {
+        headline: 'Timeless Elegance, Redefined',
+        subtitle: 'Discover our exclusive collection of handcrafted jewelry.',
+        buttonText: 'Shop Now',
+        buttonLink: '/products',
+        imageUrl: 'https://picsum.photos/1800/1000',
+        updatedAt: new Date()
+    },
+    promoBanner1: defaultPromoBanner,
+    promoBanner2: {
+        ...defaultPromoBanner,
+        headline: 'Limited Time Offer',
+        subtitle: 'Buy one, get one 50% off on wedding rings',
+        buttonLink: '/products?category=Rings',
+        imageUrl: 'https://picsum.photos/600/400?grayscale',
     }
 };
 
-export const updateHeroSection = async (data: Omit<HeroSectionData, 'imageUrl' | 'updatedAt'>, imageFile?: File): Promise<void> => {
-    console.log("--- Starting updateHeroSection ---");
-    console.log("Received data:", data);
-    console.log("Received image file:", imageFile ? imageFile.name : "No image file");
+export const getSiteContent = async (): Promise<SiteContent> => {
+    try {
+        const docSnap = await getDoc(siteContentRef);
+        if (docSnap.exists()) {
+            const data = docSnap.data() as SiteContent;
+            // Ensure all fields have default values if they are missing
+            return {
+                heroSection: data.heroSection || defaultData.heroSection,
+                promoBanner1: data.promoBanner1 || defaultData.promoBanner1,
+                promoBanner2: data.promoBanner2 || defaultData.promoBanner2,
+            };
+        } else {
+            console.log("Site content document doesn't exist, creating one with default data.");
+            await setDoc(siteContentRef, {
+                heroSection: { ...defaultData.heroSection, updatedAt: serverTimestamp() },
+                promoBanner1: { ...defaultData.promoBanner1, updatedAt: serverTimestamp() },
+                promoBanner2: { ...defaultData.promoBanner2, updatedAt: serverTimestamp() },
+            });
+            return defaultData;
+        }
+    } catch (error) {
+        console.error("Error fetching site content, returning defaults: ", error);
+        return defaultData;
+    }
+};
 
+
+export const updateHeroSection = async (data: Omit<HeroSectionData, 'imageUrl' | 'updatedAt'>, imageFile?: File): Promise<void> => {
     try {
         const updateData: any = {
             ...data,
@@ -60,23 +100,42 @@ export const updateHeroSection = async (data: Omit<HeroSectionData, 'imageUrl' |
         };
 
         if (imageFile) {
-            console.log("Image file provided. Uploading to Firebase Storage...");
             const storageRef = ref(storage, `hero-images/${imageFile.name}-${Date.now()}`);
             const snapshot = await uploadBytes(storageRef, imageFile);
-            const newImageUrl = await getDownloadURL(snapshot.ref);
-            console.log("Image uploaded successfully. URL:", newImageUrl);
-            updateData.imageUrl = newImageUrl;
-        } else {
-            console.log("No new image file provided. Keeping existing image.");
+            updateData.imageUrl = await getDownloadURL(snapshot.ref);
         }
 
-
-        console.log("Final data to be saved to Firestore:", updateData);
-        await updateDoc(siteContentRef, updateData);
-        console.log("--- updateHeroSection finished successfully ---");
+        await updateDoc(siteContentRef, { heroSection: updateData });
 
     } catch (error) {
-        console.error("!!! Error in updateHeroSection:", error);
+        console.error("Error in updateHeroSection:", error);
         throw error;
     }
 };
+
+export const updatePromoBanner = async (bannerId: 'promoBanner1' | 'promoBanner2', data: Omit<PromoBannerData, 'imageUrl' | 'updatedAt'>, imageFile?: File): Promise<void> => {
+    try {
+        const updateData: any = {
+            ...data,
+            updatedAt: serverTimestamp()
+        };
+
+        if (imageFile) {
+            const storageRef = ref(storage, `promo-images/${bannerId}-${imageFile.name}-${Date.now()}`);
+            const snapshot = await uploadBytes(storageRef, imageFile);
+            updateData.imageUrl = await getDownloadURL(snapshot.ref);
+        }
+        
+        // Firestore requires dot notation for updating nested objects
+        const firestoreUpdate: { [key: string]: any } = {};
+        Object.keys(updateData).forEach(key => {
+            firestoreUpdate[`${bannerId}.${key}`] = updateData[key];
+        });
+
+        await updateDoc(siteContentRef, firestoreUpdate);
+
+    } catch (error) {
+        console.error(`Error in updatePromoBanner for ${bannerId}:`, error);
+        throw error;
+    }
+}

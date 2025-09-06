@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { updateHeroSection, type PlainHeroData } from '@/services/siteContentService';
+import { updateHeroSection, type HeroSectionData } from '@/services/siteContentService';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useState } from 'react';
@@ -21,6 +21,7 @@ const heroSchema = z.object({
   image: z.any().optional(),
 });
 
+type PlainHeroData = Omit<HeroSectionData, 'updatedAt'> & { updatedAt?: string };
 
 export function HeroForm({ heroData }: { heroData: PlainHeroData }) {
   const { toast } = useToast();
@@ -40,7 +41,6 @@ export function HeroForm({ heroData }: { heroData: PlainHeroData }) {
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
-      console.log("File selected in form:", file);
       form.setValue('image', file);
       const previewUrl = URL.createObjectURL(file);
       setPreview(previewUrl);
@@ -48,7 +48,6 @@ export function HeroForm({ heroData }: { heroData: PlainHeroData }) {
   };
 
   const onSubmit = async (values: z.infer<typeof heroSchema>) => {
-    console.log("Submitting hero form with values:", values);
     try {
       await updateHeroSection({
         headline: values.headline,
@@ -60,7 +59,6 @@ export function HeroForm({ heroData }: { heroData: PlainHeroData }) {
       toast({ title: 'Success', description: 'Hero section updated successfully.' });
       router.refresh(); // Refresh data on the page
     } catch (error) {
-      console.error("Error submitting hero form:", error);
       toast({
         variant: 'destructive',
         title: 'Error',

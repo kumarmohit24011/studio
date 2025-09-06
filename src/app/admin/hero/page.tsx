@@ -1,16 +1,16 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getHeroSection, type PlainHeroData } from "@/services/siteContentService";
+import { getSiteContent, type SiteContent, type PlainSiteContent } from "@/services/siteContentService";
 import { HeroForm } from "./_components/hero-form";
 
 
 export default async function AdminHeroPage() {
-  const heroData = await getHeroSection();
+  const siteContent: SiteContent = await getSiteContent();
 
   // Convert Firestore Timestamp to a serializable format
-  const plainHeroData: PlainHeroData = {
-    ...heroData,
-    updatedAt: heroData.updatedAt ? new Date(heroData.updatedAt.seconds * 1000).toISOString() : undefined,
+  const plainHeroData = {
+    ...siteContent.heroSection,
+    updatedAt: siteContent.heroSection.updatedAt ? new Date(siteContent.heroSection.updatedAt.seconds * 1000).toISOString() : undefined,
   };
 
 
