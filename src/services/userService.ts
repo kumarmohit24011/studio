@@ -1,6 +1,5 @@
 
 
-
 import { db } from '@/lib/firebase';
 import { UserProfile, StoredAddress } from '@/lib/types';
 import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
@@ -89,4 +88,3 @@ export const updateUserProfile = async (uid: string, data: Partial<Omit<UserProf
         throw error;
     }
 };
-

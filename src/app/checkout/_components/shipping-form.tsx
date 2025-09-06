@@ -61,7 +61,7 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
       const defaultAddress = addresses.find(a => a.isDefault) || addresses[0];
       setSelectedAddressId(defaultAddress.id);
       form.reset({ ...defaultAddress, saveAddress: false, isDefault: false });
-      onFormSubmit(defaultAddress); // Pre-select the default address
+      onFormSubmit(defaultAddress);
     } else {
       setShowNewAddressForm(true);
       form.reset({
@@ -71,7 +71,7 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
          saveAddress: true, isDefault: false,
       });
     }
-  }, [userProfile, form]); // Removed onFormSubmit and showNewAddressForm
+  }, [userProfile, onFormSubmit, form, showNewAddressForm]); 
 
   const handleAddressSelection = (addressId: string) => {
     setSelectedAddressId(addressId);
@@ -83,6 +83,7 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
             street: '', city: '', state: '', zipCode: '', country: 'India',
             saveAddress: true, isDefault: false,
         });
+        onFormSubmit(form.getValues()); // Or clear it: onFormSubmit(null)
     } else {
         setShowNewAddressForm(false);
         const selected = userProfile?.addresses?.find(a => a.id === addressId);
@@ -110,11 +111,20 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
                 isDefault: data.isDefault,
             };
             const existingAddresses = userProfile?.addresses || [];
-            await updateUserProfile(user.uid, { addresses: [...existingAddresses, newAddress] });
+            
+            let finalAddresses = [...existingAddresses];
+            if (newAddress.isDefault) {
+                finalAddresses = finalAddresses.map(addr => ({ ...addr, isDefault: false }));
+            }
+            finalAddresses.push(newAddress);
+
+            await updateUserProfile(user.uid, { addresses: finalAddresses });
              toast({
                 title: "Address Saved",
                 description: "Your new shipping address has been saved.",
             });
+            setShowNewAddressForm(false);
+            setSelectedAddressId(newAddress.id);
         } catch (error) {
              toast({
                 variant: 'destructive',
