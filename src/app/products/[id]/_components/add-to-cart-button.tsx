@@ -4,20 +4,29 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
 import type { Product } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { ShoppingCart } from "lucide-react";
 
-export function AddToCartButton({ product }: { product: Product }) {
+interface AddToCartButtonProps {
+    product: Product;
+    className?: string;
+    size?: 'default' | 'sm' | 'lg' | 'icon';
+}
+
+export function AddToCartButton({ product, className, size = "lg"}: AddToCartButtonProps) {
   const { addToCart } = useCart();
   const { toast } = useToast();
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation if the button is inside a link
+    e.stopPropagation();
     addToCart(product, 1);
-    toast({
-        title: "Added to Cart",
-        description: `${product.name} has been added to your cart.`
-    });
   };
 
   return (
-    <Button onClick={handleAddToCart} size="lg">Add to Cart</Button>
+    <Button onClick={handleAddToCart} size={size} className={cn(className)}>
+        <ShoppingCart className="mr-2 h-4 w-4" />
+        Add to Cart
+    </Button>
   );
 }
