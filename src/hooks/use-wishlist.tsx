@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
@@ -62,15 +63,6 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     setWishlistLoading(false);
   }, [user, userProfile, authLoading, getLocalWishlist]);
 
-  const updateWishlist = (newWishlist: string[]) => {
-    setWishlist(newWishlist);
-    if (user) {
-      updateUserProfile(user.uid, { wishlist });
-    } else {
-      localStorage.setItem(WISHLIST_LOCALSTORAGE_KEY, JSON.stringify(newWishlist));
-    }
-  };
-
   const addToWishlist = (product: Product) => {
     if (wishlist.includes(product.id)) return;
     const newWishlist = [...wishlist, product.id];
@@ -116,3 +108,4 @@ export function useWishlist() {
   }
   return context;
 }
+
