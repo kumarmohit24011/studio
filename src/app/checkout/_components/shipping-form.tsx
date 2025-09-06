@@ -74,6 +74,7 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
          saveAddress: true, isDefault: false,
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userProfile, showNewAddressForm]); 
 
   const handleAddressSelection = (addressId: string) => {
@@ -150,7 +151,7 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-3">
             <FormLabel>Saved Addresses</FormLabel>
-            {userProfile?.addresses && userProfile.addresses.length > 0 && (
+            {userProfile?.addresses && userProfile.addresses.length > 0 ? (
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                     {userProfile.addresses.map(addr => (
                          <Card 
@@ -168,6 +169,12 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
                             <p className="text-muted-foreground text-sm mt-2">{addr.phone}</p>
                          </Card>
                     ))}
+                </div>
+            ) : (
+                 <div className="text-center py-8 text-muted-foreground text-sm rounded-lg border border-dashed">
+                    <MapPin className="mx-auto h-8 w-8 mb-2" />
+                    <p>You have no saved addresses yet.</p>
+                    <p>Add an address below to get started.</p>
                 </div>
             )}
              <Button
@@ -259,7 +266,7 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
                             <FormItem>
                             <FormLabel>Country</FormLabel>
                             <FormControl>
-                                <Input disabled {...field} />
+                                <Input disabled {...field} value="India" />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -324,5 +331,3 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
     </Form>
   );
 }
-
-    

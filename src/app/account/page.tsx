@@ -118,7 +118,7 @@ export default function AccountPage() {
                 <TabsTrigger value="orders">Order History</TabsTrigger>
             </TabsList>
             <TabsContent value="profile">
-                <div className="grid md:grid-cols-3 gap-8">
+                <div className="grid md:grid-cols-3 gap-8 mt-6">
                     <div className="md:col-span-2">
                         <Card>
                             <CardHeader>
@@ -206,4 +206,3 @@ export default function AccountPage() {
     </div>
   );
 }
-
