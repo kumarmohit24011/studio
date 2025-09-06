@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { updateShippingSettings, type ShippingSettingsData } from '@/services/siteContentService';
+import { updateShippingSettings, type PlainShippingSettingsData } from '@/services/siteContentService';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -17,7 +17,7 @@ const shippingSchema = z.object({
   freeShippingThreshold: z.coerce.number().min(0, 'Threshold must be a positive number.'),
 });
 
-export function ShippingSettingsForm({ settings }: { settings: ShippingSettingsData }) {
+export function ShippingSettingsForm({ settings }: { settings: PlainShippingSettingsData }) {
   const { toast } = useToast();
   const router = useRouter();
   

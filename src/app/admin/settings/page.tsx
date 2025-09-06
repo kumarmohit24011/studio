@@ -6,6 +6,12 @@ import { ShippingSettingsForm } from "./_components/shipping-settings-form";
 export default async function AdminSettingsPage() {
   const siteContent: SiteContent = await getSiteContent();
 
+  const plainShippingSettings = {
+    ...siteContent.shippingSettings,
+    updatedAt: siteContent.shippingSettings.updatedAt ? new Date(siteContent.shippingSettings.updatedAt.seconds * 1000).toISOString() : undefined,
+  };
+
+
   return (
     <div className="flex flex-col gap-8">
         <div>
@@ -13,7 +19,7 @@ export default async function AdminSettingsPage() {
             <p className="text-muted-foreground">Configure your website and admin preferences.</p>
         </div>
         
-        <ShippingSettingsForm settings={siteContent.shippingSettings} />
+        <ShippingSettingsForm settings={plainShippingSettings} />
 
         {/* Other settings cards can be added here in the future */}
     </div>

@@ -34,12 +34,14 @@ export interface SiteContent {
     shippingSettings: ShippingSettingsData;
 }
 
+export type PlainShippingSettingsData = Omit<ShippingSettingsData, 'updatedAt'> & { updatedAt?: string };
+
 // This is a serializable version of the data safe for client components
 export type PlainSiteContent = {
     heroSection: Omit<HeroSectionData, 'updatedAt'> & { updatedAt?: string };
     promoBanner1: Omit<PromoBannerData, 'updatedAt'> & { updatedAt?: string };
     promoBanner2: Omit<PromoBannerData, 'updatedAt'> & { updatedAt?: string };
-    shippingSettings: Omit<ShippingSettingsData, 'updatedAt'> & { updatedAt?: string };
+    shippingSettings: PlainShippingSettingsData;
 };
 
 
