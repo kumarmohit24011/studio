@@ -15,6 +15,7 @@ import { shippingSchema } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Coupon } from "@/lib/types";
+import { CreditCard } from "lucide-react";
 
 export default function CheckoutPage() {
   const { cart, cartLoading } = useCart();
@@ -76,9 +77,9 @@ export default function CheckoutPage() {
     return (
         <div className="container mx-auto px-4 py-12">
             <Skeleton className="h-8 w-1/4 mb-8" />
-            <div className="grid lg:grid-cols-5 gap-12 items-start">
-                <div className="lg:col-span-3"><Skeleton className="h-96 w-full" /></div>
-                <div className="lg:col-span-2"><Skeleton className="h-64 w-full" /></div>
+            <div className="grid lg:grid-cols-2 gap-12 items-start">
+                <div className="space-y-8"><Skeleton className="h-96 w-full" /></div>
+                <div className="lg:col-span-1"><Skeleton className="h-64 w-full" /></div>
             </div>
         </div>
     );
@@ -91,31 +92,34 @@ export default function CheckoutPage() {
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <h1 className="text-3xl font-headline font-bold mb-8">Checkout</h1>
-      <div className="grid lg:grid-cols-5 gap-12 items-start">
-        <div className="lg:col-span-3">
-          <Card>
-            <CardHeader>
-              <CardTitle>Shipping Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ShippingForm onFormSubmit={setShippingAddress} />
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="lg:col-span-2">
-            <div className="sticky top-24">
-                <OrderSummary 
-                    subtotal={subtotal} 
-                    shippingCost={shippingCost} 
-                    discount={discount}
-                    total={total}
-                    appliedCoupon={appliedCoupon}
-                    applyCoupon={setAppliedCoupon}
-                    removeCoupon={removeCoupon}
-                />
-                <Button 
+      <div className="text-center mb-12">
+          <h1 className="text-4xl font-headline font-bold">Checkout</h1>
+          <p className="text-muted-foreground mt-2">Complete your order below.</p>
+      </div>
+      <div className="grid lg:grid-cols-2 gap-12 items-start">
+        
+        <div className="space-y-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>Shipping Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ShippingForm onFormSubmit={setShippingAddress} />
+              </CardContent>
+            </Card>
+             <Card>
+              <CardHeader>
+                <CardTitle>Payment Method</CardTitle>
+              </CardHeader>
+              <CardContent>
+                 <div className="flex items-center justify-between p-4 rounded-md border bg-muted">
+                    <div className="flex items-center gap-3">
+                        <CreditCard className="h-6 w-6"/>
+                        <p className="font-semibold">Pay with Razorpay</p>
+                    </div>
+                    <p className="text-sm text-muted-foreground">Cards, UPI, Netbanking</p>
+                 </div>
+                 <Button 
                     className="w-full mt-6" 
                     size="lg" 
                     onClick={handlePayment} 
@@ -123,7 +127,20 @@ export default function CheckoutPage() {
                 >
                     {isSubmitting ? "Processing..." : (isReady ? `Pay ₹${total.toFixed(2)}` : "Loading Payment...")}
                 </Button>
-            </div>
+              </CardContent>
+            </Card>
+        </div>
+
+        <div className="sticky top-24">
+            <OrderSummary 
+                subtotal={subtotal} 
+                shippingCost={shippingCost} 
+                discount={discount}
+                total={total}
+                appliedCoupon={appliedCoupon}
+                applyCoupon={setAppliedCoupon}
+                removeCoupon={removeCoupon}
+            />
         </div>
       </div>
     </div>

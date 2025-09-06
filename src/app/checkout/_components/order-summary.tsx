@@ -31,7 +31,7 @@ export function OrderSummary({ subtotal, shippingCost, total, discount, appliedC
                      {cart.map(item => (
                         <div key={item.productId} className="flex items-center justify-between text-sm">
                            <div className="flex items-center gap-3">
-                             <div className="relative h-12 w-12 rounded-md overflow-hidden">
+                             <div className="relative h-12 w-12 rounded-md overflow-hidden border">
                                 <Image 
                                     src={item.imageUrl || "https://picsum.photos/100/100"} 
                                     alt={item.name || 'product image'} 
@@ -49,6 +49,17 @@ export function OrderSummary({ subtotal, shippingCost, total, discount, appliedC
                     ))}
                 </div>
                 <Separator />
+                 <div className="p-4 bg-muted rounded-md">
+                     {!appliedCoupon ? (
+                        <CouponForm applyCoupon={applyCoupon} />
+                    ) : (
+                         <div className="flex justify-between items-center">
+                            <p className="text-sm font-medium text-primary">Coupon Applied: {appliedCoupon.code}</p>
+                            <Badge variant="secondary" className="cursor-pointer" onClick={removeCoupon}>Remove</Badge>
+                         </div>
+                    )}
+                </div>
+                <Separator />
                 <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">Subtotal</span>
@@ -59,11 +70,8 @@ export function OrderSummary({ subtotal, shippingCost, total, discount, appliedC
                         <span>{shippingCost === 0 ? 'Free' : `₹${shippingCost.toFixed(2)}`}</span>
                     </div>
                      {appliedCoupon && (
-                        <div className="flex justify-between text-primary">
-                            <span className="text-muted-foreground">
-                                Discount ({appliedCoupon.code})
-                                <Badge variant="secondary" className="ml-2 cursor-pointer" onClick={removeCoupon}>Remove</Badge>
-                            </span>
+                        <div className="flex justify-between text-primary font-medium">
+                            <span className="text-muted-foreground">Discount</span>
                             <span>- ₹{discount.toFixed(2)}</span>
                         </div>
                     )}
@@ -74,9 +82,6 @@ export function OrderSummary({ subtotal, shippingCost, total, discount, appliedC
                     <span>₹{total.toFixed(2)}</span>
                 </div>
             </CardContent>
-            <CardFooter>
-                {!appliedCoupon && <CouponForm applyCoupon={applyCoupon} />}
-            </CardFooter>
         </Card>
     );
 }
