@@ -4,14 +4,28 @@ import { ProductForm } from "../../_components/product-form";
 import { getProductById } from "@/services/productService";
 import { getAllCategories } from "@/services/categoryService";
 import { notFound } from "next/navigation";
+import type { Product, Category } from "@/lib/types";
 
 export default async function EditProductPage({ params }: { params: { id: string } }) {
-  const product = await getProductById(params.id);
-  const categories = await getAllCategories();
+  const productData = await getProductById(params.id);
+  const categoriesData = await getAllCategories();
   
-  if (!product) {
+  if (!productData) {
     notFound();
   }
+
+  // Convert Timestamps to strings
+  const product: Product = {
+    ...productData,
+    createdAt: productData.createdAt ? new Date(productData.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
+    updatedAt: productData.updatedAt ? new Date(productData.updatedAt.seconds * 1000).toISOString() : new Date().toISOString(),
+  };
+
+  const categories = categoriesData.map(cat => ({
+    ...cat,
+    createdAt: cat.createdAt ? new Date(cat.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
+  })) as Category[];
+
 
   return (
     <div className="flex flex-col gap-4">

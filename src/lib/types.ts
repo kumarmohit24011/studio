@@ -19,7 +19,7 @@ export interface Category {
     id: string;
     name: string;
     description: string;
-    createdAt: any; // Firestore Timestamp
+    createdAt: any | string; // Firestore Timestamp or ISO string
 }
 
 export interface CartItem { 
