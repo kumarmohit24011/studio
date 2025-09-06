@@ -31,7 +31,7 @@ interface ShippingFormProps {
 }
 
 const newAddressSchema = shippingSchema.extend({
-  saveAddress: z.boolean().default(false),
+  saveAddress: z.boolean().default(true),
   isDefault: z.boolean().default(false),
 });
 
@@ -102,7 +102,8 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
   const onSubmit = async (data: z.infer<typeof newAddressSchema>) => {
     onFormSubmit(data);
     
-    if (user && data.saveAddress) {
+    // Always save the address if the user is logged in
+    if (user) {
         try {
             const newAddress: StoredAddress = {
                 id: `addr_${Date.now()}`, // simple unique id
@@ -113,7 +114,8 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
                 zipCode: data.zipCode,
                 country: data.country,
                 phone: data.phone,
-                isDefault: data.isDefault,
+                // Make it default if it's the first address
+                isDefault: (userProfile?.addresses?.length || 0) === 0 ? true : data.isDefault,
             };
             const existingAddresses = userProfile?.addresses || [];
             
@@ -286,42 +288,6 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
                         </FormItem>
                     )}
                 />
-                 <FormField
-                  control={form.control}
-                  name="saveAddress"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                      <div className="space-y-0.5">
-                        <FormLabel>Save this address for future use</FormLabel>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                 {form.getValues('saveAddress') && (
-                     <FormField
-                        control={form.control}
-                        name="isDefault"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                            <div className="space-y-0.5">
-                                <FormLabel>Set as default address</FormLabel>
-                            </div>
-                            <FormControl>
-                                <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                                />
-                            </FormControl>
-                            </FormItem>
-                        )}
-                        />
-                 )}
                  <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
                      {form.formState.isSubmitting ? "Saving..." : "Use this address"}
                 </Button>

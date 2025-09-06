@@ -82,7 +82,7 @@ export const updateUserProfile = async (uid: string, data: Partial<Omit<UserProf
             }
         }
         
-        await updateDoc(userRef, data);
+        await updateDoc(userRef, data, { merge: true });
     } catch (error) {
         console.error("Error updating user profile:", error);
         throw error;
