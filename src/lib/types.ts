@@ -15,7 +15,7 @@ export interface Category {
     id: string;
     name: string;
     description: string;
-    imageUrl?: string;
+    createdAt: any; // Firestore Timestamp
 }
 
 export interface CartItem { 

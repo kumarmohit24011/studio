@@ -4,9 +4,9 @@ import { Category } from '@/lib/types';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 
 const MOCK_CATEGORIES: Category[] = [
-    { id: 'rings', name: 'Rings', description: 'Elegant rings for every occasion.', imageUrl: 'https://picsum.photos/400/300?random=1' },
-    { id: 'necklaces', name: 'Necklaces', description: 'Stunning necklaces to complete your look.', imageUrl: 'https://picsum.photos/400/300?random=2' },
-    { id: 'bracelets', name: 'Bracelets', description: 'Charming bracelets to adorn your wrist.', imageUrl: 'https://picsum.photos/400/300?random=3' },
+    { id: 'rings', name: 'Rings', description: 'Elegant rings for every occasion.', createdAt: new Date() },
+    { id: 'necklaces', name: 'Necklaces', description: 'Stunning necklaces to complete your look.', createdAt: new Date() },
+    { id: 'bracelets', name: 'Bracelets', description: 'Charming bracelets to adorn your wrist.', createdAt: new Date() },
 ];
 
 export const getAllCategories = async (): Promise<Category[]> => {
