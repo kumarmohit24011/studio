@@ -9,21 +9,32 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export function OrderHistory({ userId }: { userId: string }) {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+interface OrderHistoryProps {
+    userId: string;
+    initialOrders?: Order[]; // Optional initial orders to prevent client-side fetching
+}
+
+export function OrderHistory({ userId, initialOrders }: OrderHistoryProps) {
+  const [orders, setOrders] = useState<Order[]>(initialOrders || []);
+  const [loading, setLoading] = useState(!initialOrders);
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      setLoading(true);
-      const userOrders = await getOrdersByUserId(userId);
-      // Sort orders by date client-side
-      const sortedOrders = userOrders.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
-      setOrders(sortedOrders);
-      setLoading(false);
-    };
-    fetchOrders();
-  }, [userId]);
+    // Only fetch if initialOrders are not provided
+    if (!initialOrders) {
+        const fetchOrders = async () => {
+          setLoading(true);
+          const userOrders = await getOrdersByUserId(userId);
+          // Sort orders by date client-side
+          const sortedOrders = userOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          setOrders(sortedOrders);
+          setLoading(false);
+        };
+        fetchOrders();
+    }
+  }, [userId, initialOrders]);
+  
+  const sortedOrders = orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
 
   if (loading) {
     return (
@@ -41,7 +52,7 @@ export function OrderHistory({ userId }: { userId: string }) {
     )
   }
 
-  if (orders.length === 0) {
+  if (sortedOrders.length === 0) {
     return (
        <Card>
             <CardHeader>
@@ -65,14 +76,14 @@ export function OrderHistory({ userId }: { userId: string }) {
         </CardHeader>
         <CardContent>
              <Accordion type="single" collapsible className="w-full">
-                {orders.map((order) => (
+                {sortedOrders.map((order) => (
                 <AccordionItem key={order.id} value={order.id}>
                     <AccordionTrigger>
                     <div className="flex justify-between w-full pr-4">
                         <div className='text-left'>
                             <p className="font-semibold">Order #{order.id.slice(0, 7)}...</p>
                             <p className="text-sm text-muted-foreground">
-                                {new Date(order.createdAt.seconds * 1000).toLocaleDateString()}
+                                {new Date(order.createdAt).toLocaleDateString()}
                             </p>
                         </div>
                         <div className="text-right">

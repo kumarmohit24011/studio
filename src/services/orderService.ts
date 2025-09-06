@@ -35,15 +35,19 @@ export const createOrder = async (orderData: Omit<Order, 'id' | 'createdAt' | 'u
 export const getOrdersByUserId = async (userId: string): Promise<Order[]> => {
     try {
         const ordersRef = collection(db, 'orders');
-        // Sort by date descending to show newest first
-        const q = query(ordersRef, where("userId", "==", userId), orderBy("createdAt", "desc"));
+        // Fetch orders by user ID
+        const q = query(ordersRef, where("userId", "==", userId));
         const snapshot = await getDocs(q);
         
         if (snapshot.empty) {
             return [];
         }
 
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+        const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+
+        // Sort orders by date client-side
+        return orders.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
+
     } catch (error) {
         console.error("Error fetching orders for user: ", error);
         // In a real app, you might want to return an empty array or handle this differently
@@ -82,3 +86,4 @@ export const updateOrderStatus = async (orderId: string, status: Order['orderSta
         throw error;
     }
 };
+

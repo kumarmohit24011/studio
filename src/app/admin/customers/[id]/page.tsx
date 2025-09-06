@@ -8,6 +8,8 @@ import { OrderHistory } from "@/app/account/_components/order-history";
 import { Home } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { getOrdersByUserId } from "@/services/orderService";
+import type { Order } from "@/lib/types";
 
 export default async function CustomerDetailPage({ params }: { params: { id: string } }) {
     const userProfile = await getUserProfile(params.id);
@@ -15,6 +17,15 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
     if (!userProfile) {
         notFound();
     }
+    
+    const ordersData = await getOrdersByUserId(userProfile.uid);
+    // Ensure all data passed to the client component is serializable
+    const orders = ordersData.map(o => ({
+        ...o,
+        createdAt: new Date(o.createdAt.seconds * 1000).toISOString(),
+        updatedAt: o.updatedAt ? new Date(o.updatedAt.seconds * 1000).toISOString() : new Date().toISOString(),
+    })) as unknown as Order[];
+
 
     return (
          <div className="flex flex-col gap-4">
@@ -35,7 +46,7 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
 
             <div className="grid md:grid-cols-3 gap-8">
                 <div className="md:col-span-2">
-                    <OrderHistory userId={userProfile.uid} />
+                    <OrderHistory userId={userProfile.uid} initialOrders={orders} />
                 </div>
                 <div>
                     <Card>
