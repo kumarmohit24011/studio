@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/firebase';
 import { Order } from '@/lib/types';
-import { collection, addDoc, serverTimestamp, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, where, getDocs, orderBy, doc, updateDoc } from 'firebase/firestore';
 
 // This function creates an order in Firestore
 export const createOrder = async (orderData: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -68,3 +68,17 @@ export const getAllOrders = async (): Promise<Order[]> => {
         return [];
     }
 }
+
+// This function updates the status of an order
+export const updateOrderStatus = async (orderId: string, status: Order['orderStatus']): Promise<void> => {
+    try {
+        const orderRef = doc(db, 'orders', orderId);
+        await updateDoc(orderRef, {
+            orderStatus: status,
+            updatedAt: serverTimestamp()
+        });
+    } catch (error) {
+        console.error("Error updating order status: ", error);
+        throw error;
+    }
+};

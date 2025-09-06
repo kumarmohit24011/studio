@@ -4,10 +4,19 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getAllOrders } from "@/services/orderService";
+import { OrderActions } from "./_components/order-actions";
+import type { Order } from "@/lib/types";
 
 export default async function AdminOrdersPage() {
-  const orders = await getAllOrders();
+  const ordersData = await getAllOrders();
   
+  const orders = ordersData.map(o => ({
+    ...o,
+    createdAt: o.createdAt ? new Date(o.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
+    updatedAt: o.updatedAt ? new Date(o.updatedAt.seconds * 1000).toISOString() : new Date().toISOString(),
+  })) as Order[];
+
+
   return (
      <div className="flex flex-col gap-4">
        <div className="flex items-center">
@@ -21,32 +30,7 @@ export default async function AdminOrdersPage() {
             </CardDescription>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Order ID</TableHead>
-                            <TableHead>Customer</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Total</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {orders.map(order => (
-                             <TableRow key={order.id}>
-                                <TableCell className="font-medium">#{order.id.slice(0, 7)}...</TableCell>
-                                <TableCell>{order.shippingAddress.name}</TableCell>
-                                <TableCell>{new Date(order.createdAt.seconds * 1000).toLocaleDateString()}</TableCell>
-                                <TableCell>
-                                    <Badge variant={order.orderStatus === 'delivered' ? 'default' : 'secondary'} className="capitalize">
-                                        {order.orderStatus}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="text-right">₹{order.totalAmount.toFixed(2)}</TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                <OrderActions orders={orders} />
                 {orders.length === 0 && (
                     <div className="text-center text-muted-foreground py-12">
                         <p>No orders found.</p>
