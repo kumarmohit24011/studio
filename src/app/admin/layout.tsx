@@ -92,7 +92,7 @@ export default function AdminLayout({
             </div>
         </SidebarHeader>
         <SidebarContent>
-            <SidebarGroup>
+            <SidebarGroup className="p-0">
                 <SidebarMenu>
                     <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={isActive('/admin')}>
