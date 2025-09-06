@@ -257,16 +257,21 @@ export const updateProductStatus = async (
 
         if (status.isNew !== undefined) {
             newTags = newTags.filter(tag => tag !== 'new');
-            if (status.isNew) newTags.push('new');
+            if (status.isNew) {
+                newTags.push('new');
+            }
         }
+        
         if (status.isTrending !== undefined) {
             newTags = newTags.filter(tag => tag !== 'popular');
-            if (status.isTrending) newTags.push('popular');
+            if (status.isTrending) {
+                newTags.push('popular');
+            }
         }
 
-        const updateData: Partial<Product> = {
-            updatedAt: serverTimestamp(),
+        const updateData: any = {
             tags: newTags,
+            updatedAt: serverTimestamp(),
         };
 
         if (status.isPublished !== undefined) {
