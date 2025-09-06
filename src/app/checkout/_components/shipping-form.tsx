@@ -289,7 +289,7 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
                     )}
                 />
                  <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-                     {form.formState.isSubmitting ? "Saving..." : "Use this address"}
+                     {form.formState.isSubmitting ? "Saving..." : "Save"}
                 </Button>
             </div>
         )}
@@ -297,3 +297,4 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
     </Form>
   );
 }
+
