@@ -6,13 +6,13 @@ import {
   Sidebar,
   SidebarHeader,
   SidebarContent,
-  SidebarTrigger,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
   SidebarInset,
   SidebarRail,
+  SidebarGroup,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/use-auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -92,48 +92,50 @@ export default function AdminLayout({
             </div>
         </SidebarHeader>
         <SidebarContent>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive('/admin')}>
-                <Link href="/admin">
-                  <Home />
-                  Dashboard
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive('/admin/products')}>
-                <Link href="/admin/products">
-                  <Package />
-                  Products
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive('/admin/orders')}>
-                <Link href="/admin/orders">
-                  <ShoppingCart />
-                  Orders
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive('/admin/customers')}>
-                <Link href="/admin/customers">
-                  <Users />
-                  Customers
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive('/admin/settings')}>
-                <Link href="/admin/settings">
-                  <Settings />
-                  Settings
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+            <SidebarGroup>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin')}>
+                        <Link href="/admin">
+                        <Home />
+                        Dashboard
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/products')}>
+                        <Link href="/admin/products">
+                        <Package />
+                        Products
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/orders')}>
+                        <Link href="/admin/orders">
+                        <ShoppingCart />
+                        Orders
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/customers')}>
+                        <Link href="/admin/customers">
+                        <Users />
+                        Customers
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive('/admin/settings')}>
+                        <Link href="/admin/settings">
+                        <Settings />
+                        Settings
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+          </SidebarGroup>
         </SidebarContent>
         <SidebarFooter>
           <DropdownMenu>
