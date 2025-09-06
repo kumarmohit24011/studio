@@ -21,13 +21,13 @@ export function OrderSummary({ subtotal, shippingCost, total, discount, appliedC
     const { cart } = useCart();
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 rounded-lg">
             <h2 className="text-2xl font-semibold">Order Summary</h2>
-            <div className="space-y-4 max-h-80 overflow-y-auto pr-3 -mr-3">
+            <div className="space-y-4 max-h-[300px] overflow-y-auto pr-3 -mr-3">
                  {cart.map(item => (
                     <div key={item.productId} className="flex items-start justify-between text-sm gap-4">
                        <div className="flex items-start gap-4">
-                         <div className="relative h-20 w-20 rounded-md overflow-hidden border flex-shrink-0">
+                         <div className="relative h-20 w-20 rounded-md overflow-hidden border flex-shrink-0 bg-white">
                             <Image 
                                 src={item.imageUrl || "https://picsum.photos/100/100"} 
                                 alt={item.name || 'product image'} 
@@ -51,8 +51,8 @@ export function OrderSummary({ subtotal, shippingCost, total, discount, appliedC
                 <CouponForm applyCoupon={applyCoupon} />
             ) : (
                 <div className="flex justify-between items-center text-sm">
-                    <p className="font-medium text-primary">Coupon Applied: <span className="font-bold">{appliedCoupon.code}</span></p>
-                    <button onClick={removeCoupon} className="font-semibold text-muted-foreground hover:text-foreground">Remove</button>
+                    <p className="font-medium text-primary">Coupon Applied: <Badge variant="secondary" className="ml-2">{appliedCoupon.code}</Badge></p>
+                    <button onClick={removeCoupon} className="font-semibold text-xs text-muted-foreground hover:text-foreground uppercase tracking-wider">Remove</button>
                 </div>
             )}
 
@@ -68,9 +68,9 @@ export function OrderSummary({ subtotal, shippingCost, total, discount, appliedC
                     <span className="font-medium">{shippingCost === 0 ? 'Free' : `₹${shippingCost.toFixed(2)}`}</span>
                 </div>
                  {appliedCoupon && (
-                    <div className="flex justify-between text-primary">
+                    <div className="flex justify-between text-primary font-medium">
                         <span className="text-muted-foreground">Discount</span>
-                        <span className="font-medium">- ₹{discount.toFixed(2)}</span>
+                        <span>- ₹{discount.toFixed(2)}</span>
                     </div>
                 )}
             </div>

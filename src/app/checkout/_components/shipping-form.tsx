@@ -58,7 +58,12 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
   }, [userProfile, form]);
   
   useEffect(() => {
-    const subscription = form.watch(() => setIsSaved(false));
+    const subscription = form.watch((value, { name }) => {
+        // If a field is changed, we consider the address "unsaved" for the current checkout session
+        if(name){
+             setIsSaved(false);
+        }
+    });
     return () => subscription.unsubscribe();
   }, [form]);
 
@@ -66,7 +71,7 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
   const onSubmit = async (data: z.infer<typeof shippingSchema>) => {
     onFormSubmit(data);
     setIsSaved(true);
-    // Optionally save the address to user's profile for future use
+    
     if (user) {
         try {
             const address = {
@@ -76,7 +81,7 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
                 zipCode: data.zipCode,
                 country: data.country,
             }
-            await updateUserProfile(user.uid, { address, phone: data.phone });
+            await updateUserProfile(user.uid, { address, phone: data.phone, name: data.name });
              toast({
                 title: "Address Saved",
                 description: "Your shipping address has been saved for future orders.",
@@ -85,7 +90,7 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
              toast({
                 variant: 'destructive',
                 title: "Save Failed",
-                description: "Could not save your address.",
+                description: "Could not save your shipping address.",
             });
         }
     }
@@ -191,7 +196,7 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
         />
         
         <Button type="submit" className="w-full" disabled={form.formState.isSubmitting || isSaved}>
-            {isSaved ? <><CheckCircle className="mr-2 h-4 w-4" /> Address Saved</> : "Save Shipping Address"}
+            {isSaved ? <><CheckCircle className="mr-2 h-4 w-4" /> Address Confirmed</> : "Use this address"}
         </Button>
       </form>
     </Form>
