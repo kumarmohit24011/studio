@@ -1,12 +1,12 @@
 
 import { db } from '@/lib/firebase';
 import { Category } from '@/lib/types';
-import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 
 const MOCK_CATEGORIES: Category[] = [
-    { id: 'rings', name: 'Rings', description: 'Elegant rings for every occasion.', createdAt: new Date() },
-    { id: 'necklaces', name: 'Necklaces', description: 'Stunning necklaces to complete your look.', createdAt: new Date() },
-    { id: 'bracelets', name: 'Bracelets', description: 'Charming bracelets to adorn your wrist.', createdAt: new Date() },
+    { id: 'rings', name: 'Rings', description: 'Elegant rings for every occasion.', createdAt: new Date(), order: 1 },
+    { id: 'necklaces', name: 'Necklaces', description: 'Stunning necklaces to complete your look.', createdAt: new Date(), order: 2 },
+    { id: 'bracelets', name: 'Bracelets', description: 'Charming bracelets to adorn your wrist.', createdAt: new Date(), order: 3 },
 ];
 
 export const getAllCategories = async (): Promise<Category[]> => {
@@ -17,7 +17,9 @@ export const getAllCategories = async (): Promise<Category[]> => {
             console.log('No categories found in Firestore, returning mock data.');
             return MOCK_CATEGORIES;
         }
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category)).sort((a, b) => a.name.localeCompare(b.name));
+        return snapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() } as Category))
+            .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     } catch (error) {
         console.error("Error fetching categories, returning mock data: ", error);
         return MOCK_CATEGORIES;
@@ -59,6 +61,20 @@ export const updateCategory = async (id: string, data: Partial<Omit<Category, 'i
         await updateDoc(categoryRef, data);
     } catch (error) {
         console.error("Error updating category: ", error);
+        throw error;
+    }
+};
+
+export const updateCategoryOrder = async (categories: { id: string; order: number }[]): Promise<void> => {
+    try {
+        const batch = writeBatch(db);
+        categories.forEach(category => {
+            const categoryRef = doc(db, 'categories', category.id);
+            batch.update(categoryRef, { order: category.order });
+        });
+        await batch.commit();
+    } catch (error) {
+        console.error("Error updating category order: ", error);
         throw error;
     }
 };

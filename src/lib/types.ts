@@ -22,6 +22,7 @@ export interface Category {
     name: string;
     description: string;
     isFeatured?: boolean;
+    order?: number;
     createdAt: any | string; // Firestore Timestamp or ISO string
 }
 
