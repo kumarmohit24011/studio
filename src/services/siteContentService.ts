@@ -1,6 +1,6 @@
 
 import { db, storage } from '@/lib/firebase';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export interface HeroSectionData {
@@ -48,25 +48,24 @@ export const getHeroSection = async (): Promise<HeroSectionData> => {
 
 export const updateHeroSection = async (data: Omit<HeroSectionData, 'imageUrl' | 'updatedAt'>, imageFile?: File): Promise<void> => {
     try {
-        let imageUrl: string | undefined = undefined;
+        let newImageUrl: string | undefined = undefined;
 
         if (imageFile) {
             const storageRef = ref(storage, `hero-images/${imageFile.name}-${Date.now()}`);
             const snapshot = await uploadBytes(storageRef, imageFile);
-            imageUrl = await getDownloadURL(snapshot.ref);
+            newImageUrl = await getDownloadURL(snapshot.ref);
         }
 
-        const updateData: Partial<HeroSectionData> = {
+        const currentData = await getHeroSection();
+
+        const updateData: HeroSectionData = {
             ...data,
+            imageUrl: newImageUrl || currentData.imageUrl, // Use new image or fall back to existing one
             updatedAt: serverTimestamp()
         };
 
-        if (imageUrl) {
-            updateData.imageUrl = imageUrl;
-        }
-
-        // Use setDoc with merge to create or update the document
-        await setDoc(siteContentRef, updateData, { merge: true });
+        // Use setDoc to create or overwrite the document
+        await setDoc(siteContentRef, updateData);
 
     } catch (error) {
         console.error("Error updating hero section: ", error);
