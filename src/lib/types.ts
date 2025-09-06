@@ -10,6 +10,8 @@ export interface Product {
     stock: number;
     tags?: string[];
     featured?: boolean;
+    createdAt?: any;
+    updatedAt?: any;
 }
 
 export interface Category {

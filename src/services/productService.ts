@@ -1,7 +1,9 @@
 
-import { db } from '@/lib/firebase';
+import { db, storage } from '@/lib/firebase';
 import { Product } from '@/lib/types';
-import { collection, getDocs, query, where, limit, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, limit, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+
 
 const MOCK_PRODUCTS: Product[] = [
     { id: '1', name: 'Elegant Diamond Ring', description: 'A timeless piece with a brilliant-cut diamond.', price: 1200, category: 'Rings', stock: 10, tags: ['new', 'diamond', 'popular'], imageUrl: 'https://picsum.photos/400/400?random=10' },
@@ -90,3 +92,60 @@ export const getProductsByCategory = async (category: string): Promise<Product[]
         return MOCK_PRODUCTS.filter(p => p.category === category);
     }
 };
+
+const uploadImage = async (imageFile: File): Promise<string> => {
+    const storageRef = ref(storage, `products/${imageFile.name}-${Date.now()}`);
+    const snapshot = await uploadBytes(storageRef, imageFile);
+    return await getDownloadURL(snapshot.ref);
+}
+
+export const addProduct = async (productData: Omit<Product, 'id' | 'imageUrl'>, imageFile: File): Promise<void> => {
+    try {
+        const imageUrl = await uploadImage(imageFile);
+        const productsCol = collection(db, 'products');
+        await addDoc(productsCol, {
+            ...productData,
+            imageUrl,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        });
+    } catch (error) {
+        console.error("Error adding product:", error);
+        throw error;
+    }
+}
+
+export const updateProduct = async (id: string, productData: Partial<Omit<Product, 'id'>>, imageFile?: File): Promise<void> => {
+    try {
+        const productRef = doc(db, 'products', id);
+        let imageUrl = productData.imageUrl;
+        if (imageFile) {
+            imageUrl = await uploadImage(imageFile);
+        }
+
+        await updateDoc(productRef, {
+            ...productData,
+            imageUrl,
+            updatedAt: serverTimestamp(),
+        });
+
+    } catch (error) {
+        console.error("Error updating product:", error);
+        throw error;
+    }
+}
+
+export const deleteProduct = async (id: string, imageUrl?: string): Promise<void> => {
+     try {
+        const productRef = doc(db, 'products', id);
+        await deleteDoc(productRef);
+
+        if (imageUrl) {
+            const imageRef = ref(storage, imageUrl);
+            await deleteObject(imageRef);
+        }
+    } catch (error) {
+        console.error("Error deleting product:", error);
+        throw error;
+    }
+}
