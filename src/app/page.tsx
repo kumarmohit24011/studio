@@ -2,15 +2,28 @@
 import { Button } from "@/components/ui/button";
 import { getNewArrivals, getTrendingProducts } from "@/services/productService";
 import { getSiteContent } from "@/services/siteContentService";
+import type { Product } from "@/lib/types";
 import Image from "next/image";
 import Link from "next/link";
 import { ProductCard } from "./products/_components/product-card";
 
+// Helper to convert Firestore Timestamps
+const toPlainObject = (product: any): Product => {
+    return {
+        ...product,
+        createdAt: product.createdAt?.seconds ? new Date(product.createdAt.seconds * 1000).toISOString() : null,
+        updatedAt: product.updatedAt?.seconds ? new Date(product.updatedAt.seconds * 1000).toISOString() : null,
+    };
+};
+
 export default async function Home() {
-  const newArrivals = await getNewArrivals(4);
-  const trendingProducts = await getTrendingProducts(4);
+  const newArrivalsData = await getNewArrivals(4);
+  const trendingProductsData = await getTrendingProducts(4);
   const siteContent = await getSiteContent();
   const { heroSection, promoBanner1, promoBanner2 } = siteContent;
+
+  const newArrivals = newArrivalsData.map(toPlainObject);
+  const trendingProducts = trendingProductsData.map(toPlainObject);
 
   return (
     <div className="flex flex-col min-h-screen">
