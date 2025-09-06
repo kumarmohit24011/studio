@@ -1,7 +1,7 @@
 
 import { db } from '@/lib/firebase';
 import { Category } from '@/lib/types';
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc } from 'firebase/firestore';
 
 const MOCK_CATEGORIES: Category[] = [
     { id: 'rings', name: 'Rings', description: 'Elegant rings for every occasion.', createdAt: new Date() },
@@ -17,7 +17,7 @@ export const getAllCategories = async (): Promise<Category[]> => {
             console.log('No categories found in Firestore, returning mock data.');
             return MOCK_CATEGORIES;
         }
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category)).sort((a, b) => a.name.localeCompare(b.name));
     } catch (error) {
         console.error("Error fetching categories, returning mock data: ", error);
         return MOCK_CATEGORIES;
@@ -38,3 +38,38 @@ export const getCategoryById = async (id: string): Promise<Category | null> => {
         return MOCK_CATEGORIES.find(c => c.id === id) || null;
     }
 };
+
+
+export const addCategory = async (category: Omit<Category, 'id' | 'createdAt'>): Promise<void> => {
+    try {
+        const categoriesCol = collection(db, 'categories');
+        await addDoc(categoriesCol, {
+            ...category,
+            createdAt: serverTimestamp(),
+        });
+    } catch (error) {
+        console.error("Error adding category: ", error);
+        throw error;
+    }
+};
+
+export const updateCategory = async (id: string, data: Partial<Omit<Category, 'id' | 'createdAt'>>): Promise<void> => {
+    try {
+        const categoryRef = doc(db, 'categories', id);
+        await updateDoc(categoryRef, data);
+    } catch (error) {
+        console.error("Error updating category: ", error);
+        throw error;
+    }
+};
+
+
+export const deleteCategory = async (id: string): Promise<void> => {
+    try {
+        const categoryRef = doc(db, 'categories', id);
+        await deleteDoc(categoryRef);
+    } catch (error) {
+        console.error("Error deleting category: ", error);
+        throw error;
+    }
+}

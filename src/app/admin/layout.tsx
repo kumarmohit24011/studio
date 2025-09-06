@@ -13,6 +13,7 @@ import {
   ShoppingCart,
   Users,
   Settings,
+  LayoutGrid, // Added category icon
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -122,6 +123,13 @@ export default function AdminLayout({
         >
           <Package className="h-4 w-4" />
           Products{' '}
+        </Link>
+         <Link
+          href="/admin/categories"
+          className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${isActive('/admin/categories') ? 'bg-muted text-primary' : ''}`}
+        >
+          <LayoutGrid className="h-4 w-4" />
+          Categories{' '}
         </Link>
         <Link
           href="/admin/customers"
