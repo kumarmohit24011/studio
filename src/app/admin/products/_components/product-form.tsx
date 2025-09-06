@@ -36,7 +36,7 @@ interface ProductFormProps {
 export function ProductForm({ product, categories }: ProductFormProps) {
   const { toast } = useToast();
   const router = useRouter();
-  const [previews, setPreviews] = useState<string[]>(product?.imageUrls || (product?.imageUrl ? [product.imageUrl] : []));
+  const [previews, setPreviews] = useState<string[]>(product?.imageUrls || []);
   const [tagInput, setTagInput] = useState('');
 
   const form = useForm<z.infer<typeof productSchema>>({
@@ -63,29 +63,23 @@ export function ProductForm({ product, categories }: ProductFormProps) {
     }
   };
   
-  const handleRemovePreview = (index: number, isExisting: boolean) => {
-    if (isExisting) {
-        // This is a simplified approach. A real app might need a way to mark images for deletion on the server.
-        const newPreviews = previews.filter((_, i) => i !== index);
-        setPreviews(newPreviews);
-        // Here you would also handle telling the backend to delete this image URL on submit.
-        // For now, we'll just update the client side. We can improve this later.
-         toast({ title: "Image marked for removal", description: "Save the product to permanently remove the image."});
+  const handleRemovePreview = (index: number) => {
+    const newPreviews = [...previews];
+    newPreviews.splice(index, 1);
+    setPreviews(newPreviews);
+    
+    // We also need to handle removing the file from the form state if it's a new file
+    // And potentially marking existing files for deletion on the server
+    const existingImagesCount = product?.imageUrls?.length || 0;
+    if (index >= existingImagesCount) {
+        const newImages = [...(form.getValues('images') || [])];
+        newImages.splice(index - existingImagesCount, 1);
+        form.setValue('images', newImages);
     } else {
-        // This handles removing newly added files that haven't been uploaded yet.
-        const currentFiles = form.getValues('images') || [];
-        const fileToRemove = previews[index];
-        
-        // Find which file created this object URL to remove it from the form's `images` array.
-        // This is a bit tricky since we only have the URL. A more robust solution might store file info alongside the URL.
-        // For this implementation, we assume the order is maintained.
-        const newFiles = currentFiles.filter((_, i) => i !== (index - (product?.imageUrls?.length || 0)));
-        form.setValue('images', newFiles);
-
-        const newPreviews = previews.filter((_, i) => i !== index);
-        setPreviews(newPreviews);
-        URL.revokeObjectURL(fileToRemove); // Clean up memory
+        // If it's an existing image, we need to update what we pass to the server
+        // This is handled in onSubmit by using the `previews` state.
     }
+    toast({ title: "Image marked for removal", description: "Save the product to confirm changes."});
   }
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -107,8 +101,9 @@ export function ProductForm({ product, categories }: ProductFormProps) {
   const onSubmit = async (values: z.infer<typeof productSchema>) => {
     try {
       if (product) {
-        // For editing, we need to pass existing image URLs and new files separately
-        await updateProduct(product.id, { ...values, existingImageUrls: previews.filter(p => p.startsWith('http')) }, values.images);
+        // Filter out blob URLs from previews to get existing images
+        const existingImageUrls = previews.filter(p => p.startsWith('http'));
+        await updateProduct(product.id, { ...values, existingImageUrls }, values.images);
         toast({ title: 'Success', description: 'Product updated successfully.' });
       } else {
         if (!values.images || values.images.length === 0) {
@@ -269,25 +264,22 @@ export function ProductForm({ product, categories }: ProductFormProps) {
              />
              {previews.length > 0 && (
                 <div className="grid grid-cols-3 gap-2">
-                    {previews.map((src, index) => {
-                         const isExisting = src.startsWith('http');
-                        return (
-                            <div key={index} className="relative group aspect-square rounded-md overflow-hidden border">
-                                <Image src={src} alt={`Preview ${index + 1}`} fill className="object-cover"/>
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                    <Button
-                                        type="button"
-                                        variant="destructive"
-                                        size="icon"
-                                        className="h-7 w-7"
-                                        onClick={() => handleRemovePreview(index, isExisting)}
-                                    >
-                                        <X className="h-4 w-4" />
-                                    </Button>
-                                </div>
+                    {previews.map((src, index) => (
+                        <div key={index} className="relative group aspect-square rounded-md overflow-hidden border">
+                            <Image src={src} alt={`Preview ${index + 1}`} fill className="object-cover"/>
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="icon"
+                                    className="h-7 w-7"
+                                    onClick={() => handleRemovePreview(index)}
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
                             </div>
-                        )
-                    })}
+                        </div>
+                    ))}
                 </div>
              )}
           </div>
