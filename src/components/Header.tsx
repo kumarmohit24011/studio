@@ -19,8 +19,13 @@ import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import React from "react";
+import type { Category } from "@/lib/types";
 
-export function Header() {
+interface HeaderProps {
+    categories: Category[];
+}
+
+export function Header({ categories = [] }: HeaderProps) {
   const { user, userProfile, authLoading, signOutUser } = useAuth();
   const { cart } = useCart();
   const { wishlist } = useWishlist();
@@ -86,9 +91,15 @@ export function Header() {
   const navLinks = (
     <React.Fragment>
       <Link href="/products" className="hover:text-primary transition-colors">All Products</Link>
-      <Link href="/products?category=Rings" className="hover:text-primary transition-colors">Rings</Link>
-      <Link href="/products?category=Necklaces" className="hovertext-primary transition-colors">Necklaces</Link>
-      <Link href="/products?category=Bracelets" className="hover:text-primary transition-colors">Bracelets</Link>
+      {categories.slice(0, 3).map(category => (
+        <Link 
+            key={category.id} 
+            href={`/products?category=${category.name}`} 
+            className="hover:text-primary transition-colors"
+        >
+            {category.name}
+        </Link>
+      ))}
       <Link href="/contact" className="hover:text-primary transition-colors">Contact</Link>
     </React.Fragment>
   )

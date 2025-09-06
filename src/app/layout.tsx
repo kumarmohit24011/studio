@@ -7,17 +7,25 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import Script from "next/script";
 import { Providers } from "@/components/providers";
+import { getAllCategories } from "@/services/categoryService";
+import type { Category } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: "Redbow - Exquisite Jewelry",
   description: "Discover timeless elegance with Redbow's curated collection of fine jewelry. High-quality pieces for every occasion.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const categoriesData = await getAllCategories();
+  const categories = categoriesData.map(cat => ({
+    ...cat,
+    createdAt: cat.createdAt ? new Date(cat.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
+  })) as unknown as Category[];
+
   return (
     <html lang="en" className="scroll-smooth">
       <body
@@ -27,7 +35,7 @@ export default function RootLayout({
       >
         <Providers>
             <div className="relative flex min-h-screen flex-col">
-              <Header />
+              <Header categories={categories} />
               <main className="flex-1">
                 {children}
               </main>
