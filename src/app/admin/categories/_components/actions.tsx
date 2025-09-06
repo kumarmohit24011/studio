@@ -58,7 +58,7 @@ import { useToast } from '@/hooks/use-toast';
 import { addCategory, updateCategory, deleteCategory, updateCategoryOrder } from '@/services/categoryService';
 import { useRouter } from 'next/navigation';
 import { Switch } from '@/components/ui/switch';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 const categorySchema = z.object({
   id: z.string().optional(),
