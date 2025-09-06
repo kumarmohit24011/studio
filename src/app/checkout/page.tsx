@@ -116,14 +116,6 @@ export default function CheckoutPage() {
                         <ShippingForm onFormSubmit={setShippingAddress} />
                     </section>
 
-                    <Separator/>
-
-                    <section>
-                        <h2 className="text-xl font-semibold mb-4">Payment</h2>
-                         <div className="p-4 rounded-md border text-sm text-muted-foreground">
-                            <p>You will be redirected to Razorpay to complete your payment securely.</p>
-                        </div>
-                    </section>
                 </div>
 
 
