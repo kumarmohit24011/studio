@@ -99,12 +99,16 @@ const uploadImage = async (imageFile: File): Promise<string> => {
     return await getDownloadURL(snapshot.ref);
 }
 
-export const addProduct = async (productData: Omit<Product, 'id' | 'imageUrl'>, imageFile: File): Promise<void> => {
+export const addProduct = async (productData: Omit<Product, 'id' | 'imageUrl'> & { image?: File }, imageFile: File): Promise<void> => {
     try {
         const imageUrl = await uploadImage(imageFile);
         const productsCol = collection(db, 'products');
+        
+        // Exclude the File object before saving to Firestore
+        const { image, ...dataToSave } = productData;
+
         await addDoc(productsCol, {
-            ...productData,
+            ...dataToSave,
             imageUrl,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
@@ -115,17 +119,18 @@ export const addProduct = async (productData: Omit<Product, 'id' | 'imageUrl'>, 
     }
 }
 
-export const updateProduct = async (id: string, productData: Partial<Omit<Product, 'id'>>, imageFile?: File): Promise<void> => {
+export const updateProduct = async (id: string, productData: Partial<Omit<Product, 'id'>> & { image?: File }, imageFile?: File): Promise<void> => {
     try {
         const productRef = doc(db, 'products', id);
-        let imageUrl = productData.imageUrl;
+        
+        const { image, ...dataToSave } = productData;
+        
         if (imageFile) {
-            imageUrl = await uploadImage(imageFile);
+            (dataToSave as any).imageUrl = await uploadImage(imageFile);
         }
 
         await updateDoc(productRef, {
-            ...productData,
-            imageUrl,
+            ...dataToSave,
             updatedAt: serverTimestamp(),
         });
 
@@ -141,11 +146,18 @@ export const deleteProduct = async (id: string, imageUrl?: string): Promise<void
         await deleteDoc(productRef);
 
         if (imageUrl) {
-            const imageRef = ref(storage, imageUrl);
-            await deleteObject(imageRef);
+            // Check if the URL is a Firebase Storage URL
+            if(imageUrl.includes('firebasestorage.googleapis.com')) {
+                const imageRef = ref(storage, imageUrl);
+                await deleteObject(imageRef);
+            }
         }
     } catch (error) {
-        console.error("Error deleting product:", error);
-        throw error;
+        // Don't throw if image deletion fails, but log it
+        console.error("Error deleting product image, but product document was deleted:", error);
+        // if the error is not 'object-not-found', then it's a real issue
+        if ((error as any).code !== 'storage/object-not-found') {
+            throw error;
+        }
     }
 }

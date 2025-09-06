@@ -92,6 +92,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
       router.push('/admin/products');
       router.refresh();
     } catch (error) {
+      console.error(error);
       toast({
         variant: 'destructive',
         title: 'Error',
