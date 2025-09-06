@@ -11,8 +11,8 @@ export interface Product {
     stock: number;
     tags?: string[];
     featured?: boolean;
-    createdAt?: any;
-    updatedAt?: any;
+    createdAt?: any | string;
+    updatedAt?: any | string;
 }
 
 export interface Category {

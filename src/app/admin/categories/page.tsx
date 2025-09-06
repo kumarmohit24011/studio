@@ -2,9 +2,17 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAllCategories } from "@/services/categoryService";
 import { CategoryActions } from "./_components/actions";
+import type { Category } from "@/lib/types";
 
 export default async function AdminCategoriesPage() {
-  const categories = await getAllCategories();
+  const categoriesData = await getAllCategories();
+
+  // Convert Firestore Timestamps to serializable format
+  const categories = categoriesData.map(cat => ({
+    ...cat,
+    createdAt: cat.createdAt ? new Date(cat.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
+  })) as unknown as Category[];
+
 
   return (
     <div className="flex flex-col gap-4">

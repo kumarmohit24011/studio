@@ -5,9 +5,16 @@ import { PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { getAllProducts } from "@/services/productService";
 import { ProductTable } from "./_components/product-table";
+import type { Product } from "@/lib/types";
 
 export default async function AdminProductsPage() {
-  const products = await getAllProducts();
+  const productsData = await getAllProducts();
+
+  const products = productsData.map(p => ({
+    ...p,
+    createdAt: p.createdAt ? new Date(p.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
+    updatedAt: p.updatedAt ? new Date(p.updatedAt.seconds * 1000).toISOString() : new Date().toISOString(),
+  })) as Product[];
 
   return (
     <div className="flex flex-col gap-4">
