@@ -60,7 +60,7 @@ export function CheckoutClientPage() {
       toast({
         variant: "destructive",
         title: "Shipping Address Required",
-        description: "Please fill out and save your shipping address.",
+        description: "Please select or add a shipping address.",
       });
       return;
     }

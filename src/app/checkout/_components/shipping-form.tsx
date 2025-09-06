@@ -3,7 +3,7 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { zodResolver } from '@zod/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,13 +20,14 @@ import { useEffect, useState } from 'react';
 import { shippingSchema } from '@/lib/schemas';
 import { updateUserProfile } from '@/services/userService';
 import { useToast } from '@/hooks/use-toast';
-import { CheckCircle, Home, Plus } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CheckCircle, Home, Plus, MapPin } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import type { StoredAddress } from '@/lib/types';
+import { cn } from '@/lib/utils';
+import { Card } from '@/components/ui/card';
 
 interface ShippingFormProps {
-    onFormSubmit: (data: z.infer<typeof shippingSchema>) => void;
+    onFormSubmit: (data: z.infer<typeof shippingSchema> | null) => void;
 }
 
 const newAddressSchema = shippingSchema.extend({
@@ -37,7 +38,7 @@ const newAddressSchema = shippingSchema.extend({
 export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
   const { user, userProfile } = useAuth();
   const { toast } = useToast();
-  const [selectedAddressId, setSelectedAddressId] = useState<string>('new');
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
 
   const form = useForm<z.infer<typeof newAddressSchema>>({
@@ -57,13 +58,13 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
 
   useEffect(() => {
     const addresses = userProfile?.addresses || [];
-    if (addresses.length > 0 && !showNewAddressForm) {
+    if (addresses.length > 0) {
       const defaultAddress = addresses.find(a => a.isDefault) || addresses[0];
-      setSelectedAddressId(defaultAddress.id);
-      form.reset({ ...defaultAddress, saveAddress: false, isDefault: false });
-      onFormSubmit(defaultAddress);
+      handleAddressSelection(defaultAddress.id);
     } else {
       setShowNewAddressForm(true);
+      setSelectedAddressId(null);
+      onFormSubmit(null);
       form.reset({
          name: userProfile?.name || '',
          phone: userProfile?.phone || '',
@@ -71,27 +72,28 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
          saveAddress: true, isDefault: false,
       });
     }
-  }, [userProfile, onFormSubmit, form, showNewAddressForm]); 
+  }, [userProfile]); 
 
   const handleAddressSelection = (addressId: string) => {
+    setShowNewAddressForm(false);
     setSelectedAddressId(addressId);
-    if (addressId === 'new') {
-        setShowNewAddressForm(true);
-        form.reset({
-            name: userProfile?.name || '',
-            phone: userProfile?.phone || '',
-            street: '', city: '', state: '', zipCode: '', country: 'India',
-            saveAddress: true, isDefault: false,
-        });
-        onFormSubmit(form.getValues()); // Or clear it: onFormSubmit(null)
-    } else {
-        setShowNewAddressForm(false);
-        const selected = userProfile?.addresses?.find(a => a.id === addressId);
-        if(selected) {
-            form.reset({ ...selected, saveAddress: false, isDefault: false });
-            onFormSubmit(selected);
-        }
+    const selected = userProfile?.addresses?.find(a => a.id === addressId);
+    if(selected) {
+        form.reset({ ...selected, saveAddress: false, isDefault: false });
+        onFormSubmit(selected);
     }
+  }
+
+  const handleAddNewClick = () => {
+    setShowNewAddressForm(true);
+    setSelectedAddressId(null);
+    onFormSubmit(null);
+    form.reset({
+        name: userProfile?.name || '',
+        phone: userProfile?.phone || '',
+        street: '', city: '', state: '', zipCode: '', country: 'India',
+        saveAddress: true, isDefault: false,
+    });
   }
 
   const onSubmit = async (data: z.infer<typeof newAddressSchema>) => {
@@ -132,44 +134,54 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
                 description: "Could not save your new shipping address.",
             });
         }
+    } else {
+         toast({
+            title: "Address Confirmed",
+            description: "Your shipping address is set for this order.",
+            action: <CheckCircle className='text-green-500' />
+        });
     }
-    toast({
-        title: "Address Confirmed",
-        description: "Your shipping address is set for this order.",
-        action: <CheckCircle className='text-green-500' />
-    });
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="space-y-2">
+        <div className="space-y-3">
             <FormLabel>Saved Addresses</FormLabel>
-            <Select onValueChange={handleAddressSelection} value={selectedAddressId}>
-                <SelectTrigger>
-                    <SelectValue placeholder="Select a saved address" />
-                </SelectTrigger>
-                <SelectContent>
-                    {userProfile?.addresses?.map(addr => (
-                        <SelectItem key={addr.id} value={addr.id}>
-                            <div className='flex items-center gap-2'>
-                                {addr.isDefault && <Home className='h-4 w-4 text-primary' />}
-                                <span>{addr.street}, {addr.city}</span>
-                            </div>
-                        </SelectItem>
+            {userProfile?.addresses && userProfile.addresses.length > 0 && (
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                    {userProfile.addresses.map(addr => (
+                         <Card 
+                            key={addr.id} 
+                            onClick={() => handleAddressSelection(addr.id)}
+                            className={cn(
+                                "p-4 rounded-lg cursor-pointer border-2 transition-colors relative",
+                                selectedAddressId === addr.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                            )}
+                         >
+                            {addr.isDefault && <Badge className="absolute -top-2 -right-2">Default</Badge>}
+                            <p className="font-semibold">{addr.name}</p>
+                            <p className="text-muted-foreground text-sm mt-1">{addr.street}, {addr.city}</p>
+                            <p className="text-muted-foreground text-sm">{addr.state}, {addr.zipCode}</p>
+                            <p className="text-muted-foreground text-sm mt-2">{addr.phone}</p>
+                         </Card>
                     ))}
-                    <SelectItem value="new">
-                         <div className='flex items-center gap-2'>
-                            <Plus className='h-4 w-4' />
-                            <span>Add a new address</span>
-                        </div>
-                    </SelectItem>
-                </SelectContent>
-            </Select>
+                </div>
+            )}
+             <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={handleAddNewClick}
+                >
+                <Plus className="mr-2 h-4 w-4" />
+                Add a new address
+            </Button>
         </div>
 
         {showNewAddressForm && (
             <div className='space-y-4 pt-4 border-t'>
+                 <h3 className="text-lg font-semibold">New Address Details</h3>
                  <FormField
                     control={form.control}
                     name="name"
@@ -271,7 +283,7 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                       <div className="space-y-0.5">
-                        <FormLabel>Save this address</FormLabel>
+                        <FormLabel>Save this address for future use</FormLabel>
                       </div>
                       <FormControl>
                         <Switch
@@ -310,4 +322,3 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
     </Form>
   );
 }
-
