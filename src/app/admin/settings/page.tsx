@@ -1,23 +1,21 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { getSiteContent, type SiteContent } from "@/services/siteContentService";
+import { ShippingSettingsForm } from "./_components/shipping-settings-form";
 
-export default function AdminSettingsPage() {
+export default async function AdminSettingsPage() {
+  const siteContent: SiteContent = await getSiteContent();
+
   return (
-    <div className="flex flex-col gap-4">
-        <div className="flex items-center">
+    <div className="flex flex-col gap-8">
+        <div>
             <h1 className="text-lg font-semibold md:text-2xl">Settings</h1>
+            <p className="text-muted-foreground">Configure your website and admin preferences.</p>
         </div>
-        <Card>
-            <CardHeader>
-            <CardTitle>Admin Settings</CardTitle>
-            <CardDescription>
-                Configure your website and admin preferences.
-            </CardDescription>
-            </CardHeader>
-            <CardContent>
-            <p>Settings forms and options will go here.</p>
-            </CardContent>
-        </Card>
+        
+        <ShippingSettingsForm settings={siteContent.shippingSettings} />
+
+        {/* Other settings cards can be added here in the future */}
     </div>
   );
 }

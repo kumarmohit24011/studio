@@ -21,10 +21,17 @@ export interface PromoBannerData {
     updatedAt?: any;
 }
 
+export interface ShippingSettingsData {
+    defaultFee: number;
+    freeShippingThreshold: number;
+    updatedAt?: any;
+}
+
 export interface SiteContent {
     heroSection: HeroSectionData;
     promoBanner1: PromoBannerData;
     promoBanner2: PromoBannerData;
+    shippingSettings: ShippingSettingsData;
 }
 
 // This is a serializable version of the data safe for client components
@@ -32,6 +39,7 @@ export type PlainSiteContent = {
     heroSection: Omit<HeroSectionData, 'updatedAt'> & { updatedAt?: string };
     promoBanner1: Omit<PromoBannerData, 'updatedAt'> & { updatedAt?: string };
     promoBanner2: Omit<PromoBannerData, 'updatedAt'> & { updatedAt?: string };
+    shippingSettings: Omit<ShippingSettingsData, 'updatedAt'> & { updatedAt?: string };
 };
 
 
@@ -62,6 +70,11 @@ const defaultData: SiteContent = {
         subtitle: 'Buy one, get one 50% off on wedding rings',
         buttonLink: '/products?category=Rings',
         imageUrl: 'https://picsum.photos/600/400?grayscale',
+    },
+    shippingSettings: {
+        defaultFee: 50,
+        freeShippingThreshold: 1000,
+        updatedAt: new Date()
     }
 };
 
@@ -75,6 +88,7 @@ export const getSiteContent = async (): Promise<SiteContent> => {
                 heroSection: data.heroSection || defaultData.heroSection,
                 promoBanner1: data.promoBanner1 || defaultData.promoBanner1,
                 promoBanner2: data.promoBanner2 || defaultData.promoBanner2,
+                shippingSettings: data.shippingSettings || defaultData.shippingSettings,
             };
         } else {
             console.log("Site content document doesn't exist, creating one with default data.");
@@ -82,6 +96,7 @@ export const getSiteContent = async (): Promise<SiteContent> => {
                 heroSection: { ...defaultData.heroSection, updatedAt: serverTimestamp() },
                 promoBanner1: { ...defaultData.promoBanner1, updatedAt: serverTimestamp() },
                 promoBanner2: { ...defaultData.promoBanner2, updatedAt: serverTimestamp() },
+                shippingSettings: { ...defaultData.shippingSettings, updatedAt: serverTimestamp() }
             });
             return defaultData;
         }
@@ -139,3 +154,16 @@ export const updatePromoBanner = async (bannerId: 'promoBanner1' | 'promoBanner2
         throw error;
     }
 }
+
+export const updateShippingSettings = async (data: Omit<ShippingSettingsData, 'updatedAt'>): Promise<void> => {
+    try {
+        const updateData = {
+            ...data,
+            updatedAt: serverTimestamp()
+        };
+        await updateDoc(siteContentRef, { shippingSettings: updateData });
+    } catch (error) {
+        console.error("Error updating shipping settings:", error);
+        throw error;
+    }
+};

@@ -13,9 +13,10 @@ import { z } from "zod";
 import { shippingSchema } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Coupon } from "@/lib/types";
+import type { Coupon, SiteContent } from "@/lib/types";
 import { CreditCard, Mail } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { getSiteContent } from "@/services/siteContentService";
 
 export function CheckoutClientPage() {
   const { cart, cartLoading } = useCart();
@@ -26,11 +27,17 @@ export function CheckoutClientPage() {
   const [shippingAddress, setShippingAddress] = useState<z.infer<typeof shippingSchema> | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [shippingSettings, setShippingSettings] = useState<SiteContent['shippingSettings'] | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/login?redirect=/checkout');
     }
+    const fetchSettings = async () => {
+        const content = await getSiteContent();
+        setShippingSettings(content.shippingSettings);
+    };
+    fetchSettings();
   }, [authLoading, user, router]);
 
   useEffect(() => {
@@ -40,7 +47,15 @@ export function CheckoutClientPage() {
   }, [cart.length, cartLoading, router]);
 
   const subtotal = useMemo(() => cart.reduce((acc, item) => acc + (item.price || 0) * item.quantity, 0), [cart]);
-  const shippingCost = useMemo(() => (subtotal > 1000 ? 0 : 50), [subtotal]);
+
+  const shippingCost = useMemo(() => {
+    if (!shippingSettings) return 0; // Default to free if settings not loaded
+    if (shippingSettings.freeShippingThreshold > 0 && subtotal >= shippingSettings.freeShippingThreshold) {
+        return 0;
+    }
+    return shippingSettings.defaultFee;
+  }, [subtotal, shippingSettings]);
+
 
   const discount = useMemo(() => {
     if (!appliedCoupon) return 0;
@@ -79,7 +94,7 @@ export function CheckoutClientPage() {
     setIsSubmitting(false);
   }
 
-  if (authLoading || cartLoading || !userProfile || (cart.length === 0 && !cartLoading)) {
+  if (authLoading || cartLoading || !userProfile || (cart.length === 0 && !cartLoading) || !shippingSettings) {
     return (
         <div className="container mx-auto px-4 py-12">
             <div className="grid lg:grid-cols-2 gap-12">
