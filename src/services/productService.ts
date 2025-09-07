@@ -2,7 +2,6 @@
 import { db, storage } from '@/lib/firebase';
 import { Product } from '@/lib/types';
 import { collection, getDocs, query, where, limit, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc, orderBy, getCountFromServer, writeBatch, documentId } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
 export const getAllProducts = async (): Promise<Product[]> => {
     try {
@@ -113,10 +112,15 @@ export const getTrendingProducts = async (count: number): Promise<Product[]> => 
     }
 };
 
-export const getProductsByCategory = async (category: string): Promise<Product[]> => {
+export const getProductsByCategory = async (category: string, count?: number): Promise<Product[]> => {
     try {
         const productsRef = collection(db, 'products');
-        const q = query(productsRef, where("category", "==", category), where("isPublished", "==", true));
+        let q;
+        if (count) {
+            q = query(productsRef, where("category", "==", category), where("isPublished", "==", true), limit(count));
+        } else {
+            q = query(productsRef, where("category", "==", category), where("isPublished", "==", true));
+        }
         const snapshot = await getDocs(q);
         if (snapshot.empty) {
             return [];

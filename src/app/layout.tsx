@@ -7,7 +7,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import Script from "next/script";
 import { Providers } from "@/components/providers";
-import { getAllCategories } from "@/services/categoryService";
+import { getFeaturedCategories } from "@/services/categoryService";
 import type { Category } from "@/lib/types";
 
 export const metadata: Metadata = {
@@ -20,8 +20,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const categoriesData = await getAllCategories();
-  const categories = categoriesData.map(cat => ({
+  const featuredCategoriesData = await getFeaturedCategories();
+  const categories = featuredCategoriesData.map(cat => ({
     ...cat,
     createdAt: cat.createdAt ? new Date(cat.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
   })) as unknown as Category[];

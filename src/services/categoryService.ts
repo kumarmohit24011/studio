@@ -1,7 +1,7 @@
 
 import { db } from '@/lib/firebase';
 import { Category } from '@/lib/types';
-import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc, writeBatch, query, where } from 'firebase/firestore';
 
 export const getAllCategories = async (): Promise<Category[]> => {
     try {
@@ -18,6 +18,24 @@ export const getAllCategories = async (): Promise<Category[]> => {
         return [];
     }
 };
+
+export const getFeaturedCategories = async (): Promise<Category[]> => {
+    try {
+        const categoriesCol = collection(db, 'categories');
+        const q = query(categoriesCol, where("isFeatured", "==", true));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) {
+            return [];
+        }
+        return snapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() } as Category))
+            .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    } catch (error) {
+        console.error("Error fetching featured categories: ", error);
+        return [];
+    }
+};
+
 
 export const getCategoryById = async (id: string): Promise<Category | null> => {
     try {
