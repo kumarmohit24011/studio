@@ -7,8 +7,10 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <AdminShell>
-        {children}
-    </AdminShell>
+    <div className="dark">
+        <AdminShell>
+            {children}
+        </AdminShell>
+    </div>
   );
 }

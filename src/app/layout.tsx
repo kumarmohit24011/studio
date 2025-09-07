@@ -1,5 +1,6 @@
 
 import type { Metadata } from "next";
+import { Inter, Playfair_Display } from "next/font/google";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
@@ -9,6 +10,17 @@ import Script from "next/script";
 import { Providers } from "@/components/providers";
 import { getFeaturedCategories } from "@/services/categoryService";
 import type { Category } from "@/lib/types";
+
+const fontBody = Inter({
+  subsets: ["latin"],
+  variable: "--font-body",
+});
+
+const fontHeadline = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-headline",
+});
+
 
 export const metadata: Metadata = {
   title: "Redbow - Exquisite Jewelry",
@@ -27,10 +39,12 @@ export default async function RootLayout({
   })) as unknown as Category[];
 
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" className="dark scroll-smooth">
       <body
         className={cn(
-          "min-h-screen bg-background font-body antialiased"
+          "min-h-screen bg-background font-body antialiased",
+          fontBody.variable,
+          fontHeadline.variable
         )}
       >
         <Providers>

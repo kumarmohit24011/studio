@@ -8,18 +8,34 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer id="contact" className="bg-secondary/30 text-secondary-foreground border-t border-border/50">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div>
-            <h3 className="font-headline text-lg mb-4">Redbow</h3>
-            <p className="text-muted-foreground">
+    <footer id="contact" className="bg-secondary/50 text-secondary-foreground">
+      <div className="container mx-auto px-4 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+          <div className="md:col-span-2 lg:col-span-1">
+            <Link href="/" className="text-2xl font-headline font-bold text-primary tracking-wider mb-4 block">
+                REDBOW
+            </Link>
+            <p className="text-muted-foreground max-w-xs">
               Crafting memories with every piece of jewelry. Timeless elegance for modern life.
             </p>
+             <div className="flex space-x-4 mt-6">
+                <Link href="#" className="text-muted-foreground hover:text-primary">
+                    <Facebook />
+                </Link>
+                <Link href="#" className="text-muted-foreground hover:text-primary">
+                    <Instagram />
+                </Link>
+                <Link href="#" className="text-muted-foreground hover:text-primary">
+                    <Twitter />
+                </Link>
+                <Link href="#" className="text-muted-foreground hover:text-primary">
+                    <Youtube />
+                </Link>
+            </div>
           </div>
           <div>
-            <h3 className="font-headline text-lg mb-4">Shop</h3>
-            <ul className="space-y-2">
+            <h3 className="font-semibold text-lg mb-4">Shop</h3>
+            <ul className="space-y-3 text-muted-foreground">
               <li>
                 <Link href="/products" className="hover:text-primary transition-colors">
                   All Collections
@@ -43,8 +59,8 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="font-headline text-lg mb-4">Customer Service</h3>
-            <ul className="space-y-2">
+            <h3 className="font-semibold text-lg mb-4">Customer Service</h3>
+            <ul className="space-y-3 text-muted-foreground">
               <li>
                 <Link href="/contact" className="hover:text-primary transition-colors">
                   Contact Us
@@ -63,29 +79,15 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="font-headline text-lg mb-4">Stay Connected</h3>
+            <h3 className="font-semibold text-lg mb-4">Stay Connected</h3>
             <p className="text-muted-foreground mb-4">Join our newsletter for exclusive offers and new arrivals.</p>
             <div className="flex w-full max-w-sm items-center space-x-2">
-              <Input type="email" placeholder="Email" />
+              <Input type="email" placeholder="Email" className="bg-background/50"/>
               <Button type="submit">Subscribe</Button>
-            </div>
-             <div className="flex space-x-4 mt-6">
-                <Link href="#" className="text-muted-foreground hover:text-primary">
-                    <Facebook />
-                </Link>
-                <Link href="#" className="text-muted-foreground hover:text-primary">
-                    <Instagram />
-                </Link>
-                <Link href="#" className="text-muted-foreground hover:text-primary">
-                    <Twitter />
-                </Link>
-                <Link href="#" className="text-muted-foreground hover:text-primary">
-                    <Youtube />
-                </Link>
             </div>
           </div>
         </div>
-        <div className="mt-12 pt-8 border-t border-border/50 text-center text-muted-foreground text-sm">
+        <div className="mt-16 pt-8 border-t border-border/50 text-center text-muted-foreground text-sm">
           <p>© {currentYear} Redbow. All Rights Reserved.</p>
         </div>
       </div>

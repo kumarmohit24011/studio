@@ -105,14 +105,14 @@ export function AdminShell({
       <>
         <Link
           href="/admin"
-          className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${isActive('/admin') ? 'bg-muted text-primary' : ''}`}
+          className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-primary/10 hover:text-primary ${isActive('/admin') ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
         >
           <Home className="h-4 w-4" />
           Dashboard
         </Link>
         <Link
           href="/admin/orders"
-          className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${isActive('/admin/orders') ? 'bg-muted text-primary' : ''}`}
+          className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-primary/10 hover:text-primary ${isActive('/admin/orders') ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
         >
           <ShoppingCart className="h-4 w-4" />
           Orders
@@ -122,49 +122,49 @@ export function AdminShell({
         </Link>
         <Link
           href="/admin/products"
-          className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${isActive('/admin/products') ? 'bg-muted text-primary' : ''}`}
+          className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-primary/10 hover:text-primary ${isActive('/admin/products') ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
         >
           <Package className="h-4 w-4" />
           Products{' '}
         </Link>
          <Link
           href="/admin/categories"
-          className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${isActive('/admin/categories') ? 'bg-muted text-primary' : ''}`}
+          className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-primary/10 hover:text-primary ${isActive('/admin/categories') ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
         >
           <LayoutGrid className="h-4 w-4" />
           Categories{' '}
         </Link>
         <Link
           href="/admin/coupons"
-          className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${isActive('/admin/coupons') ? 'bg-muted text-primary' : ''}`}
+          className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-primary/10 hover:text-primary ${isActive('/admin/coupons') ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
         >
           <Tag className="h-4 w-4" />
           Coupons{' '}
         </Link>
         <Link
           href="/admin/customers"
-          className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${isActive('/admin/customers') ? 'bg-muted text-primary' : ''}`}
+          className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-primary/10 hover:text-primary ${isActive('/admin/customers') ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
         >
           <Users className="h-4 w-4" />
           Customers
         </Link>
          <Link
           href="/admin/hero"
-          className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${isActive('/admin/hero') ? 'bg-muted text-primary' : ''}`}
+          className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-primary/10 hover:text-primary ${isActive('/admin/hero') ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
         >
           <Presentation className="h-4 w-4" />
           Hero Section
         </Link>
         <Link
           href="/admin/promotions"
-          className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${isActive('/admin/promotions') ? 'bg-muted text-primary' : ''}`}
+          className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-primary/10 hover:text-primary ${isActive('/admin/promotions') ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
         >
           <Megaphone className="h-4 w-4" />
           Promotions
         </Link>
         <Link
           href="/admin/settings"
-          className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${isActive('/admin/settings') ? 'bg-muted text-primary' : ''}`}
+          className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-primary/10 hover:text-primary ${isActive('/admin/settings') ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
         >
           <Settings className="h-4 w-4" />
           Settings
@@ -174,12 +174,12 @@ export function AdminShell({
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-      <div className="hidden border-r bg-muted/40 md:block">
+      <div className="hidden border-r bg-secondary/50 md:block">
         <div className="flex h-full max-h-screen flex-col gap-2">
-          <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+          <div className="flex h-16 items-center border-b px-4 lg:px-6">
             <Link href="/" className="flex items-center gap-2 font-semibold">
               <Package2 className="h-6 w-6 text-primary" />
-              <span className="">Redbow Admin</span>
+              <span className="font-headline text-lg">Redbow Admin</span>
             </Link>
           </div>
           <div className="flex-1">
@@ -190,7 +190,7 @@ export function AdminShell({
         </div>
       </div>
       <div className="flex flex-col">
-        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+        <header className="flex h-16 items-center gap-4 border-b bg-secondary/50 px-4 lg:px-6">
           <Sheet>
             <SheetTrigger asChild>
               <Button
@@ -209,7 +209,7 @@ export function AdminShell({
                   className="flex items-center gap-2 text-lg font-semibold mb-4"
                 >
                   <Package2 className="h-6 w-6 text-primary" />
-                  <span >Redbow Admin</span>
+                  <span className="font-headline">Redbow Admin</span>
                 </Link>
                 {navLinks}
               </nav>

@@ -50,7 +50,7 @@ export function Header({ categories = [] }: HeaderProps) {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full">
+            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
               <Avatar className="h-8 w-8">
                 <AvatarImage src={userProfile?.photoURL || user.photoURL || undefined} alt={userProfile?.name || user.displayName || 'User'} />
                 <AvatarFallback>{userProfile?.name?.[0] || user.displayName?.[0] || 'U'}</AvatarFallback>
@@ -74,6 +74,7 @@ export function Header({ categories = [] }: HeaderProps) {
                 </Link>
               </DropdownMenuItem>
             )}
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={signOutUser}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Log out</span>
@@ -84,10 +85,9 @@ export function Header({ categories = [] }: HeaderProps) {
     }
 
     return (
-      <Button asChild variant="ghost" size="icon">
+      <Button asChild variant="ghost" size="sm">
         <Link href="/login">
-            <User className="h-5 w-5" />
-            <span className="sr-only">Login</span>
+            Login
         </Link>
       </Button>
     );
@@ -111,30 +111,29 @@ export function Header({ categories = [] }: HeaderProps) {
   )
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link href="/" className="text-xl font-headline font-bold text-primary">
-          Redbow
-        </Link>
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-          {navLinks}
-        </nav>
-        <div className="flex items-center gap-1 md:gap-2">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/search">
-              <Search className="h-5 w-5" />
-              <span className="sr-only">Search</span>
+        <div className="flex items-center gap-6">
+            <Link href="/" className="text-2xl font-headline font-bold text-primary tracking-wider">
+            REDBOW
             </Link>
+            <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
+            {navLinks}
+            </nav>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="hidden md:inline-flex">
+            <Search className="h-5 w-5" />
+            <span className="sr-only">Search</span>
           </Button>
-          <div className="hidden md:block">
-            <Button variant="ghost" size="icon" asChild>
+           <Button variant="ghost" size="icon" asChild className="hidden md:inline-flex">
               <Link href="/wishlist" className="relative" prefetch={true}>
                 <Heart className="h-5 w-5" />
                 {isClient && wishlistItemCount > 0 && <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">{wishlistItemCount}</span>}
                 <span className="sr-only">Wishlist</span>
               </Link>
             </Button>
-          </div>
           <Button variant="ghost" size="icon" asChild>
             <Link href="/cart" className="relative" prefetch={true}>
               <ShoppingCart className="h-5 w-5" />
@@ -142,10 +141,10 @@ export function Header({ categories = [] }: HeaderProps) {
               <span className="sr-only">Cart</span>
             </Link>
           </Button>
-          
-          <div className="md:hidden">{renderAuthComponent()}</div>
-          
-          <div className="hidden md:block">{renderAuthComponent()}</div>
+
+          <div className="hidden md:block">
+            {renderAuthComponent()}
+          </div>
 
           <Sheet open={isMobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
@@ -154,10 +153,10 @@ export function Header({ categories = [] }: HeaderProps) {
                 <span className="sr-only">Open menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-full max-w-sm p-0 flex flex-col">
+            <SheetContent side="left" className="w-full max-w-sm p-0 flex flex-col bg-background">
                 <div className="flex justify-between items-center p-4 border-b">
-                    <Link href="/" className="text-xl font-headline font-bold text-primary" onClick={() => setMobileMenuOpen(false)}>
-                        Redbow
+                     <Link href="/" className="text-2xl font-headline font-bold text-primary tracking-wider" onClick={() => setMobileMenuOpen(false)}>
+                        REDBOW
                     </Link>
                     <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)}>
                         <X className="h-6 w-6" />
@@ -168,6 +167,9 @@ export function Header({ categories = [] }: HeaderProps) {
                         child.type === Link ? React.cloneElement(child, { onClick: () => setMobileMenuOpen(false) }) : child
                     )}
                 </nav>
+                 <div className="mt-auto border-t p-4">
+                    {renderAuthComponent()}
+                </div>
             </SheetContent>
           </Sheet>
         </div>
