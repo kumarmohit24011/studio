@@ -142,7 +142,7 @@ export function Header({ categories = [] }: HeaderProps) {
             </Link>
           </Button>
 
-          <div className="hidden md:block">
+          <div className="block">
             {renderAuthComponent()}
           </div>
 
