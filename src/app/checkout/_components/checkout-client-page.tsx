@@ -113,7 +113,7 @@ export function CheckoutClientPage() {
     <div className="container mx-auto px-4">
         <main className="grid lg:grid-cols-2">
             <div className="py-12 lg:pr-12">
-                <h1 className="text-3xl font-headline font-bold mb-2">Redbow</h1>
+                <h1 className="text-2xl md:text-3xl font-headline font-bold mb-2">Redbow</h1>
                  <p className="text-muted-foreground mb-8">Complete your purchase</p>
                 
                 <div className="space-y-8">

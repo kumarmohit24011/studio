@@ -71,7 +71,7 @@ export function ProductDetailsClient({ product }: { product: Product }) {
                 null
             ))}
           </div>
-          <h1 className="text-4xl lg:text-5xl font-headline font-bold">{product.name}</h1>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-headline font-bold">{product.name}</h1>
         </div>
 
         <p className="text-3xl font-semibold text-primary">₹{product.price.toFixed(2)}</p>

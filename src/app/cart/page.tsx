@@ -65,8 +65,8 @@ export default function CartPage() {
   return (
     <div className="container mx-auto px-4 py-12">
       <h1 className="text-3xl font-headline font-bold mb-8">Your Cart</h1>
-      <div className="grid md:grid-cols-3 gap-8 items-start">
-        <div className="md:col-span-2">
+      <div className="grid lg:grid-cols-3 gap-8 items-start">
+        <div className="lg:col-span-2">
           <Card>
             <CardHeader>
               <CardTitle>Cart Items ({cart.length})</CardTitle>
@@ -75,7 +75,7 @@ export default function CartPage() {
               <div className="space-y-6">
                 {cart.map((item) => (
                   <div key={item.productId} className="flex items-center gap-4">
-                    <div className="relative h-24 w-24 rounded-md overflow-hidden">
+                    <div className="relative h-20 w-20 md:h-24 md:w-24 rounded-md overflow-hidden flex-shrink-0">
                       <Image
                         src={item.imageUrl || "https://picsum.photos/100/100"}
                         alt={item.name || "Product image"}
@@ -83,20 +83,20 @@ export default function CartPage() {
                         className="object-cover"
                       />
                     </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold">{item.name}</h3>
-                      <p className="text-muted-foreground">₹{item.price?.toFixed(2)}</p>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold truncate">{item.name}</h3>
+                      <p className="text-muted-foreground text-sm">₹{item.price?.toFixed(2)}</p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 md:gap-2">
                       <Input
                         type="number"
                         min="1"
                         value={item.quantity}
                         onChange={(e) => updateQuantity(item.productId, parseInt(e.target.value))}
-                        className="w-16 h-9"
+                        className="w-14 h-9"
                       />
                     </div>
-                    <p className="font-semibold w-20 text-right">
+                    <p className="font-semibold w-20 text-right hidden sm:block">
                       ₹{((item.price || 0) * item.quantity).toFixed(2)}
                     </p>
                     <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.productId)}>
@@ -109,7 +109,7 @@ export default function CartPage() {
           </Card>
         </div>
         <div>
-          <Card>
+          <Card className="sticky top-24">
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>
             </CardHeader>

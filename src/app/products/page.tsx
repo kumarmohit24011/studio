@@ -46,7 +46,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
 
       <Tabs defaultValue={category || "all"} className="w-full">
         <div className="flex justify-center mb-8">
-          <TabsList>
+          <TabsList className="overflow-x-auto whitespace-nowrap h-auto">
             <TabsTrigger value="all" asChild>
                 <Link href="/products">All</Link>
             </TabsTrigger>
@@ -59,7 +59,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         </div>
         
         <TabsContent value={category || "all"}>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
                 {products.map((product) => (
                     <ProductCard key={product.id} product={product} />
                 ))}
@@ -67,7 +67,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         </TabsContent>
         {categories.map((cat) => (
              <TabsContent key={cat.id} value={cat.name}>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
                     {products.filter(p => p.category === cat.name).map((product) => (
                         <ProductCard key={product.id} product={product} />
                     ))}

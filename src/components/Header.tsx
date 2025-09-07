@@ -115,7 +115,7 @@ export function Header({ categories = [] }: HeaderProps) {
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
           {navLinks}
         </nav>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-2">
           <Button variant="ghost" size="icon" asChild>
             <Link href="/search">
               <Search className="h-5 w-5" />
@@ -144,24 +144,24 @@ export function Header({ categories = [] }: HeaderProps) {
                 <span className="sr-only">Open menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-full max-w-sm p-0">
-                <div className="flex flex-col h-full">
-                    <div className="flex justify-between items-center p-4 border-b">
-                        <Link href="/" className="text-xl font-headline font-bold text-primary" onClick={() => setMobileMenuOpen(false)}>
-                            Redbow
-                        </Link>
-                        <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)}>
-                            <X className="h-6 w-6" />
-                        </Button>
-                    </div>
-                    <nav className="flex flex-col gap-4 p-4 text-lg">
-                        {React.Children.map(navLinks.props.children, child => 
-                            child.type === Link ? React.cloneElement(child, { onClick: () => setMobileMenuOpen(false) }) : child
-                        )}
-                    </nav>
-                    <div className="mt-auto p-4 border-t">
-                      {renderAuthComponent()}
-                    </div>
+            <SheetContent side="left" className="w-full max-w-sm p-0 flex flex-col">
+                <div className="flex justify-between items-center p-4 border-b">
+                    <Link href="/" className="text-xl font-headline font-bold text-primary" onClick={() => setMobileMenuOpen(false)}>
+                        Redbow
+                    </Link>
+                    <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)}>
+                        <X className="h-6 w-6" />
+                    </Button>
+                </div>
+                <nav className="flex flex-col gap-4 p-4 text-lg">
+                    {React.Children.map(navLinks.props.children, child => 
+                        child.type === Link ? React.cloneElement(child, { onClick: () => setMobileMenuOpen(false) }) : child
+                    )}
+                </nav>
+                <div className="mt-auto p-4 border-t">
+                  <div className="w-full">
+                    {renderAuthComponent()}
+                  </div>
                 </div>
             </SheetContent>
           </Sheet>

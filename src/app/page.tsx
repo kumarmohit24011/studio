@@ -27,7 +27,7 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <section className="relative h-[50vh] flex items-center justify-center text-center text-white bg-gray-800">
+      <section className="relative h-[60vh] flex items-center justify-center text-center text-white bg-gray-800">
         {heroSection.imageUrl && (
           <Image
             src={heroSection.imageUrl}
@@ -39,8 +39,8 @@ export default async function Home() {
           />
         )}
         <div className="relative z-10 p-4 bg-black bg-opacity-40 rounded-lg">
-          <h1 className="text-5xl font-headline font-bold">{heroSection.headline}</h1>
-          <p className="mt-4 text-xl">{heroSection.subtitle}</p>
+          <h1 className="text-4xl md:text-5xl font-headline font-bold">{heroSection.headline}</h1>
+          <p className="mt-4 text-lg md:text-xl">{heroSection.subtitle}</p>
 
           <Button asChild className="mt-6">
             <Link href={heroSection.buttonLink}>{heroSection.buttonText}</Link>
@@ -51,7 +51,7 @@ export default async function Home() {
       <section id="new-arrivals" className="py-16 bg-background">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-headline text-center mb-8">New Arrivals</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
             {newArrivals.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
@@ -68,7 +68,7 @@ export default async function Home() {
         <section id="trending-products" className="py-16 bg-secondary/30">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-headline text-center mb-8">Trending Products</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
               {trendingProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}

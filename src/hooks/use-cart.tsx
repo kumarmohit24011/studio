@@ -25,8 +25,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartLoading, setCartLoading] = useState(true);
   const { toast } = useToast();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const getLocalCart = useCallback(() => {
+    if (!isClient) return [];
     try {
       const localCart = localStorage.getItem(CART_LOCALSTORAGE_KEY);
       return localCart ? JSON.parse(localCart) : [];
@@ -34,10 +40,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       console.error("Failed to parse cart from localStorage", error);
       return [];
     }
-  }, []);
+  }, [isClient]);
 
   useEffect(() => {
-    if (authLoading) {
+    if (authLoading || !isClient) {
       setCartLoading(true);
       return;
     }
@@ -70,10 +76,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setCart(getLocalCart());
     }
     setCartLoading(false);
-  }, [user, userProfile, authLoading, getLocalCart]);
+  }, [user, userProfile, authLoading, getLocalCart, isClient]);
   
   const updateCart = (newCart: CartItem[]) => {
     setCart(newCart);
+    if (!isClient) return;
+
     if (user) {
       updateUserProfile(user.uid, { cart: newCart });
     } else {
