@@ -1,5 +1,5 @@
 
-import { getAllProducts } from "@/services/productService";
+import { getAllProducts, getProductsByCategory } from "@/services/productService";
 import { getAllCategories } from "@/services/categoryService";
 import type { Product, Category } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -29,28 +29,42 @@ function ProductPageSkeleton() {
 }
 
 // Helper to convert Firestore Timestamps to a serializable format
-const toPlainObject = (item: any, type: 'product' | 'category'): any => {
+const toPlainObject = (item: any): any => {
     return {
         ...item,
         createdAt: item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
+        updatedAt: item.updatedAt?.seconds ? new Date(item.updatedAt.seconds * 1000).toISOString() : new Date().toISOString(),
     };
 };
 
-export default async function ProductsPage() {
-  const productsData = await getAllProducts();
+export default async function ProductsPage({
+  searchParams,
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
+  const categoryParam = searchParams?.category as string | undefined;
+
+  const productsData = categoryParam 
+    ? await getProductsByCategory(categoryParam)
+    : await getAllProducts();
+    
   const categoriesData = await getAllCategories();
 
   const products: Product[] = productsData
     .filter(p => p.isPublished)
-    .map(p => toPlainObject(p, 'product'));
+    .map(p => toPlainObject(p));
 
-  const categories: Category[] = categoriesData.map(c => toPlainObject(c, 'category'));
+  const categories: Category[] = categoriesData.map(c => toPlainObject(c));
+  const activeCategory = categories.find(c => c.name === categoryParam) || null;
+  const pageTitle = activeCategory ? activeCategory.name : "All Products";
+  const pageDescription = activeCategory ? activeCategory.description : "Explore our exquisite range of handcrafted jewelry. Use the filters to find the perfect piece.";
+
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-headline font-bold tracking-tight text-primary">All Products</h1>
-        <p className="text-lg text-muted-foreground mt-2 max-w-2xl mx-auto">Explore our exquisite range of handcrafted jewelry. Use the filters to find the perfect piece.</p>
+        <h1 className="text-4xl font-headline font-bold tracking-tight text-primary">{pageTitle}</h1>
+        <p className="text-lg text-muted-foreground mt-2 max-w-2xl mx-auto">{pageDescription}</p>
       </div>
       <Suspense fallback={<ProductPageSkeleton/>}>
          <ProductView initialProducts={products} categories={categories} />

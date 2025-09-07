@@ -20,16 +20,17 @@ export function ProductView({ initialProducts, categories }: ProductViewProps) {
     let tempProducts = [...initialProducts];
 
     // Category filter
-    if (filters.categories.length > 0) {
-      tempProducts = tempProducts.filter(p => filters.categories.includes(p.category));
+    if (filters.category && filters.category !== 'all' && filters.category !== 'All') {
+      tempProducts = tempProducts.filter(p => p.category === filters.category);
     }
+    
+    // Price filter from URL - keep this in case user navigates with it
+     const minPrice = Number(searchParams.get('minPrice')) || 0;
+     const maxPrice = Number(searchParams.get('maxPrice')) || Infinity;
+     if (minPrice > 0 || maxPrice < Infinity) {
+        tempProducts = tempProducts.filter(p => p.price >= minPrice && p.price <= maxPrice);
+     }
 
-    // Price filter
-    if (filters.priceRange) {
-        tempProducts = tempProducts.filter(
-          p => p.price >= filters.priceRange[0] && p.price <= filters.priceRange[1]
-        );
-    }
 
     // Sort
     switch (filters.sortBy) {
@@ -51,16 +52,12 @@ export function ProductView({ initialProducts, categories }: ProductViewProps) {
     }
     
     setFilteredProducts(tempProducts);
-  }, [initialProducts]);
+  }, [initialProducts, searchParams]);
   
   // This effect runs on initial load AND when URL params change
   useEffect(() => {
     const initialFilters = {
-      categories: searchParams.get('categories')?.split(',').filter(Boolean) || [],
-      priceRange: [
-        Number(searchParams.get('minPrice')) || 0,
-        Number(searchParams.get('maxPrice')) || 50000
-      ],
+      category: searchParams.get('category') || 'all',
       sortBy: searchParams.get('sort') || 'newest',
     };
     applyFilters(initialFilters);
