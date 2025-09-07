@@ -31,7 +31,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const product = toPlainObject(productData);
 
   // Fetch related products (from the same category, excluding the current one, limit 5)
-  const relatedProductsData = await getProductsByCategory(product.category, 6); // Fetch 6 to account for the current product
+  const relatedProductsData = await getProductsByCategory(product.category);
   const relatedProducts = relatedProductsData
     .filter(p => p.id !== product.id && p.isPublished)
     .slice(0, 5)
