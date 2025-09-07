@@ -39,7 +39,7 @@ export default async function RootLayout({
   })) as unknown as Category[];
 
   return (
-    <html lang="en" className="dark scroll-smooth">
+    <html lang="en" className="scroll-smooth">
       <body
         className={cn(
           "min-h-screen bg-background font-body antialiased",
