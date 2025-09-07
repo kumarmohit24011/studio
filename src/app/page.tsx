@@ -2,28 +2,38 @@
 import { Button } from "@/components/ui/button";
 import { getNewArrivals, getTrendingProducts } from "@/services/productService";
 import { getSiteContent } from "@/services/siteContentService";
-import type { Product } from "@/lib/types";
+import type { Product, Category } from "@/lib/types";
 import Image from "next/image";
 import Link from "next/link";
 import { ProductCard } from "./products/_components/product-card";
+import { getFeaturedCategories } from "@/services/categoryService";
+import { Card } from "@/components/ui/card";
+import { ArrowRight } from "lucide-react";
 
 // Helper to convert Firestore Timestamps
-const toPlainObject = (product: any): Product => {
-    return {
-        ...product,
-        createdAt: product.createdAt?.seconds ? new Date(product.createdAt.seconds * 1000).toISOString() : null,
-        updatedAt: product.updatedAt?.seconds ? new Date(product.updatedAt.seconds * 1000).toISOString() : null,
-    };
+const toPlainObject = (item: any): any => {
+    const plain = { ...item };
+    if (item.createdAt?.seconds) {
+        plain.createdAt = new Date(item.createdAt.seconds * 1000).toISOString();
+    }
+    if (item.updatedAt?.seconds) {
+        plain.updatedAt = new Date(item.updatedAt.seconds * 1000).toISOString();
+    }
+    return plain;
 };
+
 
 export default async function Home() {
   const newArrivalsData = await getNewArrivals(5);
   const trendingProductsData = await getTrendingProducts(5);
   const siteContent = await getSiteContent();
+  const featuredCategoriesData = await getFeaturedCategories();
   const { heroSection, promoBanner1, promoBanner2 } = siteContent;
 
-  const newArrivals = newArrivalsData.map(toPlainObject).filter(p => p.isPublished);
-  const trendingProducts = trendingProductsData.map(toPlainObject).filter(p => p.isPublished);
+  const newArrivals: Product[] = newArrivalsData.map(p => toPlainObject(p)).filter(p => p.isPublished);
+  const trendingProducts: Product[] = trendingProductsData.map(p => toPlainObject(p)).filter(p => p.isPublished);
+  const featuredCategories: Category[] = featuredCategoriesData.map(c => toPlainObject(c));
+
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -48,6 +58,37 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {featuredCategories.length > 0 && (
+         <section id="featured-categories" className="py-16 lg:py-24 bg-secondary">
+            <div className="container mx-auto px-4">
+                <h2 className="text-3xl lg:text-4xl font-headline text-center mb-12">Shop by Category</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    {featuredCategories.slice(0, 4).map(category => (
+                        <Link key={category.id} href={`/products?category=${category.name}`} className="block group">
+                            <Card className="overflow-hidden">
+                                 <div className="relative aspect-square w-full">
+                                    <Image
+                                        src={`https://picsum.photos/400/400?random=${category.id}`}
+                                        alt={`Image for ${category.name}`}
+                                        data-ai-hint="jewelry collection"
+                                        fill
+                                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                    />
+                                </div>
+                                <div className="p-4 bg-background">
+                                    <h3 className="font-headline text-xl font-semibold text-foreground">{category.name}</h3>
+                                    <p className="text-sm text-muted-foreground mt-2 flex items-center">
+                                        Explore Collection <ArrowRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-1" />
+                                    </p>
+                                </div>
+                            </Card>
+                        </Link>
+                    ))}
+                </div>
+            </div>
+        </section>
+      )}
 
       <section id="new-arrivals" className="py-16 lg:py-24 bg-background">
         <div className="container mx-auto px-4">
