@@ -56,6 +56,11 @@ export default async function Home() {
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
+           <div className="text-center mt-12">
+            <Button asChild variant="outline">
+              <Link href="/products">View All Products</Link>
+            </Button>
+          </div>
         </div>
       </section>
 
@@ -67,6 +72,11 @@ export default async function Home() {
               {trendingProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
+            </div>
+             <div className="text-center mt-12">
+                <Button asChild variant="outline">
+                  <Link href="/products">View All Products</Link>
+                </Button>
             </div>
           </div>
         </section>
