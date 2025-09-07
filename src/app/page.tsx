@@ -17,8 +17,8 @@ const toPlainObject = (product: any): Product => {
 };
 
 export default async function Home() {
-  const newArrivalsData = await getNewArrivals(4);
-  const trendingProductsData = await getTrendingProducts(4);
+  const newArrivalsData = await getNewArrivals(5);
+  const trendingProductsData = await getTrendingProducts(5);
   const siteContent = await getSiteContent();
   const { heroSection, promoBanner1, promoBanner2 } = siteContent;
 
@@ -51,7 +51,7 @@ export default async function Home() {
       <section id="new-arrivals" className="py-16 bg-background">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-headline text-center mb-8">New Arrivals</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
             {newArrivals.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
@@ -59,16 +59,18 @@ export default async function Home() {
         </div>
       </section>
 
-      <section id="trending-products" className="py-16 bg-secondary/30">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-headline text-center mb-8">Trending Products</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {trendingProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
+      {trendingProducts.length > 0 && (
+        <section id="trending-products" className="py-16 bg-secondary/30">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl font-headline text-center mb-8">Trending Products</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
+              {trendingProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section id="sale-banners" className="py-16 bg-background">
         <div className="container mx-auto px-4">
