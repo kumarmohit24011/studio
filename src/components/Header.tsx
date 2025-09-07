@@ -84,8 +84,11 @@ export function Header({ categories = [] }: HeaderProps) {
     }
 
     return (
-      <Button asChild>
-        <Link href="/login">Login</Link>
+      <Button asChild variant="ghost" size="icon">
+        <Link href="/login">
+            <User className="h-5 w-5" />
+            <span className="sr-only">Login</span>
+        </Link>
       </Button>
     );
   };
@@ -137,7 +140,9 @@ export function Header({ categories = [] }: HeaderProps) {
               <span className="sr-only">Cart</span>
             </Link>
           </Button>
-          <div className="hidden md:block">{renderAuthComponent()}</div>
+          
+          {renderAuthComponent()}
+
           <Sheet open={isMobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden">
@@ -159,11 +164,6 @@ export function Header({ categories = [] }: HeaderProps) {
                         child.type === Link ? React.cloneElement(child, { onClick: () => setMobileMenuOpen(false) }) : child
                     )}
                 </nav>
-                <div className="mt-auto p-4 border-t">
-                  <div className="w-full">
-                    {renderAuthComponent()}
-                  </div>
-                </div>
             </SheetContent>
           </Sheet>
         </div>
