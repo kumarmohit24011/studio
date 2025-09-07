@@ -20,17 +20,17 @@ export function ProductDetailsClient({ product }: { product: Product }) {
   const [mainImage, setMainImage] = useState<string>(allImages[0] || "https://picsum.photos/600/600");
 
   return (
-    <div className="grid md:grid-cols-2 gap-8 lg:gap-16 items-start">
+    <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start">
       {/* Image Gallery */}
       <div className="flex flex-col-reverse md:flex-row gap-4 sticky top-24">
         {allImages.length > 1 && (
-            <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0">
+             <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0">
                 {allImages.map((img, index) => (
                     <button 
                         key={index} 
                         onClick={() => setMainImage(img)} 
                         className={cn(
-                            "relative aspect-square rounded-lg overflow-hidden border-2 w-20 h-20 md:w-24 md:h-24 flex-shrink-0",
+                            "relative aspect-square rounded-lg overflow-hidden border-2 w-16 h-16 md:w-24 md:h-24 flex-shrink-0",
                             mainImage === img ? 'border-primary' : 'border-transparent hover:border-muted-foreground/50 transition-colors'
                         )}
                     >
@@ -59,9 +59,9 @@ export function ProductDetailsClient({ product }: { product: Product }) {
       </div>
 
       {/* Product Information */}
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         <div>
-          <div className="flex items-center gap-4 mb-2">
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
             <Link href={`/products?category=${product.category}`}>
               <Badge variant="outline">{product.category}</Badge>
             </Link>
@@ -71,21 +71,21 @@ export function ProductDetailsClient({ product }: { product: Product }) {
                 null
             ))}
           </div>
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-headline font-bold">{product.name}</h1>
+          <h1 className="text-3xl md:text-4xl font-headline font-bold">{product.name}</h1>
         </div>
 
-        <p className="text-3xl font-semibold text-primary">₹{product.price.toFixed(2)}</p>
+        <p className="text-2xl md:text-3xl font-semibold text-primary">₹{product.price.toFixed(2)}</p>
         
         <p className="text-muted-foreground text-base leading-relaxed">{product.description}</p>
         
         <Separator />
 
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <AddToCartButton product={product} className="w-full sm:w-auto"/>
+        <div className="flex flex-col sm:flex-row items-stretch gap-3">
+          <AddToCartButton product={product} className="w-full sm:w-auto flex-grow"/>
           <AddToWishlistButton product={product} />
         </div>
 
-        <div className="mt-2 text-sm text-muted-foreground">
+        <div className="mt-1 text-sm text-muted-foreground">
           <p>
             In Stock: {product.stock > 0 
                 ? (product.stock < 10 ? `Only ${product.stock} units left!` : 'Available') 

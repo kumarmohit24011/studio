@@ -22,8 +22,8 @@ export default async function Home() {
   const siteContent = await getSiteContent();
   const { heroSection, promoBanner1, promoBanner2 } = siteContent;
 
-  const newArrivals = newArrivalsData.map(toPlainObject);
-  const trendingProducts = trendingProductsData.map(toPlainObject);
+  const newArrivals = newArrivalsData.map(toPlainObject).filter(p => p.isPublished);
+  const trendingProducts = trendingProductsData.map(toPlainObject).filter(p => p.isPublished);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -39,8 +39,8 @@ export default async function Home() {
           />
         )}
         <div className="relative z-10 p-4 bg-black bg-opacity-40 rounded-lg">
-          <h1 className="text-4xl md:text-5xl font-headline font-bold">{heroSection.headline}</h1>
-          <p className="mt-4 text-lg md:text-xl">{heroSection.subtitle}</p>
+          <h1 className="text-3xl md:text-5xl font-headline font-bold">{heroSection.headline}</h1>
+          <p className="mt-4 text-md md:text-xl">{heroSection.subtitle}</p>
 
           <Button asChild className="mt-6">
             <Link href={heroSection.buttonLink}>{heroSection.buttonText}</Link>
