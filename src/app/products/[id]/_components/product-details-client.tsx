@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from "react";
@@ -6,7 +5,7 @@ import type { Product } from "@/lib/types";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AddToCartButton } from "./add-to-cart-button";
+import { AddToCartButton } from "@/components/shared/add-to-cart-button";
 import { AddToWishlistButton } from "./add-to-wishlist-button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";

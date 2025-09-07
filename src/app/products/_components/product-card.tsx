@@ -1,4 +1,3 @@
-
 'use client';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +7,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Heart, ShoppingCart } from "lucide-react";
 import { useWishlist } from "@/hooks/use-wishlist";
-import { AddToCartButton } from "../[id]/_components/add-to-cart-button";
+import { AddToCartButton } from "@/components/shared/add-to-cart-button";
 
 export function ProductCard({ product }: { product: Product }) {
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
