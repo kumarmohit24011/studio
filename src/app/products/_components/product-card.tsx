@@ -48,7 +48,7 @@ export function ProductCard({ product }: { product: Product }) {
                 <Heart className={`w-4 h-4 ${inWishlist ? 'text-red-500 fill-red-500' : 'text-foreground'}`}/>
             </Button>
             
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 w-11/12 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 w-11/12">
                <AddToCartButton product={product} size="sm" className="w-full" />
             </div>
           </div>
