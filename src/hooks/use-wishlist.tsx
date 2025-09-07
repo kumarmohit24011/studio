@@ -25,8 +25,14 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [wishlistLoading, setWishlistLoading] = useState(true);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const getLocalWishlist = useCallback(() => {
+    if (!isClient) return [];
     try {
       const localWishlist = localStorage.getItem(WISHLIST_LOCALSTORAGE_KEY);
       return localWishlist ? JSON.parse(localWishlist) : [];
@@ -34,10 +40,10 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       console.error("Failed to parse wishlist from localStorage", error);
       return [];
     }
-  }, []);
+  }, [isClient]);
 
   useEffect(() => {
-    if (authLoading) {
+    if (authLoading || !isClient) {
       setWishlistLoading(true);
       return;
     }
@@ -61,28 +67,29 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       setWishlist(getLocalWishlist());
     }
     setWishlistLoading(false);
-  }, [user, userProfile, authLoading, getLocalWishlist]);
+  }, [user, userProfile, authLoading, getLocalWishlist, isClient]);
+
+  const updateWishlist = (newWishlist: string[]) => {
+    setWishlist(newWishlist);
+    if (!isClient) return;
+
+    if (user) {
+      updateUserProfile(user.uid, { wishlist: newWishlist });
+    } else {
+      localStorage.setItem(WISHLIST_LOCALSTORAGE_KEY, JSON.stringify(newWishlist));
+    }
+  };
 
   const addToWishlist = (product: Product) => {
     if (wishlist.includes(product.id)) return;
     const newWishlist = [...wishlist, product.id];
-    setWishlist(newWishlist);
-    if(user) {
-        updateUserProfile(user.uid, { wishlist: newWishlist });
-    } else {
-        localStorage.setItem(WISHLIST_LOCALSTORAGE_KEY, JSON.stringify(newWishlist));
-    }
+    updateWishlist(newWishlist);
     toast({ title: "Added to Wishlist", description: `${product.name} has been added to your wishlist.` });
   };
 
   const removeFromWishlist = (productId: string) => {
     const newWishlist = wishlist.filter(id => id !== productId);
-    setWishlist(newWishlist);
-    if(user) {
-        updateUserProfile(user.uid, { wishlist: newWishlist });
-    } else {
-        localStorage.setItem(WISHLIST_LOCALSTORAGE_KEY, JSON.stringify(newWishlist));
-    }
+    updateWishlist(newWishlist);
     toast({ title: "Removed from Wishlist", description: `Item has been removed from your wishlist.` });
   };
 
@@ -108,4 +115,3 @@ export function useWishlist() {
   }
   return context;
 }
-
