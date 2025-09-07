@@ -14,7 +14,7 @@ import * as z from "zod";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FirebaseError } from "firebase/app";
 
 const loginSchema = z.object({
@@ -34,6 +34,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -49,7 +50,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await signInWithEmail(values.email, values.password);
-      router.push('/');
+      // The redirect is now handled by the useAuth hook
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -65,7 +66,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await signUpWithEmail(values.email, values.password, values.name);
-      router.push('/');
+       // The redirect is now handled by the useAuth hook
     } catch (error: any) {
         if (error instanceof FirebaseError && error.code === 'auth/email-already-in-use') {
              toast({

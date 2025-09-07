@@ -1,12 +1,11 @@
 
-
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { onAuthStateChanged, User, signOut, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { createUserProfile, getUserProfile, UserProfile } from '@/services/userService';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 
 interface AuthContextType {
@@ -26,6 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -46,15 +46,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const handleAuthSuccess = (profile: UserProfile | null) => {
     setUserProfile(profile);
-    if(profile?.isAdmin) {
-        router.push('/admin');
-    } else {
-        router.push('/');
-    }
+    const redirectUrl = searchParams.get('redirect') || (profile?.isAdmin ? '/admin' : '/');
+    router.push(redirectUrl);
   }
 
   const handleAuthError = (error: any) => {
-    // This function can be expanded to handle different auth errors
     console.error("Authentication error: ", error);
     throw error;
   }
@@ -116,7 +112,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signOutUser,
   };
 
-  // Render children only when auth state is resolved
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
