@@ -40,7 +40,7 @@ export interface UserProfile {
     email: string;
     name: string;
     phone?: string;
-    addresses?: StoredAddress[]; // Changed from 'address' to 'addresses'
+    addresses?: StoredAddress[];
     photoURL?: string;
     isAdmin?: boolean;
     createdAt: any; // Firestore Timestamp

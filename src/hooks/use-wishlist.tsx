@@ -31,7 +31,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     setIsClient(true);
   }, []);
 
-  const getLocalWishlist = useCallback(() => {
+  const getLocalWishlist = useCallback((): string[] => {
     if (!isClient) return [];
     try {
       const localWishlist = localStorage.getItem(WISHLIST_LOCALSTORAGE_KEY);

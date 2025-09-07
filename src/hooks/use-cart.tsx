@@ -31,7 +31,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setIsClient(true);
   }, []);
 
-  const getLocalCart = useCallback(() => {
+  const getLocalCart = useCallback((): CartItem[] => {
     if (!isClient) return [];
     try {
       const localCart = localStorage.getItem(CART_LOCALSTORAGE_KEY);
@@ -59,8 +59,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         localCart.forEach((localItem: CartItem) => {
           const existingItemIndex = mergedCart.findIndex(item => item.productId === localItem.productId);
           if (existingItemIndex > -1) {
-            // If item exists, you might want to sum quantities or take the local one
-            mergedCart[existingItemIndex] = localItem; 
+            // If item exists, update its quantity (or you can choose other logic, like summing)
+             mergedCart[existingItemIndex].quantity = localItem.quantity;
           } else {
             mergedCart.push(localItem);
           }
