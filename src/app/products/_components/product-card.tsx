@@ -51,7 +51,7 @@ export function ProductCard({ product }: { product: Product }) {
             </div>
           </div>
 
-          <div className="p-4 text-center mt-auto flex-grow flex flex-col">
+          <div className="p-4 text-center mt-auto flex-grow flex flex-col justify-center">
             <CardTitle as="h3" className="font-headline text-lg truncate">{product.name}</CardTitle>
              <p className="text-primary font-semibold text-lg mt-2">₹{product.price.toFixed(2)}</p>
           </div>
