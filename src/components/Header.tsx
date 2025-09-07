@@ -126,13 +126,15 @@ export function Header({ categories = [] }: HeaderProps) {
               <span className="sr-only">Search</span>
             </Link>
           </Button>
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/wishlist" className="relative" prefetch={true}>
-              <Heart className="h-5 w-5" />
-              {isClient && wishlistItemCount > 0 && <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">{wishlistItemCount}</span>}
-              <span className="sr-only">Wishlist</span>
-            </Link>
-          </Button>
+          <div className="hidden md:block">
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/wishlist" className="relative" prefetch={true}>
+                <Heart className="h-5 w-5" />
+                {isClient && wishlistItemCount > 0 && <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">{wishlistItemCount}</span>}
+                <span className="sr-only">Wishlist</span>
+              </Link>
+            </Button>
+          </div>
           <Button variant="ghost" size="icon" asChild>
             <Link href="/cart" className="relative" prefetch={true}>
               <ShoppingCart className="h-5 w-5" />
@@ -141,7 +143,9 @@ export function Header({ categories = [] }: HeaderProps) {
             </Link>
           </Button>
           
-          {renderAuthComponent()}
+          <div className="md:hidden">{renderAuthComponent()}</div>
+          
+          <div className="hidden md:block">{renderAuthComponent()}</div>
 
           <Sheet open={isMobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>

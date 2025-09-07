@@ -22,6 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OrderHistory } from "./_components/order-history";
 import { Badge } from "@/components/ui/badge";
 import { Home } from "lucide-react";
+import { WishlistTab } from "./_components/wishlist-tab";
 
 const profileSchema = z.object({
   name: z.string().min(2, "Display name must be at least 2 characters."),
@@ -113,9 +114,10 @@ export default function AccountPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 max-w-md">
+            <TabsList className="grid w-full grid-cols-3 max-w-lg">
                 <TabsTrigger value="profile">Profile Settings</TabsTrigger>
                 <TabsTrigger value="orders">Order History</TabsTrigger>
+                <TabsTrigger value="wishlist">Wishlist</TabsTrigger>
             </TabsList>
             <TabsContent value="profile">
                 <div className="grid md:grid-cols-3 gap-8 mt-6">
@@ -201,6 +203,9 @@ export default function AccountPage() {
             </TabsContent>
             <TabsContent value="orders">
                 <OrderHistory userId={user.uid} />
+            </TabsContent>
+            <TabsContent value="wishlist">
+                <WishlistTab />
             </TabsContent>
         </Tabs>
     </div>
