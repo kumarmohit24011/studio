@@ -20,7 +20,7 @@ export function ProductView({ initialProducts, categories }: ProductViewProps) {
     let tempProducts = [...initialProducts];
 
     // Category filter
-    if (filters.category && filters.category !== 'all' && filters.category !== 'All') {
+    if (filters.category && filters.category.toLowerCase() !== 'all') {
       tempProducts = tempProducts.filter(p => p.category === filters.category);
     }
     
