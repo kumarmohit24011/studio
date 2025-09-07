@@ -92,12 +92,13 @@ export function Header({ categories = [] }: HeaderProps) {
   
   const navLinks = (
     <React.Fragment>
-      <Link href="/products" className="hover:text-primary transition-colors">All Products</Link>
+      <Link href="/products" className="hover:text-primary transition-colors" prefetch={true}>All Products</Link>
       {featuredCategories.map(category => (
         <Link 
             key={category.id} 
             href={`/products?category=${category.name}`} 
             className="hover:text-primary transition-colors"
+            prefetch={true}
         >
             {category.name}
         </Link>
@@ -123,14 +124,14 @@ export function Header({ categories = [] }: HeaderProps) {
             </Link>
           </Button>
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/wishlist" className="relative">
+            <Link href="/wishlist" className="relative" prefetch={true}>
               <Heart className="h-5 w-5" />
               {isClient && wishlistItemCount > 0 && <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">{wishlistItemCount}</span>}
               <span className="sr-only">Wishlist</span>
             </Link>
           </Button>
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/cart" className="relative">
+            <Link href="/cart" className="relative" prefetch={true}>
               <ShoppingCart className="h-5 w-5" />
               {isClient && cartItemCount > 0 && <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">{cartItemCount}</span>}
               <span className="sr-only">Cart</span>
