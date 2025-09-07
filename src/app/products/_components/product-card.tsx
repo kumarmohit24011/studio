@@ -47,14 +47,15 @@ export function ProductCard({ product }: { product: Product }) {
             >
                 <Heart className={`w-4 h-4 ${inWishlist ? 'text-red-500 fill-red-500' : 'text-foreground'}`}/>
             </Button>
+            
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 w-11/12 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+               <AddToCartButton product={product} size="sm" className="w-full" />
+            </div>
           </div>
 
           <div className="p-4 text-center mt-auto flex-grow flex flex-col">
             <CardTitle as="h3" className="font-headline text-lg truncate">{product.name}</CardTitle>
-             <div className="flex items-center justify-center gap-4 mt-2">
-                <p className="text-primary font-semibold text-lg">₹{product.price.toFixed(2)}</p>
-                <AddToCartButton product={product} size="sm" />
-            </div>
+             <p className="text-primary font-semibold text-lg mt-2">₹{product.price.toFixed(2)}</p>
           </div>
         </CardContent>
       </Link>
