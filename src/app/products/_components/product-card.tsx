@@ -37,19 +37,17 @@ export function ProductCard({ product }: { product: Product }) {
               className="object-cover transition-transform duration-300 group-hover:scale-105"
             />
             {product.tags?.includes('sale') && <Badge variant="destructive" className="absolute top-2 left-2 z-10">Sale</Badge>}
-
-            <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={handleToggleWishlist} 
-                className="absolute top-2 right-2 z-10 bg-background/60 hover:bg-background/90 rounded-full h-8 w-8"
-                aria-label="Toggle Wishlist"
-            >
-                <Heart className={`w-4 h-4 ${inWishlist ? 'text-red-500 fill-red-500' : 'text-foreground'}`}/>
-            </Button>
-            
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 w-11/12">
-               <AddToCartButton product={product} size="sm" className="w-full" />
+             <div className="absolute top-2 right-2 z-10 flex flex-col gap-2">
+                 <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={handleToggleWishlist} 
+                    className="bg-background/60 hover:bg-background/90 rounded-full h-8 w-8"
+                    aria-label="Toggle Wishlist"
+                >
+                    <Heart className={`w-4 h-4 ${inWishlist ? 'text-red-500 fill-red-500' : 'text-foreground'}`}/>
+                </Button>
+                <AddToCartButton product={product} size="icon" className="bg-background/60 hover:bg-background/90 rounded-full h-8 w-8" />
             </div>
           </div>
 
