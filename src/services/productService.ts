@@ -4,29 +4,17 @@ import { Product } from '@/lib/types';
 import { collection, getDocs, query, where, limit, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc, orderBy, getCountFromServer, writeBatch, documentId } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
-
-const MOCK_PRODUCTS: Product[] = [
-    { id: '1', name: 'Elegant Diamond Ring', description: 'A timeless piece with a brilliant-cut diamond.', price: 1200, category: 'Rings', stock: 10, sku: 'RNG-DIA-001', tags: ['new', 'diamond', 'popular'], imageUrl: 'https://picsum.photos/400/400?random=10', imageUrls: ['https://picsum.photos/400/400?random=10', 'https://picsum.photos/400/400?random=11'], isPublished: true },
-    { id: '2', name: 'Sapphire Necklace', description: 'Deep blue sapphire pendant on a silver chain.', price: 850, category: 'Necklaces', stock: 5, sku: 'NKL-SAP-001', tags: ['sale', 'popular'], imageUrl: 'https://picsum.photos/400/400?random=11', isPublished: true },
-    { id: '3', name: 'Gold Charm Bracelet', description: 'A beautiful gold bracelet with customizable charms.', price: 450, category: 'Bracelets', stock: 15, sku: 'BRC-GLD-001', tags: ['popular'], imageUrl: 'https://picsum.photos/400/400?random=12', isPublished: true },
-    { id: '4', name: 'Pearl Stud Earrings', description: 'Classic pearl earrings for a touch of class.', price: 150, category: 'Earrings', stock: 20, sku: 'ERN-PRL-001', tags: ['popular'], imageUrl: 'https://picsum.photos/400/400?random=13', isPublished: false },
-    { id: '5', name: 'Ruby Pendant', description: 'A fiery ruby set in a delicate rose gold pendant.', price: 950, category: 'Necklaces', stock: 8, sku: 'NKL-RBY-001', tags: ['new', 'popular'], imageUrl: 'https://picsum.photos/400/400?random=14', isPublished: true },
-    { id: '6', name: 'Silver Bangle', description: 'A sleek and modern silver bangle.', price: 250, category: 'Bracelets', stock: 25, sku: 'BRC-SLV-001', tags: ['new'], imageUrl: 'https://picsum.photos/400/400?random=15', isPublished: true },
-];
-
-
 export const getAllProducts = async (): Promise<Product[]> => {
     try {
         const productsCol = collection(db, 'products');
         const snapshot = await getDocs(productsCol);
         if (snapshot.empty) {
-            console.log('No products found, returning mock data.');
-            return MOCK_PRODUCTS;
+            return [];
         }
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
     } catch (error) {
-        console.error("Error fetching products, returning mock data: ", error);
-        return MOCK_PRODUCTS;
+        console.error("Error fetching products: ", error);
+        return [];
     }
 };
 
@@ -60,8 +48,8 @@ export const getTotalProducts = async (): Promise<number> => {
         const snapshot = await getCountFromServer(productsCol);
         return snapshot.data().count;
     } catch (error) {
-        console.error("Error fetching product count, returning mock data length: ", error);
-        return MOCK_PRODUCTS.length;
+        console.error("Error fetching product count: ", error);
+        return 0;
     }
 };
 
@@ -73,11 +61,10 @@ export const getProductById = async (id: string): Promise<Product | null> => {
         if (docSnap.exists()) {
             return { id: docSnap.id, ...docSnap.data() } as Product;
         }
-        console.warn(`Product with id ${id} not found in Firestore, checking mock data.`);
-        return MOCK_PRODUCTS.find(p => p.id === id) || null;
+        return null;
     } catch (error) {
-        console.error(`Error fetching product by id ${id}, returning mock data: `, error);
-        return MOCK_PRODUCTS.find(p => p.id === id) || null;
+        console.error(`Error fetching product by id ${id}: `, error);
+        return null;
     }
 };
 
@@ -87,13 +74,12 @@ export const getNewArrivals = async (count: number): Promise<Product[]> => {
         const q = query(productsRef, where("tags", "array-contains", "new"), where("isPublished", "==", true), limit(count));
         const snapshot = await getDocs(q);
         if (snapshot.empty) {
-            console.log('No new arrivals found, returning mock data.');
-            return MOCK_PRODUCTS.filter(p => p.tags?.includes('new') && p.isPublished).slice(0, count);
+            return [];
         }
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
     } catch (error) {
-        console.error("Error fetching new arrivals, returning mock data: ", error);
-        return MOCK_PRODUCTS.filter(p => p.tags?.includes('new') && p.isPublished).slice(0, count);
+        console.error("Error fetching new arrivals: ", error);
+        return [];
     }
 };
 
@@ -103,13 +89,12 @@ export const getRecentProducts = async (count: number): Promise<Product[]> => {
         const q = query(productsRef, orderBy("createdAt", "desc"), limit(count));
         const snapshot = await getDocs(q);
         if (snapshot.empty) {
-            console.log('No recent products found, returning mock data.');
-            return MOCK_PRODUCTS.slice(0, count);
+            return [];
         }
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
     } catch (error) {
-        console.error("Error fetching recent products, returning mock data: ", error);
-        return MOCK_PRODUCTS.slice(0, count);
+        console.error("Error fetching recent products: ", error);
+        return [];
     }
 }
 
@@ -123,7 +108,7 @@ export const getTrendingProducts = async (count: number): Promise<Product[]> => 
         }
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
     } catch (error) {
-        console.error("Error fetching trending products, returning empty array: ", error);
+        console.error("Error fetching trending products: ", error);
         return [];
     }
 };
@@ -134,13 +119,12 @@ export const getProductsByCategory = async (category: string): Promise<Product[]
         const q = query(productsRef, where("category", "==", category), where("isPublished", "==", true));
         const snapshot = await getDocs(q);
         if (snapshot.empty) {
-            console.log(`No products found for category ${category}, returning mock data.`);
-            return MOCK_PRODUCTS.filter(p => p.category === category && p.isPublished);
+            return [];
         }
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
     } catch (error) {
-        console.error(`Error fetching products for category ${category}, returning mock data: `, error);
-        return MOCK_PRODUCTS.filter(p => p.category === category && p.isPublished);
+        console.error(`Error fetching products for category ${category}: `, error);
+        return [];
     }
 };
 

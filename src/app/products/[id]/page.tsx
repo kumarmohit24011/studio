@@ -33,7 +33,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   // Fetch related products (from the same category, excluding the current one)
   const relatedProductsData = await getProductsByCategory(product.category);
   const relatedProducts = relatedProductsData
-    .filter(p => p.id !== product.id)
+    .filter(p => p.id !== product.id && p.isPublished)
     .slice(0, 5)
     .map(toPlainObject);
 
@@ -46,7 +46,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 <Separator />
                 <div className="py-12">
                     <h2 className="text-3xl font-headline text-center mb-8">You Might Also Like</h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
                         {relatedProducts.map((relatedProduct) => (
                             <ProductCard key={relatedProduct.id} product={relatedProduct} />
                         ))}

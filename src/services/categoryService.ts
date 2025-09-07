@@ -3,26 +3,19 @@ import { db } from '@/lib/firebase';
 import { Category } from '@/lib/types';
 import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 
-const MOCK_CATEGORIES: Category[] = [
-    { id: 'rings', name: 'Rings', description: 'Elegant rings for every occasion.', createdAt: new Date(), order: 1 },
-    { id: 'necklaces', name: 'Necklaces', description: 'Stunning necklaces to complete your look.', createdAt: new Date(), order: 2 },
-    { id: 'bracelets', name: 'Bracelets', description: 'Charming bracelets to adorn your wrist.', createdAt: new Date(), order: 3 },
-];
-
 export const getAllCategories = async (): Promise<Category[]> => {
     try {
         const categoriesCol = collection(db, 'categories');
         const snapshot = await getDocs(categoriesCol);
         if (snapshot.empty) {
-            console.log('No categories found in Firestore, returning mock data.');
-            return MOCK_CATEGORIES;
+            return [];
         }
         return snapshot.docs
             .map(doc => ({ id: doc.id, ...doc.data() } as Category))
             .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     } catch (error) {
-        console.error("Error fetching categories, returning mock data: ", error);
-        return MOCK_CATEGORIES;
+        console.error("Error fetching categories: ", error);
+        return [];
     }
 };
 
@@ -33,11 +26,10 @@ export const getCategoryById = async (id: string): Promise<Category | null> => {
         if (docSnap.exists()) {
             return { id: docSnap.id, ...docSnap.data() } as Category;
         }
-        console.warn(`Category with id ${id} not found in Firestore, checking mock data.`);
-        return MOCK_CATEGORIES.find(c => c.id === id) || null;
+        return null;
     } catch (error) {
-        console.error(`Error fetching category by id ${id}, returning mock data: `, error);
-        return MOCK_CATEGORIES.find(c => c.id === id) || null;
+        console.error(`Error fetching category by id ${id}: `, error);
+        return null;
     }
 };
 
