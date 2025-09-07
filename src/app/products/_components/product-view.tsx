@@ -1,35 +1,11 @@
 
 'use client';
 
-import { Suspense, useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import type { Product, Category } from "@/lib/types";
-import { Skeleton } from "@/components/ui/skeleton";
 import { ProductGrid } from "./product-grid";
 import { ProductFilters } from "./product-filters";
 import { useSearchParams } from "next/navigation";
-
-function ProductPageSkeleton() {
-  return (
-    <div className="flex gap-8">
-      <div className="hidden md:block w-64 lg:w-72">
-        <Skeleton className="h-8 w-1/2 mb-4" />
-        <div className="space-y-6">
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-24 w-full" />
-        </div>
-      </div>
-      <div className="flex-1">
-        <Skeleton className="h-6 w-1/4 mb-6" />
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 md:gap-6">
-          {[...Array(9)].map((_, i) => (
-            <Skeleton key={i} className="h-72 w-full" />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 interface ProductViewProps {
   initialProducts: Product[];
@@ -49,9 +25,11 @@ export function ProductView({ initialProducts, categories }: ProductViewProps) {
     }
 
     // Price filter
-    tempProducts = tempProducts.filter(
-      p => p.price >= filters.priceRange[0] && p.price <= filters.priceRange[1]
-    );
+    if (filters.priceRange) {
+        tempProducts = tempProducts.filter(
+          p => p.price >= filters.priceRange[0] && p.price <= filters.priceRange[1]
+        );
+    }
 
     // Sort
     switch (filters.sortBy) {
@@ -63,7 +41,12 @@ export function ProductView({ initialProducts, categories }: ProductViewProps) {
         break;
       case 'newest':
       default:
-        tempProducts.sort((a, b) => new Date(b.createdAt as string).getTime() - new Date(a.createdAt as string).getTime());
+        // Ensure createdAt is valid before sorting
+        tempProducts.sort((a, b) => {
+            const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return dateB - dateA;
+        });
         break;
     }
     
@@ -84,7 +67,7 @@ export function ProductView({ initialProducts, categories }: ProductViewProps) {
   }, [searchParams, applyFilters]);
 
   return (
-    <div className="flex flex-col md:flex-row items-start gap-8">
+    <div>
       <ProductFilters categories={categories} onFilterChange={applyFilters} />
       <ProductGrid products={filteredProducts} />
     </div>

@@ -9,8 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Category } from '@/lib/types';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Filter } from 'lucide-react';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
+import { Filter, X } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 interface ProductFiltersProps {
   categories: Category[];
@@ -22,7 +23,6 @@ export function ProductFilters({ categories, onFilterChange }: ProductFiltersPro
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Initialize state from URL search params
   const [selectedCategories, setSelectedCategories] = useState<string[]>(searchParams.get('categories')?.split(',').filter(Boolean) || []);
   const [priceRange, setPriceRange] = useState<[number, number]>([
     Number(searchParams.get('minPrice')) || 0,
@@ -30,50 +30,53 @@ export function ProductFilters({ categories, onFilterChange }: ProductFiltersPro
   ]);
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'newest');
   const [isSheetOpen, setSheetOpen] = useState(false);
+  const [tempPriceRange, setTempPriceRange] = useState(priceRange);
 
-  // Function to create a query string from the current state
   const createQueryString = useCallback((filters: any) => {
-    const params = new URLSearchParams();
+    const params = new URLSearchParams(searchParams.toString());
     if (filters.categories.length > 0) {
       params.set('categories', filters.categories.join(','));
+    } else {
+        params.delete('categories');
     }
+
     if (filters.priceRange[0] > 0) {
       params.set('minPrice', filters.priceRange[0].toString());
+    } else {
+        params.delete('minPrice');
     }
+    
     if (filters.priceRange[1] < 50000) {
       params.set('maxPrice', filters.priceRange[1].toString());
+    } else {
+        params.delete('maxPrice');
     }
-    if (filters.sortBy !== 'newest') {
+
+    if (filters.sortBy && filters.sortBy !== 'newest') {
       params.set('sort', filters.sortBy);
+    } else {
+        params.delete('sort');
     }
     return params.toString();
-  }, []);
-  
-  // This effect synchronizes the component's state with the URL's search parameters.
-  // It runs whenever the search params change (e.g., when the user clicks a browser back/forward button).
-  useEffect(() => {
-    setSelectedCategories(searchParams.get('categories')?.split(',').filter(Boolean) || []);
-    setPriceRange([
-        Number(searchParams.get('minPrice')) || 0,
-        Number(searchParams.get('maxPrice')) || 50000,
-    ]);
-    setSortBy(searchParams.get('sort') || 'newest');
   }, [searchParams]);
-
-  // Handler for applying filters. It calls the parent's onFilterChange
-  // and updates the URL.
-  const handleApplyFilters = () => {
-    const filters = {
-      categories: selectedCategories,
-      priceRange,
-      sortBy,
+  
+  useEffect(() => {
+    const currentFilters = {
+        categories: selectedCategories,
+        priceRange,
+        sortBy
     };
-    onFilterChange(filters);
-    const queryString = createQueryString(filters);
-    // Using { scroll: false } prevents the page from scrolling to the top on navigation.
+    onFilterChange(currentFilters);
+    const queryString = createQueryString(currentFilters);
     router.push(`${pathname}?${queryString}`, { scroll: false });
-    setSheetOpen(false); // Close mobile sheet on apply
-  };
+  // This dependency array intentionally excludes onFilterChange and router to avoid re-running on every render.
+  // We only want this to run when the filter values themselves change.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategories, priceRange, sortBy]);
+  
+  useEffect(() => {
+    setTempPriceRange(priceRange);
+  }, [priceRange]);
 
   const handleCategoryChange = (categoryId: string, checked: boolean | 'indeterminate') => {
     setSelectedCategories(prev =>
@@ -81,79 +84,98 @@ export function ProductFilters({ categories, onFilterChange }: ProductFiltersPro
     );
   };
   
-  const FilterContent = () => (
-    <div className="space-y-6">
+  const handleSheetApply = () => {
+    setPriceRange(tempPriceRange);
+    setSheetOpen(false);
+  }
+
+  const clearFilters = () => {
+    setSelectedCategories([]);
+    setPriceRange([0, 50000]);
+    setTempPriceRange([0, 50000]);
+  }
+
+  const FilterSheetContent = () => (
+    <>
+    <SheetHeader className="px-6 pt-6 pb-4">
+        <SheetTitle>Filter Products</SheetTitle>
+    </SheetHeader>
+    <Separator />
+    <div className="p-6 space-y-8 overflow-y-auto">
       <div>
-        <h3 className="font-semibold mb-3">Sort By</h3>
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger>
-            <SelectValue placeholder="Sort products" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="newest">Newest</SelectItem>
-            <SelectItem value="price_asc">Price: Low to High</SelectItem>
-            <SelectItem value="price_desc">Price: High to Low</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div>
-        <h3 className="font-semibold mb-3">Category</h3>
-        <div className="space-y-2">
+        <div className="flex justify-between items-center mb-4">
+            <h3 className="font-semibold text-lg">Category</h3>
+             {selectedCategories.length > 0 && (
+                <Button variant="ghost" size="sm" onClick={() => setSelectedCategories([])}>Clear</Button>
+            )}
+        </div>
+        <div className="space-y-3">
           {categories.map(category => (
-            <div key={category.id} className="flex items-center space-x-2">
+            <div key={category.id} className="flex items-center space-x-3">
               <Checkbox
-                id={`cat-${category.id}`}
+                id={`sheet-cat-${category.id}`}
                 checked={selectedCategories.includes(category.name)}
                 onCheckedChange={(checked) => handleCategoryChange(category.name, checked)}
+                className="h-5 w-5"
               />
-              <Label htmlFor={`cat-${category.id}`} className="font-normal">{category.name}</Label>
+              <Label htmlFor={`sheet-cat-${category.id}`} className="font-normal text-base">{category.name}</Label>
             </div>
           ))}
         </div>
       </div>
+      <Separator />
       <div>
-        <h3 className="font-semibold mb-3">Price Range</h3>
+        <div className="flex justify-between items-center mb-4">
+            <h3 className="font-semibold text-lg">Price Range</h3>
+            {(tempPriceRange[0] > 0 || tempPriceRange[1] < 50000) && (
+                <Button variant="ghost" size="sm" onClick={() => setTempPriceRange([0, 50000])}>Reset</Button>
+            )}
+        </div>
         <Slider
           defaultValue={[0, 50000]}
           max={50000}
-          step={100}
-          value={priceRange}
-          onValueChange={(value) => setPriceRange(value as [number, number])}
+          step={500}
+          value={tempPriceRange}
+          onValueChange={(value) => setTempPriceRange(value as [number, number])}
         />
-        <div className="flex justify-between text-sm text-muted-foreground mt-2">
-          <span>₹{priceRange[0]}</span>
-          <span>₹{priceRange[1]}</span>
+        <div className="flex justify-between text-sm text-muted-foreground mt-3">
+          <span>₹{tempPriceRange[0]}</span>
+          <span>₹{tempPriceRange[1]}</span>
         </div>
       </div>
-      <Button onClick={handleApplyFilters} className="w-full">Apply Filters</Button>
     </div>
+    <SheetFooter className='p-6 bg-background border-t absolute bottom-0 w-full'>
+        <Button onClick={handleSheetApply} className="w-full" size="lg">Apply Filters</Button>
+    </SheetFooter>
+    </>
   );
 
   return (
-    <>
-      {/* Mobile Filter Sheet */}
-      <div className="md:hidden mb-6">
+    <div className="flex items-center justify-between gap-4 mb-8">
         <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
           <SheetTrigger asChild>
-             <Button variant="outline" className="w-full">
+             <Button variant="outline">
               <Filter className="mr-2 h-4 w-4" />
-              Filter & Sort
+              Filter
             </Button>
           </SheetTrigger>
-          <SheetContent side="left">
-             <div className="p-4">
-              <h2 className="text-lg font-semibold mb-4">Filters</h2>
-              <FilterContent />
-            </div>
+          <SheetContent side="left" className="p-0">
+             <FilterSheetContent />
           </SheetContent>
         </Sheet>
-      </div>
-
-      {/* Desktop Filter Sidebar */}
-      <aside className="hidden md:block w-64 lg:w-72 sticky top-24 pr-8">
-        <h2 className="text-xl font-bold mb-4">Filters</h2>
-        <FilterContent />
-      </aside>
-    </>
+        <div className="flex items-center gap-2">
+            <Label htmlFor='sort-by' className="text-muted-foreground whitespace-nowrap">Sort by</Label>
+            <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger id='sort-by' className='w-[180px]'>
+                <SelectValue placeholder="Sort products" />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="newest">Newest</SelectItem>
+                <SelectItem value="price_asc">Price: Low to High</SelectItem>
+                <SelectItem value="price_desc">Price: High to Low</SelectItem>
+            </SelectContent>
+            </Select>
+        </div>
+    </div>
   );
 }

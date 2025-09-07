@@ -25,9 +25,9 @@ export function ProductCard({ product }: { product: Product }) {
   };
 
   return (
-    <Card className="overflow-hidden group border-0 bg-transparent shadow-none rounded-lg flex flex-col">
+    <Card className="overflow-hidden group border bg-card hover:shadow-lg transition-shadow duration-300 flex flex-col">
       <Link href={`/products/${product.id}`} className="block flex flex-col h-full">
-        <div className="relative w-full aspect-square overflow-hidden rounded-md">
+        <div className="relative w-full aspect-square overflow-hidden">
             <Image
               src={product.imageUrl || "https://picsum.photos/400/400"}
               alt={product.name}
@@ -35,23 +35,24 @@ export function ProductCard({ product }: { product: Product }) {
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
             />
-            {product.tags?.includes('sale') && <Badge variant="destructive" className="absolute top-2 left-2 z-10">Sale</Badge>}
-            <div className="absolute top-2 right-2 z-10 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <div className="absolute top-2 right-2 z-10 flex flex-col gap-2">
                 <Button 
                     variant="secondary" 
                     size="icon" 
                     onClick={handleToggleWishlist} 
-                    className="rounded-full h-9 w-9"
+                    className="rounded-full h-9 w-9 bg-background/60 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-background"
                     aria-label="Toggle Wishlist"
                 >
                     <Heart className={`w-4 h-4 ${inWishlist ? 'text-red-500 fill-red-500' : 'text-foreground'}`}/>
                 </Button>
-                <AddToCartButton product={product} size="icon" variant="secondary" className="rounded-full h-9 w-9" />
+            </div>
+             <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/20 via-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <AddToCartButton product={product} size="sm" variant="secondary" className="w-full" />
             </div>
         </div>
-        <CardContent className="p-0 pt-4 text-left">
-            <h3 className="font-semibold text-base text-foreground truncate">{product.name}</h3>
-            <p className="text-primary font-bold text-lg mt-1">₹{product.price.toFixed(2)}</p>
+        <CardContent className="p-4 flex-grow flex flex-col">
+            <h3 className="font-semibold text-base text-foreground truncate flex-grow">{product.name}</h3>
+            <p className="text-primary font-bold text-lg mt-2">₹{product.price.toFixed(2)}</p>
         </CardContent>
       </Link>
     </Card>
