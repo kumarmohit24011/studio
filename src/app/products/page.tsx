@@ -36,18 +36,9 @@ function ProductPageSkeleton() {
   );
 }
 
-// Helper to convert Firestore Timestamps to a serializable format
-const toPlainObject = (item: any): any => {
-    return {
-        ...item,
-        createdAt: item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
-        updatedAt: item.updatedAt?.seconds ? new Date(item.updatedAt.seconds * 1000).toISOString() : new Date().toISOString(),
-    };
-};
-
-export default async function ProductsPage(props: any) {
-  const categoryParam = props.searchParams?.category as string | undefined;
-  const sortParam = props.searchParams?.sort as string | undefined;
+export default async function ProductsPage({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined }}) {
+  const categoryParam = searchParams?.category as string | undefined;
+  const sortParam = searchParams?.sort as string | undefined;
 
   const productsData = categoryParam 
     ? await getProductsByCategory(categoryParam)
@@ -56,10 +47,9 @@ export default async function ProductsPage(props: any) {
   const categoriesData = await getAllCategories();
 
   const products: Product[] = productsData
-    .filter((p: Product) => p.isPublished)
-    .map((p: any) => toPlainObject(p));
+    .filter((p: Product) => p.isPublished);
 
-  const categories: Category[] = categoriesData.map((c: any) => toPlainObject(c));
+  const categories: Category[] = categoriesData;
   const activeCategory = categories.find((c: Category) => c.name === categoryParam) || null;
   const pageTitle = activeCategory ? activeCategory.name : "All Products";
   const pageDescription = activeCategory ? activeCategory.description : "Explore our exquisite range of handcrafted jewelry. Use the filters to find the perfect piece.";

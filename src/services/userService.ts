@@ -3,13 +3,22 @@ import { db } from '@/lib/firebase';
 import { UserProfile, StoredAddress } from '@/lib/types';
 import { doc, getDoc, setDoc, serverTimestamp, updateDoc, collection, query, orderBy, limit, getDocs, getCountFromServer } from 'firebase/firestore';
 
+const toPlainObject = (user: any): UserProfile => {
+    if (!user) return user;
+    const plain = { ...user };
+    if (user.createdAt?.seconds) {
+        plain.createdAt = new Date(user.createdAt.seconds * 1000).toISOString();
+    }
+    return plain;
+};
+
 export const createUserProfile = async (uid: string, email: string, name: string, photoURL?: string): Promise<UserProfile> => {
     const userRef = doc(db, 'users', uid);
     const docSnap = await getDoc(userRef);
 
     if (docSnap.exists()) {
         console.log(`Profile for user ${uid} already exists.`);
-        return docSnap.data() as UserProfile;
+        return toPlainObject(docSnap.data());
     }
 
     const isAdmin = email === 'admin@redbow.com';
@@ -49,7 +58,7 @@ export const getUserProfile = async (uid: string): Promise<UserProfile | null> =
         const docSnap = await getDoc(userRef);
 
         if (docSnap.exists()) {
-            return docSnap.data() as UserProfile;
+            return toPlainObject(docSnap.data());
         } else {
             console.warn(`No profile found for user ${uid}`);
             return null;
@@ -70,7 +79,7 @@ export const getAllCustomers = async (): Promise<UserProfile[]> => {
             return [];
         }
 
-        return snapshot.docs.map(doc => doc.data() as UserProfile);
+        return snapshot.docs.map(doc => toPlainObject(doc.data()));
     } catch (error) {
         console.error("Error fetching all customers: ", error);
         return [];
@@ -98,7 +107,7 @@ export const getRecentCustomers = async (count: number): Promise<UserProfile[]> 
             return [];
         }
 
-        return snapshot.docs.map(doc => doc.data() as UserProfile);
+        return snapshot.docs.map(doc => toPlainObject(doc.data()));
     } catch (error) {
         console.error("Error fetching recent customers: ", error);
         return [];

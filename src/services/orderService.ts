@@ -1,8 +1,19 @@
 
-
 import { db } from '@/lib/firebase';
 import { Order } from '@/lib/types';
 import { collection, addDoc, serverTimestamp, query, where, getDocs, orderBy, doc, updateDoc } from 'firebase/firestore';
+
+const toPlainObject = (order: any): Order => {
+    if (!order) return order;
+    const plain = { ...order };
+    if (order.createdAt?.seconds) {
+        plain.createdAt = new Date(order.createdAt.seconds * 1000).toISOString();
+    }
+    if (order.updatedAt?.seconds) {
+        plain.updatedAt = new Date(order.updatedAt.seconds * 1000).toISOString();
+    }
+    return plain;
+};
 
 // This function creates an order in Firestore
 export const createOrder = async (orderData: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -43,15 +54,7 @@ export const getOrdersByUserId = async (userId: string): Promise<Order[]> => {
             return [];
         }
 
-        const orders = snapshot.docs.map(doc => {
-             const data = doc.data();
-             return { 
-                id: doc.id, 
-                ...data,
-                createdAt: data.createdAt?.seconds ? new Date(data.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
-                updatedAt: data.updatedAt?.seconds ? new Date(data.updatedAt.seconds * 1000).toISOString() : new Date().toISOString(),
-            } as Order
-        });
+        const orders = snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
 
         // Sort orders by date client-side
         return orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -74,15 +77,7 @@ export const getAllOrders = async (): Promise<Order[]> => {
             return [];
         }
 
-        return snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-                id: doc.id,
-                ...data,
-                createdAt: data.createdAt?.seconds ? new Date(data.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
-                updatedAt: data.updatedAt?.seconds ? new Date(data.updatedAt.seconds * 1000).toISOString() : new Date().toISOString(),
-            } as Order;
-        });
+        return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
     } catch (error) {
         console.error("Error fetching all orders: ", error);
         return [];
@@ -102,5 +97,3 @@ export const updateOrderStatus = async (orderId: string, status: Order['orderSta
         throw error;
     }
 };
-
-

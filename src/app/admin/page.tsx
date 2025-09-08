@@ -12,33 +12,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { UserProfile, Product, Order } from "@/lib/types";
 
 
-const toPlainObject = (item: any): any => {
-    const plain = { ...item };
-    if (item.createdAt?.seconds) {
-        plain.createdAt = new Date(item.createdAt.seconds * 1000).toISOString();
-    } else if (typeof item.createdAt === 'object') {
-        plain.createdAt = new Date().toISOString();
-    }
-    if (item.updatedAt?.seconds) {
-        plain.updatedAt = new Date(item.updatedAt.seconds * 1000).toISOString();
-    } else if (typeof item.updatedAt === 'object') {
-        plain.updatedAt = new Date().toISOString();
-    }
-    return plain;
-};
-
 export default async function AdminDashboard() {
-    const recentOrdersData = await getAllOrders(); // In a real app, you'd paginate this.
-    const recentCustomersData = await getRecentCustomers(5);
-    const recentProductsData = await getRecentProducts(5);
+    // Services now return serialized data, no need for client-side helpers
+    const recentOrders: Order[] = await getAllOrders(); 
+    const recentCustomers: UserProfile[] = await getRecentCustomers(5);
+    const recentProducts: Product[] = await getRecentProducts(5);
     
     const totalCustomers = await getTotalCustomers();
     const totalProducts = await getTotalProducts();
     const totalCategories = (await getAllCategories()).length;
-    
-    const recentOrders: Order[] = recentOrdersData.map(toPlainObject);
-    const recentCustomers: UserProfile[] = recentCustomersData.map(toPlainObject);
-    const recentProducts: Product[] = recentProductsData.map(toPlainObject);
 
     const totalRevenue = recentOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
 

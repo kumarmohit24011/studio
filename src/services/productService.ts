@@ -4,6 +4,19 @@ import { Product } from '@/lib/types';
 import { collection, getDocs, query, where, limit, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc, orderBy, getCountFromServer, writeBatch, documentId } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
+const toPlainObject = (product: any): Product => {
+    if (!product) return product;
+    const plainProduct = { ...product };
+    if (product.createdAt?.seconds) {
+        plainProduct.createdAt = new Date(product.createdAt.seconds * 1000).toISOString();
+    }
+    if (product.updatedAt?.seconds) {
+        plainProduct.updatedAt = new Date(product.updatedAt.seconds * 1000).toISOString();
+    }
+    return plainProduct;
+};
+
+
 export const getAllProducts = async (): Promise<Product[]> => {
     try {
         const productsCol = collection(db, 'products');
@@ -11,7 +24,7 @@ export const getAllProducts = async (): Promise<Product[]> => {
         if (snapshot.empty) {
             return [];
         }
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+        return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
     } catch (error) {
         console.error("Error fetching products: ", error);
         return [];
@@ -31,7 +44,7 @@ export const getProductsByIds = async (ids: string[]): Promise<Product[]> => {
             const productsRef = collection(db, 'products');
             const q = query(productsRef, where(documentId(), "in", chunk));
             const snapshot = await getDocs(q);
-            const chunkProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+            const chunkProducts = snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
             products.push(...chunkProducts);
         }
         return products;
@@ -59,7 +72,7 @@ export const getProductById = async (id: string): Promise<Product | null> => {
         const docRef = doc(db, 'products', id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-            return { id: docSnap.id, ...docSnap.data() } as Product;
+            return toPlainObject({ id: docSnap.id, ...docSnap.data() });
         }
         return null;
     } catch (error) {
@@ -76,7 +89,7 @@ export const getNewArrivals = async (count: number): Promise<Product[]> => {
         if (snapshot.empty) {
             return [];
         }
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+        return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
     } catch (error) {
         console.error("Error fetching new arrivals: ", error);
         return [];
@@ -91,7 +104,7 @@ export const getRecentProducts = async (count: number): Promise<Product[]> => {
         if (snapshot.empty) {
             return [];
         }
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+        return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
     } catch (error) {
         console.error("Error fetching recent products: ", error);
         return [];
@@ -106,7 +119,7 @@ export const getTrendingProducts = async (count: number): Promise<Product[]> => 
         if (snapshot.empty) {
             return [];
         }
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+        return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
     } catch (error) {
         console.error("Error fetching trending products: ", error);
         return [];
@@ -121,7 +134,7 @@ export const getProductsByCategory = async (category: string): Promise<Product[]
         if (snapshot.empty) {
             return [];
         }
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+        return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
     } catch (error) {
         console.error(`Error fetching products for category ${category}: `, error);
         return [];

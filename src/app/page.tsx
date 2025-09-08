@@ -7,27 +7,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { ProductCard } from "./products/_components/product-card";
 
-// Helper to convert Firestore Timestamps
-const toPlainObject = (item: any): any => {
-    const plain = { ...item };
-    if (item.createdAt?.seconds) {
-        plain.createdAt = new Date(item.createdAt.seconds * 1000).toISOString();
-    }
-    if (item.updatedAt?.seconds) {
-        plain.updatedAt = new Date(item.updatedAt.seconds * 1000).toISOString();
-    }
-    return plain;
-};
-
-
 export default async function Home() {
   const newArrivalsData = await getNewArrivals(5);
   const trendingProductsData = await getTrendingProducts(5);
   const siteContent = await getSiteContent();
   const { heroSection, promoBanner1, promoBanner2 } = siteContent;
 
-  const newArrivals: Product[] = newArrivalsData.map(p => toPlainObject(p)).filter(p => p.isPublished);
-  const trendingProducts: Product[] = trendingProductsData.map(p => toPlainObject(p)).filter(p => p.isPublished);
+  const newArrivals: Product[] = newArrivalsData.filter(p => p.isPublished);
+  const trendingProducts: Product[] = trendingProductsData.filter(p => p.isPublished);
 
 
   return (

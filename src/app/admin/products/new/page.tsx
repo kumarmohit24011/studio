@@ -5,13 +5,7 @@ import { getAllCategories } from "@/services/categoryService";
 import type { Category } from "@/lib/types";
 
 export default async function NewProductPage() {
-  const categoriesData = await getAllCategories();
-
-  const categories: Category[] = categoriesData.map(cat => ({
-    ...cat,
-    createdAt: cat.createdAt?.seconds ? new Date(cat.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
-  }));
-
+  const categories: Category[] = await getAllCategories();
 
   return (
     <div className="flex flex-col gap-4">

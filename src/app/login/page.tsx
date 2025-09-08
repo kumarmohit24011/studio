@@ -32,11 +32,8 @@ function LoginPageSkeleton() {
   );
 }
 
-interface LoginPageProps {
-  searchParams?: { [key: string]: string | string[] | undefined };
-}
-
-export default function LoginPage({ searchParams }: LoginPageProps) {
+// Correctly type the props for a Next.js page component
+export default function LoginPage({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined }}) {
   const redirectUrl = typeof searchParams?.redirect === 'string' ? searchParams.redirect : undefined;
 
   return (
