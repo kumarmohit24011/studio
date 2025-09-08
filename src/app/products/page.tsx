@@ -37,12 +37,8 @@ const toPlainObject = (item: any): any => {
     };
 };
 
-export default async function ProductsPage({
-  searchParams,
-}: {
-  searchParams?: { [key: string]: string | string[] | undefined };
-}) {
-  const categoryParam = searchParams?.category as string | undefined;
+export default async function ProductsPage(props: any) {
+  const categoryParam = props.searchParams?.category as string | undefined;
 
   const productsData = categoryParam 
     ? await getProductsByCategory(categoryParam)

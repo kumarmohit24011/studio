@@ -6,23 +6,21 @@ import { ProductDetailsClient } from "./_components/product-details-client";
 import { Separator } from "@/components/ui/separator";
 import { ProductCard } from "../_components/product-card";
 
-type ProductPageProps = {
-  params: {
-    id: string;
-  };
-};
-
 // Helper to convert Firestore Timestamps to a serializable format
 const toPlainObject = (product: any): Product => {
-    return {
-        ...product,
-        createdAt: product.createdAt?.seconds ? new Date(product.createdAt.seconds * 1000).toISOString() : null,
-        updatedAt: product.updatedAt?.seconds ? new Date(product.updatedAt.seconds * 1000).toISOString() : null,
-    };
+    const plainProduct = { ...product };
+    if (product.createdAt?.seconds) {
+        plainProduct.createdAt = new Date(product.createdAt.seconds * 1000).toISOString();
+    }
+    if (product.updatedAt?.seconds) {
+        plainProduct.updatedAt = new Date(product.updatedAt.seconds * 1000).toISOString();
+    }
+    return plainProduct;
 };
 
-export default async function ProductPage({ params }: ProductPageProps) {
-  const productData = await getProductById(params.id);
+export default async function ProductPage(props: any) {
+  const id = props.params?.id;
+  const productData = await getProductById(id);
 
   if (!productData || !productData.isPublished) {
     notFound();

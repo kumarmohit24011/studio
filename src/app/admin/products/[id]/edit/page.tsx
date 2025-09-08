@@ -6,8 +6,9 @@ import { getAllCategories } from "@/services/categoryService";
 import { notFound } from "next/navigation";
 import type { Product, Category } from "@/lib/types";
 
-export default async function EditProductPage({ params }: { params: { id: string } }) {
-  const productData = await getProductById(params.id);
+export default async function EditProductPage(props: any) {
+  const id = props.params?.id;
+  const productData = await getProductById(id);
   const categoriesData = await getAllCategories();
   
   if (!productData) {
