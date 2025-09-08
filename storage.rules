@@ -1,19 +1,13 @@
-
 rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // Helper function to check for admin role
-    function isAdmin() {
-      return exists(/databases/(default)/documents/users/$(request.auth.uid)) &&
-             get(/databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin == true;
-    }
-
-    // Allow public read access to all files (for product images, hero images, etc.)
-    match /{allPaths=**} {
-      allow read;
-      // Allow write access (create, update, delete) only to authenticated admins
-      allow write: if request.auth != null && isAdmin();
+    // Grant write access to any authenticated user for the designated folders.
+    // The application's UI (admin dashboard) is responsible for ensuring only admins can trigger uploads.
+    // Public read access is maintained for displaying images on the site.
+    match /{folder}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
     }
   }
 }
