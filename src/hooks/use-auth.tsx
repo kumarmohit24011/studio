@@ -4,7 +4,8 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { onAuthStateChanged, User, signOut, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { createUserProfile, getUserProfile, UserProfile } from '@/services/userService';
+import { createUserProfile, getUserProfile } from '@/services/userService';
+import type { UserProfile } from '@/lib/types';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 

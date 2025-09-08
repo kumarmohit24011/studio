@@ -5,14 +5,8 @@ import { CategoryActions } from "./_components/actions";
 import type { Category } from "@/lib/types";
 
 export default async function AdminCategoriesPage() {
-  const categoriesData = await getAllCategories();
-
-  // Convert Firestore Timestamps to serializable format
-  const categories: Category[] = categoriesData.map(cat => ({
-    ...cat,
-    createdAt: cat.createdAt?.seconds ? new Date(cat.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
-  }));
-
+  // Now fetching already serialized data, no need for client-side conversion
+  const categories: Category[] = await getAllCategories();
 
   return (
     <div className="flex flex-col gap-4">
