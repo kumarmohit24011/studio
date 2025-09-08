@@ -17,6 +17,7 @@ export default async function AdminPromotionsPage() {
     heroSection: toPlainData(siteContent.heroSection),
     promoBanner1: toPlainData(siteContent.promoBanner1),
     promoBanner2: toPlainData(siteContent.promoBanner2),
+    shippingSettings: toPlainData(siteContent.shippingSettings),
   };
 
   return (
