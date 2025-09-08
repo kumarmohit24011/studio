@@ -32,9 +32,14 @@ function LoginPageSkeleton() {
   );
 }
 
+interface PageProps {
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
 // Correctly type the props for a Next.js page component
-export default function LoginPage({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined }}) {
-  const redirectUrl = typeof searchParams?.redirect === 'string' ? searchParams.redirect : undefined;
+export default async function LoginPage({ searchParams }: PageProps) {
+  const resolvedSearchParams = await searchParams;
+  const redirectUrl = typeof resolvedSearchParams?.redirect === 'string' ? resolvedSearchParams.redirect : undefined;
 
   return (
     <Suspense fallback={<LoginPageSkeleton />}>
