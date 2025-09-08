@@ -1,8 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,43 +11,26 @@ import { cn } from '@/lib/utils';
 
 interface ProductFiltersProps {
   categories: Category[];
-  onFilterChange: (filters: any) => void;
+  onFilterChange: (filters: { category: string; sortBy: string }) => void;
+  initialCategory: string;
+  initialSort: string;
 }
 
-export function ProductFilters({ categories, onFilterChange }: ProductFiltersProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  const [selectedCategory, setSelectedCategory] = useState<string>(searchParams.get('category') || 'all');
-  const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'newest');
-
-  const createQueryString = useCallback((filters: any) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (filters.category && filters.category !== 'all') {
-      params.set('category', filters.category);
-    } else {
-      params.delete('category');
-    }
-
-    if (filters.sortBy && filters.sortBy !== 'newest') {
-      params.set('sort', filters.sortBy);
-    } else {
-      params.delete('sort');
-    }
-    return params.toString();
-  }, [searchParams]);
+export function ProductFilters({ categories, onFilterChange, initialCategory, initialSort }: ProductFiltersProps) {
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
+  const [sortBy, setSortBy] = useState(initialSort);
 
   useEffect(() => {
-    const currentFilters = {
+    setSelectedCategory(initialCategory);
+    setSortBy(initialSort);
+  }, [initialCategory, initialSort]);
+
+  useEffect(() => {
+    onFilterChange({
         category: selectedCategory,
         sortBy
-    };
-    onFilterChange(currentFilters);
-    const queryString = createQueryString(currentFilters);
-    router.push(`${pathname}?${queryString}`, { scroll: false });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCategory, sortBy]);
+    });
+  }, [selectedCategory, sortBy, onFilterChange]);
 
   const allCategories = [{ id: 'all', name: 'All' }, ...categories];
 

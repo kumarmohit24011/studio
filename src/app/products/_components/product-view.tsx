@@ -5,16 +5,19 @@ import { useEffect, useState, useCallback } from "react";
 import type { Product, Category } from "@/lib/types";
 import { ProductGrid } from "./product-grid";
 import { ProductFilters } from "./product-filters";
-import { useSearchParams } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 interface ProductViewProps {
   initialProducts: Product[];
   categories: Category[];
+  initialCategory: string;
+  initialSort: string;
 }
 
-export function ProductView({ initialProducts, categories }: ProductViewProps) {
+export function ProductView({ initialProducts, categories, initialCategory, initialSort }: ProductViewProps) {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(initialProducts);
-  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const applyFilters = useCallback((filters: { category: string; sortBy: string; }) => {
     let tempProducts = [...initialProducts];
@@ -43,19 +46,38 @@ export function ProductView({ initialProducts, categories }: ProductViewProps) {
     }
     
     setFilteredProducts(tempProducts);
-  }, [initialProducts]);
+    
+    // Update URL
+    const params = new URLSearchParams();
+    if (filters.category && filters.category !== 'all') {
+      params.set('category', filters.category);
+    }
+    if (filters.sortBy && filters.sortBy !== 'newest') {
+      params.set('sort', filters.sortBy);
+    }
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+
+  }, [initialProducts, router, pathname]);
   
+  // Apply initial filters on mount
   useEffect(() => {
-    const initialFilters = {
-      category: searchParams.get('category') || 'all',
-      sortBy: searchParams.get('sort') || 'newest',
-    };
-    applyFilters(initialFilters);
-  }, [searchParams, initialProducts, applyFilters]);
+    applyFilters({ category: initialCategory, sortBy: initialSort });
+  }, [initialCategory, initialSort, applyFilters]);
+
+  // Apply filters when initialProducts change
+  useEffect(() => {
+    applyFilters({ category: initialCategory, sortBy: initialSort });
+  }, [initialProducts, applyFilters, initialCategory, initialSort]);
+
 
   return (
     <div>
-      <ProductFilters categories={categories} onFilterChange={applyFilters} />
+      <ProductFilters 
+        categories={categories} 
+        onFilterChange={applyFilters} 
+        initialCategory={initialCategory}
+        initialSort={initialSort}
+      />
       <ProductGrid products={filteredProducts} />
     </div>
   );

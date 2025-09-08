@@ -47,6 +47,7 @@ const toPlainObject = (item: any): any => {
 
 export default async function ProductsPage(props: any) {
   const categoryParam = props.searchParams?.category as string | undefined;
+  const sortParam = props.searchParams?.sort as string | undefined;
 
   const productsData = categoryParam 
     ? await getProductsByCategory(categoryParam)
@@ -71,7 +72,12 @@ export default async function ProductsPage(props: any) {
         <p className="text-lg text-muted-foreground mt-2 max-w-2xl mx-auto">{pageDescription}</p>
       </div>
       <Suspense fallback={<ProductPageSkeleton/>}>
-         <ProductView initialProducts={products} categories={categories} />
+         <ProductView 
+            initialProducts={products} 
+            categories={categories}
+            initialCategory={categoryParam || 'all'}
+            initialSort={sortParam || 'newest'}
+          />
       </Suspense>
     </div>
   );

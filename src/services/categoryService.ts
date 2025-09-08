@@ -13,8 +13,8 @@ export const getAllCategories = async (): Promise<Category[]> => {
         return snapshot.docs
             .map(doc => {
                 const data = doc.data();
-                return { 
-                    id: doc.id, 
+                return {
+                    id: doc.id,
                     ...data,
                     createdAt: data.createdAt?.seconds ? new Date(data.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
                 } as Category
@@ -35,7 +35,14 @@ export const getFeaturedCategories = async (): Promise<Category[]> => {
             return [];
         }
         return snapshot.docs
-            .map(doc => ({ id: doc.id, ...doc.data() } as Category))
+            .map(doc => {
+                 const data = doc.data();
+                 return {
+                    id: doc.id,
+                    ...data,
+                    createdAt: data.createdAt?.seconds ? new Date(data.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
+                 } as Category
+            })
             .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     } catch (error) {
         console.error("Error fetching featured categories: ", error);
