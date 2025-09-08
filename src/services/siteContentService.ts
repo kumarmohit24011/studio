@@ -96,10 +96,10 @@ export const getSiteContent = async (): Promise<SiteContent> => {
             const data = docSnap.data() as SiteContent;
             // Ensure all fields have default values if they are missing and are serializable
             return {
-                heroSection: toPlainObject(data.heroSection) || defaultData.heroSection,
-                promoBanner1: toPlainObject(data.promoBanner1) || defaultData.promoBanner1,
-                promoBanner2: toPlainObject(data.promoBanner2) || defaultData.promoBanner2,
-                shippingSettings: toPlainObject(data.shippingSettings) || defaultData.shippingSettings,
+                heroSection: toPlainObject(data.heroSection || defaultData.heroSection),
+                promoBanner1: toPlainObject(data.promoBanner1 || defaultData.promoBanner1),
+                promoBanner2: toPlainObject(data.promoBanner2 || defaultData.promoBanner2),
+                shippingSettings: toPlainObject(data.shippingSettings || defaultData.shippingSettings),
             };
         } else {
             console.log("Site content document doesn't exist, creating one with default data.");
