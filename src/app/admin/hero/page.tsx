@@ -7,10 +7,12 @@ import { HeroForm } from "./_components/hero-form";
 export default async function AdminHeroPage() {
   const siteContent: SiteContent = await getSiteContent();
 
-  // Convert Firestore Timestamp to a serializable format
+  // Convert Firestore Timestamp to a serializable format with validation
   const plainHeroData = {
     ...siteContent.heroSection,
-    updatedAt: siteContent.heroSection.updatedAt ? new Date(siteContent.heroSection.updatedAt.seconds * 1000).toISOString() : undefined,
+    updatedAt: (siteContent.heroSection.updatedAt?.seconds && !isNaN(siteContent.heroSection.updatedAt.seconds)) 
+      ? new Date(siteContent.heroSection.updatedAt.seconds * 1000).toISOString() 
+      : undefined,
   };
 
 

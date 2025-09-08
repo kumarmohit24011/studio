@@ -8,7 +8,7 @@ export default async function AdminSettingsPage() {
 
   const plainShippingSettings = {
     ...siteContent.shippingSettings,
-    updatedAt: siteContent.shippingSettings.updatedAt?.seconds ? new Date(siteContent.shippingSettings.updatedAt.seconds * 1000).toISOString() : undefined,
+    updatedAt: siteContent.shippingSettings.updatedAt ? new Date(siteContent.shippingSettings.updatedAt.seconds * 1000).toISOString() : undefined,
   };
 
 
