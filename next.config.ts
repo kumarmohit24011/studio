@@ -5,7 +5,12 @@ const nextConfig: NextConfig = {
   /* config options here */
   // Allow cross-origin requests for Replit preview environment
   allowedDevOrigins: ['*'],
+  // Static export for Firebase hosting
+  output: 'export',
+  trailingSlash: true,
+  distDir: 'out',
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
