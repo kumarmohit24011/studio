@@ -6,7 +6,7 @@ import { onAuthStateChanged, User, signOut, GoogleAuthProvider, signInWithPopup,
 import { auth } from '@/lib/firebase';
 import { createUserProfile, getUserProfile } from '@/services/userService';
 import type { UserProfile } from '@/lib/types';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 
 interface AuthContextType {
@@ -25,8 +25,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -45,10 +43,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
+  const value = {
+    user,
+    userProfile,
+    authLoading,
+    // The methods will be provided by the hook now
+    signInWithGoogle: async () => {},
+    signInWithEmail: async () => {},
+    signUpWithEmail: async () => {},
+    signOutUser: async () => {},
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth(redirectUrl?: string) {
+  const context = useContext(AuthContext);
+  const router = useRouter();
+
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+
   const handleAuthSuccess = (profile: UserProfile | null) => {
-    setUserProfile(profile);
-    const redirectUrl = searchParams.get('redirect') || (profile?.isAdmin ? '/admin' : '/');
-    router.push(redirectUrl);
+    const finalRedirectUrl = redirectUrl || (profile?.isAdmin ? '/admin' : '/');
+    router.push(finalRedirectUrl);
   }
 
   const handleAuthError = (error: any) => {
@@ -95,31 +114,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOutUser = async () => {
     try {
       await signOut(auth);
-      setUser(null);
-      setUserProfile(null);
       router.push('/login');
     } catch (error) {
       console.error("Error signing out: ", error);
     }
   };
 
-  const value = {
-    user,
-    userProfile,
-    authLoading,
-    signInWithGoogle,
-    signInWithEmail,
-    signUpWithEmail,
-    signOutUser,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  return { ...context, signInWithGoogle, signInWithEmail, signUpWithEmail, signOutUser };
 }

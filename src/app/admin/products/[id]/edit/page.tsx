@@ -9,24 +9,20 @@ import type { Product, Category } from "@/lib/types";
 export default async function EditProductPage(props: any) {
   const id = props.params?.id;
   const productData = await getProductById(id);
-  const categoriesData = await getAllCategories();
   
   if (!productData) {
     notFound();
   }
 
-  // Convert Timestamps to strings
+  // The service now returns serializable data, so no need for client-side conversion.
+  const categories: Category[] = await getAllCategories();
+
+  // Convert Timestamps to strings for the single product
   const product: Product = {
     ...productData,
     createdAt: productData.createdAt ? new Date(productData.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
     updatedAt: productData.updatedAt ? new Date(productData.updatedAt.seconds * 1000).toISOString() : new Date().toISOString(),
   };
-
-  const categories = categoriesData.map(cat => ({
-    ...cat,
-    createdAt: cat.createdAt ? new Date(cat.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
-  })) as Category[];
-
 
   return (
     <div className="flex flex-col gap-4">
