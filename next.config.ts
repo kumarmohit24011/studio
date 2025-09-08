@@ -3,6 +3,8 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
+  // Allow cross-origin requests for Replit preview environment
+  allowedDevOrigins: ['*'],
   images: {
     remotePatterns: [
       {
