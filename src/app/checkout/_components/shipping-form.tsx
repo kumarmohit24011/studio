@@ -81,7 +81,7 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
   const handleAddressSelection = (addressId: string) => {
     setShowNewAddressForm(false);
     setSelectedAddressId(addressId);
-    const selected = userProfile?.addresses?.find((a: StoredAddress) => a.id === addressId);
+    const selected = userProfile?.addresses?.find((addr: StoredAddress) => addr.id === addressId);
     if(selected) {
         form.reset({ ...selected, saveAddress: false, isDefault: false });
         onFormSubmit(selected);

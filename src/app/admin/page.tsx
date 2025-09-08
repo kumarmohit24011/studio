@@ -9,16 +9,20 @@ import { getRecentCustomers, getTotalCustomers } from "@/services/userService";
 import { getAllProducts, getRecentProducts, getTotalProducts } from "@/services/productService";
 import { getAllCategories } from "@/services/categoryService";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import type { UserProfile, Product } from "@/lib/types";
+import type { UserProfile, Product, Order } from "@/lib/types";
 
 
 const toPlainObject = (item: any): any => {
     const plain = { ...item };
     if (item.createdAt?.seconds) {
         plain.createdAt = new Date(item.createdAt.seconds * 1000).toISOString();
+    } else if (typeof item.createdAt === 'object') {
+        plain.createdAt = new Date().toISOString();
     }
     if (item.updatedAt?.seconds) {
         plain.updatedAt = new Date(item.updatedAt.seconds * 1000).toISOString();
+    } else if (typeof item.updatedAt === 'object') {
+        plain.updatedAt = new Date().toISOString();
     }
     return plain;
 };
@@ -32,7 +36,7 @@ export default async function AdminDashboard() {
     const totalProducts = await getTotalProducts();
     const totalCategories = (await getAllCategories()).length;
     
-    const recentOrders = recentOrdersData.map(toPlainObject);
+    const recentOrders: Order[] = recentOrdersData.map(toPlainObject);
     const recentCustomers: UserProfile[] = recentCustomersData.map(toPlainObject);
     const recentProducts: Product[] = recentProductsData.map(toPlainObject);
 
@@ -120,7 +124,7 @@ export default async function AdminDashboard() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                             {recentOrders.slice(0, 5).map(order => (
+                             {recentOrders.slice(0, 5).map((order: Order) => (
                                 <TableRow key={order.id}>
                                     <TableCell>
                                         <div className="font-medium">{order.shippingAddress.name}</div>
@@ -146,7 +150,7 @@ export default async function AdminDashboard() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-8">
-                     {recentCustomers.map(customer => (
+                     {recentCustomers.map((customer: UserProfile) => (
                         <div key={customer.uid} className="flex items-center gap-4">
                            <Avatar className="hidden h-9 w-9 sm:flex">
                                 <AvatarImage src={customer.photoURL} alt="Avatar" />
@@ -194,7 +198,7 @@ export default async function AdminDashboard() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                             {recentProducts.map(product => (
+                             {recentProducts.map((product: Product) => (
                                 <TableRow key={product.id}>
                                      <TableCell className="hidden sm:table-cell">
                                         <Avatar className="h-12 w-12 rounded-md">
