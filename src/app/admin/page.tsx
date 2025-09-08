@@ -17,7 +17,7 @@ export default async function AdminDashboard() {
     const totalCustomers = await getTotalCustomers();
     const totalProducts = await getTotalProducts();
     const totalCategories = (await getAllCategories()).length;
-    const totalRevenue = recentOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+    const totalRevenue = recentOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
 
 
   return (
