@@ -1,110 +1,54 @@
-rules_version = '2';
 
+rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Helper functions
-    function isAuth() {
-      return request.auth != null;
-    }
-
-    function isAdmin() {
-      // Check if the user document has isAdmin set to true.
-      return isAuth() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
-    }
-
-    function isValidEmail(email) {
-      return email is string && email.matches('.*@.*\..*');
-    }
-
-    function isValidPhoneNumber(phone) {
-      return phone is string && phone.size() >= 10 && phone.size() <= 15;
-    }
-
-    // USER PROFILES
-    // Users can read their own profile.
-    // Users can create their own profile upon signup with validation.
-    // Users can update their own name and phone number.
-    // Admins can read and write any user profile.
-    match /users/{userId} {
-      allow read: if isAuth() && (request.auth.uid == userId || isAdmin());
-      allow create: if isAuth() && request.auth.uid == userId
-        && resource == null
-        && request.data.keys().hasAll(['email', 'name', 'createdAt'])
-        && isValidEmail(request.data.email)
-        && request.data.name is string && request.data.name.size() > 0
-        && request.data.createdAt == request.time;
-      allow update: if isAuth() && (request.auth.uid == userId || isAdmin())
-        && (!('email' in request.data) || request.data.email == resource.data.email)
-        && (!('isAdmin' in request.data) || isAdmin())
-        && (!('phone' in request.data) || request.data.phone == null || isValidPhoneNumber(request.data.phone))
-        && request.data.keys().hasAny(['name', 'phone', 'address']) == true;
-    }
-
-    // PRODUCTS
-    // Anyone can read published products.
-    // Only admins can create, update, or delete products.
-    match /products/{productId} {
-      allow read: if resource == null || resource.data.isPublished == true || isAdmin();
-      allow create: if isAdmin()
-        && request.data.keys().hasAll(['name', 'description', 'price', 'category', 'createdAt', 'isPublished'])
-        && request.data.name is string && request.data.name.size() > 0
-        && request.data.description is string
-        && request.data.price is number && request.data.price > 0
-        && request.data.category is string
-        && request.data.createdAt == request.time
-        && request.data.isPublished is bool;
-      allow update, delete: if isAdmin();
-    }
     
-    // CATEGORIES
-    // Anyone can read categories.
-    // Only admins can create, update, or delete categories.
-     match /categories/{categoryId} {
+    // Helper function to check for admin status
+    function isAdmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Users: Can read/write their own data. Admins can read anyone's data.
+    match /users/{userId} {
+      allow read: if request.auth.uid == userId || isAdmin();
+      allow create: if request.auth.uid == userId;
+      // Prevent users from making themselves admins or changing key fields.
+      allow update: if request.auth.uid == userId 
+          && !('isAdmin' in request.resource.data)
+          && request.resource.data.uid == resource.data.uid
+          && request.resource.data.email == resource.data.email;
+    }
+
+    // Products & Categories: Publicly readable, admin write-only
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /categories/{categoryId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // ORDERS
-    // Users can read their own orders.
-    // Admins can read all orders.
-    // Authenticated users can create orders with validation.
-    // Admins can update order status.
-    match /orders/{orderId} {
-      allow read: if isAuth() && (resource.data.userId == request.auth.uid || isAdmin());
-      allow list: if isAdmin();
-      allow create: if isAuth()
-        && request.data.userId == request.auth.uid
-        && request.data.keys().hasAll(['userId', 'items', 'totalAmount', 'status', 'createdAt'])
-        && request.data.items is list && request.data.items.size() > 0
-        && request.data.totalAmount is number && request.data.totalAmount > 0
-        && request.data.status == 'pending'
-        && request.data.createdAt == request.time;
-      allow update: if isAdmin()
-        && request.data.keys().hasAny(['status', 'trackingNumber', 'shippingAddress']) == true
-        && (!('userId' in request.data) || request.data.userId == resource.data.userId);
-    }
-    
-    // COUPONS
-    // Authenticated users can read active coupons (to apply them at checkout).
-    // Only admins can write coupons.
-    match /coupons/{couponId} {
-        allow read: if isAuth() && (resource == null || resource.data.isActive == true || isAdmin());
-        allow create: if isAdmin()
-          && request.data.keys().hasAll(['code', 'discount', 'isActive', 'createdAt'])
-          && request.data.code is string && request.data.code.size() > 0
-          && request.data.discount is number && request.data.discount > 0
-          && request.data.isActive is bool
-          && request.data.createdAt == request.time;
-        allow update, delete: if isAdmin();
-    }
-
-    // SETTINGS (Homepage, etc.)
-    // Anyone can read settings.
-    // Only admins can write settings.
-    match /settings/{docId} {
+    // Site Content: Publicly readable, admin write-only
+    match /siteContent/{docId} {
         allow read: if true;
         allow write: if isAdmin();
+    }
+
+    // Orders: User can create their own and read their own. Admin can read/write all.
+    match /orders/{orderId} {
+      allow create: if request.auth.uid == request.resource.data.userId;
+      allow read, update: if request.auth.uid == resource.data.userId || isAdmin();
+    }
+
+    // Coupons: Admin only
+    match /coupons/{couponId} {
+        allow read, write: if isAdmin();
     }
   }
 }
