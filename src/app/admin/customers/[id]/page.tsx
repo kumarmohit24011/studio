@@ -11,6 +11,15 @@ import { Button } from "@/components/ui/button";
 import { getOrdersByUserId } from "@/services/orderService";
 import type { Order, StoredAddress } from "@/lib/types";
   
+const toPlainObject = (data: any) => {
+    if (data?.createdAt?.seconds) {
+        data.createdAt = new Date(data.createdAt.seconds * 1000).toISOString();
+    }
+     if (data?.updatedAt?.seconds) {
+        data.updatedAt = new Date(data.updatedAt.seconds * 1000).toISOString();
+    }
+    return data;
+}
 
 export default async function CustomerDetailPage(props: any) {
     const id = props.params?.id;
@@ -23,8 +32,8 @@ export default async function CustomerDetailPage(props: any) {
     notFound();
   }
 
-  // The service now returns serializable data directly
-  const orders: Order[] = await getOrdersByUserId(userProfile.uid);
+  const ordersData = await getOrdersByUserId(userProfile.uid);
+  const orders: Order[] = ordersData.map(toPlainObject);
 
   return (
     <div className="flex flex-col gap-4">
