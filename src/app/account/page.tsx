@@ -23,6 +23,7 @@ import { OrderHistory } from "./_components/order-history";
 import { Badge } from "@/components/ui/badge";
 import { Home } from "lucide-react";
 import { WishlistTab } from "./_components/wishlist-tab";
+import type { StoredAddress } from "@/lib/types";
 
 const profileSchema = z.object({
   name: z.string().min(2, "Display name must be at least 2 characters."),
@@ -179,7 +180,7 @@ export default function AccountPage() {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 {userProfile.addresses && userProfile.addresses.length > 0 ? (
-                                    userProfile.addresses.map(addr => (
+                                    userProfile.addresses.map((addr: StoredAddress) => (
                                         <div key={addr.id} className="text-sm p-3 rounded-md border bg-muted/30 relative">
                                             {addr.isDefault && <Badge className="absolute -top-2 -right-2">Default</Badge>}
                                             <p className="font-semibold">{addr.name}</p>

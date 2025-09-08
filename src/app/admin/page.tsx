@@ -9,14 +9,33 @@ import { getRecentCustomers, getTotalCustomers } from "@/services/userService";
 import { getAllProducts, getRecentProducts, getTotalProducts } from "@/services/productService";
 import { getAllCategories } from "@/services/categoryService";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import type { UserProfile, Product } from "@/lib/types";
+
+
+const toPlainObject = (item: any): any => {
+    const plain = { ...item };
+    if (item.createdAt?.seconds) {
+        plain.createdAt = new Date(item.createdAt.seconds * 1000).toISOString();
+    }
+    if (item.updatedAt?.seconds) {
+        plain.updatedAt = new Date(item.updatedAt.seconds * 1000).toISOString();
+    }
+    return plain;
+};
 
 export default async function AdminDashboard() {
-    const recentOrders = await getAllOrders(); // In a real app, you'd paginate this.
-    const recentCustomers = await getRecentCustomers(5);
-    const recentProducts = await getRecentProducts(5);
+    const recentOrdersData = await getAllOrders(); // In a real app, you'd paginate this.
+    const recentCustomersData = await getRecentCustomers(5);
+    const recentProductsData = await getRecentProducts(5);
+    
     const totalCustomers = await getTotalCustomers();
     const totalProducts = await getTotalProducts();
     const totalCategories = (await getAllCategories()).length;
+    
+    const recentOrders = recentOrdersData.map(toPlainObject);
+    const recentCustomers: UserProfile[] = recentCustomersData.map(toPlainObject);
+    const recentProducts: Product[] = recentProductsData.map(toPlainObject);
+
     const totalRevenue = recentOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
 
 
