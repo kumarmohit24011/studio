@@ -25,7 +25,11 @@ export function OrderHistory({ userId, initialOrders }: OrderHistoryProps) {
           setLoading(true);
           const userOrders = await getOrdersByUserId(userId);
           // Sort orders by date client-side
-          const sortedOrders = userOrders.sort((a, b) => (b.createdAt.seconds || 0) - (a.createdAt.seconds || 0));
+          const sortedOrders = userOrders.sort((a, b) => {
+            const timeA = typeof a.createdAt === 'string' ? new Date(a.createdAt).getTime() : a.createdAt?.seconds * 1000 || 0;
+            const timeB = typeof b.createdAt === 'string' ? new Date(b.createdAt).getTime() : b.createdAt?.seconds * 1000 || 0;
+            return timeB - timeA;
+          });
           setOrders(sortedOrders);
           setLoading(false);
         };
