@@ -80,38 +80,63 @@ const defaultData: SiteContent = {
     }
 };
 
+const toPlainObject = (data: any): any => {
+    if (!data) return null;
+    const plain = { ...data };
+    if (plain.updatedAt?.seconds) {
+        plain.updatedAt = new Date(plain.updatedAt.seconds * 1000).toISOString();
+    }
+    return plain;
+};
+
 export const getSiteContent = async (): Promise<SiteContent> => {
     try {
         const docSnap = await getDoc(siteContentRef);
         if (docSnap.exists()) {
             const data = docSnap.data() as SiteContent;
-            // Ensure all fields have default values if they are missing
+            // Ensure all fields have default values if they are missing and are serializable
             return {
-                heroSection: data.heroSection || defaultData.heroSection,
-                promoBanner1: data.promoBanner1 || defaultData.promoBanner1,
-                promoBanner2: data.promoBanner2 || defaultData.promoBanner2,
-                shippingSettings: data.shippingSettings || defaultData.shippingSettings,
+                heroSection: toPlainObject(data.heroSection) || defaultData.heroSection,
+                promoBanner1: toPlainObject(data.promoBanner1) || defaultData.promoBanner1,
+                promoBanner2: toPlainObject(data.promoBanner2) || defaultData.promoBanner2,
+                shippingSettings: toPlainObject(data.shippingSettings) || defaultData.shippingSettings,
             };
         } else {
             console.log("Site content document doesn't exist, creating one with default data.");
-            await setDoc(siteContentRef, {
+            const serializableDefault = {
                 heroSection: { ...defaultData.heroSection, updatedAt: serverTimestamp() },
                 promoBanner1: { ...defaultData.promoBanner1, updatedAt: serverTimestamp() },
                 promoBanner2: { ...defaultData.promoBanner2, updatedAt: serverTimestamp() },
                 shippingSettings: { ...defaultData.shippingSettings, updatedAt: serverTimestamp() }
-            });
-            return defaultData;
+            };
+            await setDoc(siteContentRef, serializableDefault);
+            return {
+                heroSection: { ...defaultData.heroSection, updatedAt: new Date().toISOString() },
+                promoBanner1: { ...defaultData.promoBanner1, updatedAt: new Date().toISOString() },
+                promoBanner2: { ...defaultData.promoBanner2, updatedAt: new Date().toISOString() },
+                shippingSettings: { ...defaultData.shippingSettings, updatedAt: new Date().toISOString() }
+            };
         }
     } catch (error) {
         console.error("Error fetching site content, returning defaults: ", error);
-        return defaultData;
+         const plainDefaultData = {
+            heroSection: toPlainObject(defaultData.heroSection),
+            promoBanner1: toPlainObject(defaultData.promoBanner1),
+            promoBanner2: toPlainObject(defaultData.promoBanner2),
+            shippingSettings: toPlainObject(defaultData.shippingSettings),
+        };
+        return plainDefaultData as SiteContent;
     }
 };
 
 
 export const updateHeroSection = async (data: Omit<HeroSectionData, 'imageUrl' | 'updatedAt'>, imageFile?: File): Promise<void> => {
     try {
+        const docData = await getDoc(siteContentRef);
+        const currentData = docData.data() as SiteContent;
+
         const updateData: any = {
+            ...(currentData.heroSection || {}),
             ...data,
             updatedAt: serverTimestamp()
         };
@@ -132,7 +157,11 @@ export const updateHeroSection = async (data: Omit<HeroSectionData, 'imageUrl' |
 
 export const updatePromoBanner = async (bannerId: 'promoBanner1' | 'promoBanner2', data: Omit<PromoBannerData, 'imageUrl' | 'updatedAt'>, imageFile?: File): Promise<void> => {
     try {
+        const docData = await getDoc(siteContentRef);
+        const currentData = docData.data() as SiteContent;
+
         const updateData: any = {
+            ...(currentData[bannerId] || {}),
             ...data,
             updatedAt: serverTimestamp()
         };
@@ -143,11 +172,7 @@ export const updatePromoBanner = async (bannerId: 'promoBanner1' | 'promoBanner2
             updateData.imageUrl = await getDownloadURL(snapshot.ref);
         }
         
-        // Firestore requires dot notation for updating nested objects
-        const firestoreUpdate: { [key: string]: any } = {};
-        Object.keys(updateData).forEach(key => {
-            firestoreUpdate[`${bannerId}.${key}`] = updateData[key];
-        });
+        const firestoreUpdate = { [bannerId]: updateData };
 
         await updateDoc(siteContentRef, firestoreUpdate);
 
@@ -159,7 +184,11 @@ export const updatePromoBanner = async (bannerId: 'promoBanner1' | 'promoBanner2
 
 export const updateShippingSettings = async (data: Omit<ShippingSettingsData, 'updatedAt'>): Promise<void> => {
     try {
+        const docData = await getDoc(siteContentRef);
+        const currentData = docData.data() as SiteContent;
+
         const updateData = {
+            ...(currentData.shippingSettings || {}),
             ...data,
             updatedAt: serverTimestamp()
         };

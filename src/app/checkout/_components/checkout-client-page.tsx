@@ -13,10 +13,10 @@ import { z } from "zod";
 import { shippingSchema } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Coupon, SiteContent } from "@/lib/types";
+import type { Coupon } from "@/lib/types";
 import { CreditCard, Mail } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { getSiteContent } from "@/services/siteContentService";
+import { getSiteContent, type SiteContent } from "@/services/siteContentService";
 
 export function CheckoutClientPage() {
   const { cart, cartLoading } = useCart();
