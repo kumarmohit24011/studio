@@ -23,12 +23,13 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
     }
     
     const ordersData = await getOrdersByUserId(userProfile.uid);
+    
     // Ensure all data passed to the client component is serializable
-    const orders = ordersData.map(o => ({
+    const orders: Order[] = ordersData.map(o => ({
         ...o,
-        createdAt: o.createdAt?.seconds ? new Date(o.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
-        updatedAt: o.updatedAt?.seconds ? new Date(o.updatedAt.seconds * 1000).toISOString() : new Date().toISOString(),
-    })) as unknown as Order[];
+        createdAt: new Date(o.createdAt?.seconds * 1000 || Date.now()).toISOString(),
+        updatedAt: new Date(o.updatedAt?.seconds * 1000 || Date.now()).toISOString(),
+    }));
 
 
     return (
