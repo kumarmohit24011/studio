@@ -67,7 +67,7 @@ export function OrderActions({ orders }: { orders: Order[] }) {
         if (activeTab === 'all') {
             return orders;
         }
-        return orders.filter(order => order.orderStatus === activeTab);
+        return orders.filter((order: Order) => order.orderStatus === activeTab);
     }, [orders, activeTab]);
 
   return (
@@ -101,7 +101,7 @@ export function OrderActions({ orders }: { orders: Order[] }) {
                                     <TableRow className="border-none">
                                         <TableCell className="font-medium w-1/5">#{order.id.slice(0, 7)}...</TableCell>
                                         <TableCell className="w-1/4">{order.shippingAddress.name}</TableCell>
-                                        <TableCell className="w-1/5">{new Date(order.createdAt.seconds * 1000).toLocaleDateString()}</TableCell>
+                                        <TableCell className="w-1/5">{new Date(order.createdAt).toLocaleDateString()}</TableCell>
                                         <TableCell className="w-1/5">
                                             <Badge variant={order.orderStatus === 'delivered' ? 'default' : 'secondary'} className="capitalize">
                                                 <span className={cn('h-2 w-2 rounded-full mr-2', getStatusColor(order.orderStatus))}></span>
@@ -145,7 +145,7 @@ export function OrderActions({ orders }: { orders: Order[] }) {
                                 <div>
                                     <h4 className="font-semibold mb-2">Order Items</h4>
                                     <ul className="space-y-2">
-                                        {order.items.map((item: CartItem) => (
+                                        {order.items.map((item: any) => (
                                             <li key={item.productId} className='flex justify-between items-center text-sm gap-2'>
                                                 <Link href={`/admin/products/${item.productId}/edit`} className="flex items-center gap-2 hover:underline">
                                                     <span>{item.name} (x{item.quantity})</span>

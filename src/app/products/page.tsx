@@ -9,11 +9,15 @@ import { Suspense } from "react";
 function ProductPageSkeleton() {
   return (
     <div>
-        <div className="flex items-center justify-between gap-4 mb-8">
-            <Skeleton className="h-10 w-28" />
-            <div className="flex items-center gap-2">
-                <Skeleton className="h-6 w-16" />
-                <Skeleton className="h-10 w-44" />
+        <div className="flex flex-col gap-4 mb-8">
+             <div className="flex items-center justify-end">
+                <Skeleton className="h-10 w-48" />
+             </div>
+             <div className="flex items-center gap-2">
+                <Skeleton className="h-10 w-20 rounded-full" />
+                <Skeleton className="h-10 w-24 rounded-full" />
+                <Skeleton className="h-10 w-28 rounded-full" />
+                <Skeleton className="h-10 w-24 rounded-full" />
             </div>
         </div>
          <div className="mb-6">
@@ -21,7 +25,11 @@ function ProductPageSkeleton() {
         </div>
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 md:gap-6">
         {[...Array(9)].map((_, i) => (
-          <Skeleton key={i} className="h-96 w-full" />
+          <div key={i} className="flex flex-col gap-2">
+            <Skeleton className="aspect-square w-full" />
+            <Skeleton className="h-5 w-3/4" />
+            <Skeleton className="h-6 w-1/2" />
+          </div>
         ))}
       </div>
     </div>
@@ -47,11 +55,11 @@ export default async function ProductsPage(props: any) {
   const categoriesData = await getAllCategories();
 
   const products: Product[] = productsData
-    .filter(p => p.isPublished)
-    .map(p => toPlainObject(p));
+    .filter((p: Product) => p.isPublished)
+    .map((p: any) => toPlainObject(p));
 
-  const categories: Category[] = categoriesData.map(c => toPlainObject(c));
-  const activeCategory = categories.find(c => c.name === categoryParam) || null;
+  const categories: Category[] = categoriesData.map((c: any) => toPlainObject(c));
+  const activeCategory = categories.find((c: Category) => c.name === categoryParam) || null;
   const pageTitle = activeCategory ? activeCategory.name : "All Products";
   const pageDescription = activeCategory ? activeCategory.description : "Explore our exquisite range of handcrafted jewelry. Use the filters to find the perfect piece.";
 

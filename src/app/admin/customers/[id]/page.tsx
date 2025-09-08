@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getUserProfile } from "@/services/userService";
 import { notFound } from "next/navigation";
@@ -8,7 +9,7 @@ import { Home } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { getOrdersByUserId } from "@/services/orderService";
-import type { Order } from "@/lib/types";
+import type { Order, StoredAddress } from "@/lib/types";
   
 
 export default async function CustomerDetailPage(props: any) {
@@ -22,14 +23,8 @@ export default async function CustomerDetailPage(props: any) {
     notFound();
   }
 
-  const ordersData = await getOrdersByUserId(userProfile.uid);
-
-  // Ensure all data passed to the client component is serializable
-  const orders: Order[] = ordersData.map((o) => ({
-    ...o,
-    createdAt: new Date(o.createdAt?.seconds * 1000 || Date.now()).toISOString(),
-    updatedAt: new Date(o.updatedAt?.seconds * 1000 || Date.now()).toISOString(),
-  }));
+  // The service now returns serializable data directly
+  const orders: Order[] = await getOrdersByUserId(userProfile.uid);
 
   return (
     <div className="flex flex-col gap-4">
@@ -70,7 +65,7 @@ export default async function CustomerDetailPage(props: any) {
             </CardHeader>
             <CardContent className="space-y-4">
               {userProfile.addresses && userProfile.addresses.length > 0 ? (
-                userProfile.addresses.map((addr) => (
+                userProfile.addresses.map((addr: StoredAddress) => (
                   <div
                     key={addr.id}
                     className="text-sm p-3 rounded-md border bg-muted/30 relative"

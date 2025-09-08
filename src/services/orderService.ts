@@ -43,10 +43,18 @@ export const getOrdersByUserId = async (userId: string): Promise<Order[]> => {
             return [];
         }
 
-        const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+        const orders = snapshot.docs.map(doc => {
+             const data = doc.data();
+             return { 
+                id: doc.id, 
+                ...data,
+                createdAt: data.createdAt?.seconds ? new Date(data.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
+                updatedAt: data.updatedAt?.seconds ? new Date(data.updatedAt.seconds * 1000).toISOString() : new Date().toISOString(),
+            } as Order
+        });
 
         // Sort orders by date client-side
-        return orders.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
+        return orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     } catch (error) {
         console.error("Error fetching orders for user: ", error);
@@ -66,7 +74,15 @@ export const getAllOrders = async (): Promise<Order[]> => {
             return [];
         }
 
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+        return snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                ...data,
+                createdAt: data.createdAt?.seconds ? new Date(data.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
+                updatedAt: data.updatedAt?.seconds ? new Date(data.updatedAt.seconds * 1000).toISOString() : new Date().toISOString(),
+            } as Order;
+        });
     } catch (error) {
         console.error("Error fetching all orders: ", error);
         return [];
@@ -86,4 +102,5 @@ export const updateOrderStatus = async (orderId: string, status: Order['orderSta
         throw error;
     }
 };
+
 
