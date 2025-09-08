@@ -8,6 +8,7 @@ import { ProductCard } from "../_components/product-card";
 
 // Helper to convert Firestore Timestamps to a serializable format
 const toPlainObject = (product: any): Product => {
+    if (!product) return product;
     const plainProduct = { ...product };
     if (product.createdAt?.seconds) {
         plainProduct.createdAt = new Date(product.createdAt.seconds * 1000).toISOString();
@@ -33,11 +34,11 @@ export default async function ProductPage(props: any) {
   const relatedProducts = relatedProductsData
     .filter(p => p.id !== product.id && p.isPublished)
     .slice(0, 5)
-    .map(toPlainObject);
+    .map(toPlainObject); // Ensure related products are also serialized
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">
-        <ProductDetailsClient product={product} />
+        <ProductDetailsClient product={product} relatedProducts={relatedProducts} />
         
         {relatedProducts.length > 0 && (
             <div className="mt-16 md:mt-24">

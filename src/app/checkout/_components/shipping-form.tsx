@@ -58,9 +58,9 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
   });
 
   useEffect(() => {
-    const addresses = userProfile?.addresses || [];
+    const addresses: StoredAddress[] = userProfile?.addresses || [];
     if (addresses.length > 0 && !showNewAddressForm) {
-      const defaultAddress = addresses.find(a => a.isDefault) || addresses[0];
+      const defaultAddress = addresses.find((addr: StoredAddress) => addr.isDefault) || addresses[0];
       if(defaultAddress) {
         handleAddressSelection(defaultAddress.id);
       }
@@ -156,7 +156,7 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
             <FormLabel>Saved Addresses</FormLabel>
             {userProfile?.addresses && userProfile.addresses.length > 0 ? (
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                    {userProfile.addresses.map(addr => (
+                    {userProfile.addresses.map((addr: StoredAddress) => (
                          <Card 
                             key={addr.id} 
                             onClick={() => handleAddressSelection(addr.id)}

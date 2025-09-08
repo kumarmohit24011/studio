@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from "react";
@@ -11,7 +12,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 
-export function ProductDetailsClient({ product }: { product: Product }) {
+export function ProductDetailsClient({ product, relatedProducts }: { product: Product, relatedProducts: Product[] }) {
   const allImages = [product.imageUrl, ...(product.imageUrls || [])].filter(
     (url, index, self) => url && self.indexOf(url) === index
   ) as string[];
