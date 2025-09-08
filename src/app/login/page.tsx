@@ -32,12 +32,12 @@ function LoginPageSkeleton() {
   );
 }
 
-export default function LoginPage({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined }
-}) {
-  const redirectUrl = typeof searchParams.redirect === 'string' ? searchParams.redirect : undefined;
+interface LoginPageProps {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}
+
+export default function LoginPage({ searchParams }: LoginPageProps) {
+  const redirectUrl = typeof searchParams?.redirect === 'string' ? searchParams.redirect : undefined;
 
   return (
     <Suspense fallback={<LoginPageSkeleton />}>
