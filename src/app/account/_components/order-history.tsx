@@ -100,7 +100,7 @@ export function OrderHistory({ userId, initialOrders }: OrderHistoryProps) {
                         <div className="space-y-4">
                              <p className="font-semibold">Items:</p>
                              <ul className="space-y-2">
-                                {order.items.map((item: CartItem) => (
+                                {order.items.map(item => (
                                     <li key={item.productId} className='flex justify-between text-sm'>
                                         <span>{item.name} (x{item.quantity})</span>
                                         <span>₹{(item.price * item.quantity).toFixed(2)}</span>
