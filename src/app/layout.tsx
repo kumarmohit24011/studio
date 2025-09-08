@@ -33,10 +33,10 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const featuredCategoriesData = await getFeaturedCategories();
-  const categories = featuredCategoriesData.map(cat => ({
+  const categories: Category[] = featuredCategoriesData.map(cat => ({
     ...cat,
-    createdAt: cat.createdAt ? new Date(cat.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
-  })) as unknown as Category[];
+    createdAt: cat.createdAt?.seconds ? new Date(cat.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
+  }));
 
   return (
     <html lang="en" className="scroll-smooth">

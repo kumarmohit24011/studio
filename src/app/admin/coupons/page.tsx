@@ -8,10 +8,10 @@ export default async function AdminCouponsPage() {
   const couponsData = await getAllCoupons();
   
   // Convert Firestore Timestamps to a serializable format (ISO string)
-  const coupons = couponsData.map(coupon => ({
+  const coupons: Coupon[] = couponsData.map(coupon => ({
     ...coupon,
     createdAt: coupon.createdAt?.seconds ? new Date(coupon.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
-  })) as unknown as Coupon[];
+  }));
 
   return (
     <div className="flex flex-col gap-4">

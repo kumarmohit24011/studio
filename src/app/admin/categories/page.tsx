@@ -8,10 +8,10 @@ export default async function AdminCategoriesPage() {
   const categoriesData = await getAllCategories();
 
   // Convert Firestore Timestamps to serializable format
-  const categories = categoriesData.map(cat => ({
+  const categories: Category[] = categoriesData.map(cat => ({
     ...cat,
-    createdAt: cat.createdAt ? new Date(cat.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
-  })) as unknown as Category[];
+    createdAt: cat.createdAt?.seconds ? new Date(cat.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
+  }));
 
 
   return (

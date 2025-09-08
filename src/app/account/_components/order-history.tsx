@@ -25,7 +25,7 @@ export function OrderHistory({ userId, initialOrders }: OrderHistoryProps) {
           setLoading(true);
           const userOrders = await getOrdersByUserId(userId);
           // Sort orders by date client-side
-          const sortedOrders = userOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          const sortedOrders = userOrders.sort((a, b) => (b.createdAt.seconds || 0) - (a.createdAt.seconds || 0));
           setOrders(sortedOrders);
           setLoading(false);
         };
@@ -33,7 +33,11 @@ export function OrderHistory({ userId, initialOrders }: OrderHistoryProps) {
     }
   }, [userId, initialOrders]);
   
-  const sortedOrders = orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const sortedOrders = orders.sort((a, b) => {
+    const timeA = typeof a.createdAt === 'string' ? new Date(a.createdAt).getTime() : a.createdAt?.seconds * 1000 || 0;
+    const timeB = typeof b.createdAt === 'string' ? new Date(b.createdAt).getTime() : b.createdAt?.seconds * 1000 || 0;
+    return timeB - timeA;
+  });
 
 
   if (loading) {
@@ -83,7 +87,7 @@ export function OrderHistory({ userId, initialOrders }: OrderHistoryProps) {
                         <div className='text-left'>
                             <p className="font-semibold">Order #{order.id.slice(0, 7)}...</p>
                             <p className="text-sm text-muted-foreground">
-                                {new Date(order.createdAt).toLocaleDateString()}
+                                {new Date(typeof order.createdAt === 'string' ? order.createdAt : (order.createdAt?.seconds * 1000 || 0)).toLocaleDateString()}
                             </p>
                         </div>
                         <div className="text-right">

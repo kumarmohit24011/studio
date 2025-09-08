@@ -9,16 +9,16 @@ export default async function AdminProductsPage() {
   const productsData = await getAllProducts();
   const categoriesData = await getAllCategories();
 
-  const products = productsData.map(p => ({
+  const products: Product[] = productsData.map(p => ({
     ...p,
-    createdAt: p.createdAt ? new Date(p.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
-    updatedAt: p.updatedAt ? new Date(p.updatedAt.seconds * 1000).toISOString() : new Date().toISOString(),
-  })) as Product[];
+    createdAt: p.createdAt?.seconds ? new Date(p.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
+    updatedAt: p.updatedAt?.seconds ? new Date(p.updatedAt.seconds * 1000).toISOString() : new Date().toISOString(),
+  }));
 
-  const categories = categoriesData.map(c => ({
+  const categories: Category[] = categoriesData.map(c => ({
     ...c,
-    createdAt: c.createdAt ? new Date(c.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
-  })) as Category[];
+    createdAt: c.createdAt?.seconds ? new Date(c.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
+  }));
 
   return (
     <div className="flex flex-col gap-4">
