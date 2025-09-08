@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -26,7 +27,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, PackageCheck, Truck, XCircle, CircleAlert, ExternalLink } from 'lucide-react';
-import type { Order } from '@/lib/types';
+import type { Order, CartItem } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -81,7 +82,7 @@ export function OrderActions({ orders }: { orders: Order[] }) {
             </TabsList>
         </Tabs>
         <Accordion type="single" collapsible className="w-full">
-            {filteredOrders.map((order) => (
+            {filteredOrders.map((order: Order) => (
                 <AccordionItem value={order.id} key={order.id}>
                     <AccordionTrigger className="hover:no-underline">
                         <div className="w-full">
@@ -144,13 +145,13 @@ export function OrderActions({ orders }: { orders: Order[] }) {
                                 <div>
                                     <h4 className="font-semibold mb-2">Order Items</h4>
                                     <ul className="space-y-2">
-                                        {order.items.map(item => (
+                                        {order.items.map((item: CartItem) => (
                                             <li key={item.productId} className='flex justify-between items-center text-sm gap-2'>
                                                 <Link href={`/admin/products/${item.productId}/edit`} className="flex items-center gap-2 hover:underline">
                                                     <span>{item.name} (x{item.quantity})</span>
                                                     <ExternalLink className="h-3 w-3 text-muted-foreground"/>
                                                 </Link>
-                                                <span>₹{(item.price * item.quantity).toFixed(2)}</span>
+                                                <span>₹{((item.price || 0) * item.quantity).toFixed(2)}</span>
                                             </li>
                                         ))}
                                     </ul>

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -248,7 +249,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                                     </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {categories.map(cat => (
+                                        {categories.map((cat: Category) => (
                                             <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
                                         ))}
                                     </SelectContent>

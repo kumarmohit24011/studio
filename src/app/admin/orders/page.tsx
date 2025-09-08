@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAllOrders, getOrdersByUserId } from "@/services/orderService";
 import { OrderActions } from "./_components/order-actions";
@@ -14,10 +15,10 @@ export default async function AdminOrdersPage(props: any) {
   const customer = customerId ? await getUserProfile(customerId) : null;
 
   // Ensure all data passed to the client component is serializable
-  const orders: Order[] = ordersData.map((o) => ({
+  const orders: Order[] = ordersData.map((o: any) => ({
     ...o,
-    createdAt: new Date(o.createdAt?.seconds * 1000 || Date.now()).toISOString(),
-    updatedAt: new Date(o.updatedAt?.seconds * 1000 || Date.now()).toISOString(),
+    createdAt: o.createdAt?.seconds ? new Date(o.createdAt.seconds * 1000).toISOString() : new Date(0).toISOString(),
+    updatedAt: o.updatedAt?.seconds ? new Date(o.updatedAt.seconds * 1000).toISOString() : new Date(0).toISOString(),
   }));
 
   const title =
