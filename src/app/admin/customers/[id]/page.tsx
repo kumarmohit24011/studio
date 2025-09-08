@@ -11,7 +11,11 @@ import { Button } from "@/components/ui/button";
 import { getOrdersByUserId } from "@/services/orderService";
 import type { Order } from "@/lib/types";
 
-export default async function CustomerDetailPage({ params }: { params: { id: string } }) {
+interface CustomerDetailPageProps {
+    params: { id: string };
+}
+
+export default async function CustomerDetailPage({ params }: CustomerDetailPageProps) {
     const userProfile = await getUserProfile(params.id);
 
     if (!userProfile) {
@@ -22,8 +26,8 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
     // Ensure all data passed to the client component is serializable
     const orders = ordersData.map(o => ({
         ...o,
-        createdAt: new Date(o.createdAt.seconds * 1000).toISOString(),
-        updatedAt: o.updatedAt ? new Date(o.updatedAt.seconds * 1000).toISOString() : new Date().toISOString(),
+        createdAt: o.createdAt?.seconds ? new Date(o.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
+        updatedAt: o.updatedAt?.seconds ? new Date(o.updatedAt.seconds * 1000).toISOString() : new Date().toISOString(),
     })) as unknown as Order[];
 
 
