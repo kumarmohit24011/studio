@@ -104,7 +104,7 @@ export const getRecentProducts = async (count: number): Promise<Product[]> => {
         if (snapshot.empty) {
             return [];
         }
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+        return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() } as Product));
     } catch (error) {
         console.error("Error fetching recent products: ", error);
         return [];

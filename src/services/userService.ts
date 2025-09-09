@@ -108,7 +108,7 @@ export const getRecentCustomers = async (count: number): Promise<UserProfile[]> 
             return [];
         }
 
-        return snapshot.docs.map(doc => doc.data() as UserProfile);
+        return snapshot.docs.map(doc => toPlainObject(doc.data() as UserProfile));
     } catch (error) {
         console.error("Error fetching recent customers: ", error);
         return [];

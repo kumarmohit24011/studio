@@ -19,44 +19,70 @@ service cloud.firestore {
       return isAuth() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
-    // Products: Public can read, only admins can write.
+    // Products: Public can read, only admins can write. Basic schema guards.
     match /products/{productId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow create, update, delete: if isAdmin() &&
+        request.resource.data.keys().hasOnly(["name", "description", "price", "images", "category", "tags", "stock", "isPublished", "createdAt", "updatedAt"]) &&
+        (request.method() == "create" ? request.resource.data.createdAt == request.time : true) &&
+        (request.resource.data.price is number && request.resource.data.price >= 0) &&
+        (request.resource.data.stock is int && request.resource.data.stock >= 0) &&
+        (request.resource.data.isPublished is bool);
     }
 
-    // Categories: Public can read, only admins can write.
+    // Categories: Public read, admin write. Guard fields.
     match /categories/{categoryId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow create, update, delete: if isAdmin() &&
+        request.resource.data.keys().hasOnly(["name", "description", "order", "isFeatured", "createdAt", "updatedAt"]) &&
+        (request.method() == "create" ? request.resource.data.createdAt == request.time : true) &&
+        (request.resource.data.order is int && request.resource.data.order >= 0) &&
+        (request.resource.data.isFeatured is bool);
     }
 
-    // Users: Users can manage their own profile, admins can read any profile.
+    // Users: Users manage their own profile; prevent privilege escalation.
     match /users/{userId} {
       allow read: if isOwner(userId) || isAdmin();
-      allow create: if isAuth(); // Allow creation for new sign-ups
-      allow update: if isOwner(userId); // Users can only update their own profile
-      allow delete: if isAdmin(); // Only admins can delete users
+      // Allow creation only for own UID
+      allow create: if isAuth() && userId == request.auth.uid &&
+        request.resource.data.keys().hasOnly(["uid", "email", "name", "photoURL", "createdAt", "wishlist", "cart", "addresses", "isAdmin"]) &&
+        request.resource.data.uid == request.auth.uid &&
+        request.resource.data.isAdmin == (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true);
+      // Owners can update safe fields only (not isAdmin)
+      allow update: if isOwner(userId) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(["name", "photoURL", "wishlist", "cart", "addresses"]); 
+      // Only admins can delete users
+      allow delete: if isAdmin();
     }
 
-    // Orders: Users can create/read their own, admins can read all and update status.
+    // Orders: Users can create/read their own. Only admins can update/delete.
     match /orders/{orderId} {
-      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow create: if isAuth() &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.keys().hasOnly(["userId", "items", "totalAmount", "orderStatus", "paymentStatus", "shippingAddress", "razorpayPaymentId", "couponCode", "discountAmount", "createdAt", "updatedAt"]) &&
+        (request.resource.data.items is list && request.resource.data.items.size() > 0) &&
+        (request.resource.data.totalAmount is number && request.resource.data.totalAmount >= 0) &&
+        (request.resource.data.orderStatus in ["processing", "shipped", "delivered", "cancelled"]) &&
+        (request.resource.data.paymentStatus in ["paid", "pending"]) &&
+        request.resource.data.createdAt == request.time;
       allow read: if (isAuth() && resource.data.userId == request.auth.uid) || isAdmin();
-      allow update: if isAdmin(); // Only admins can update order status
-      allow delete: if false; // Orders should not be deleted.
+      allow update, delete: if isAdmin();
     }
 
-    // Coupons: Read-only for authenticated users, full access for admins.
+    // Coupons: Public read (optional) or authenticated read; admin manage.
     match /coupons/{couponId} {
-        allow read: if isAuth();
-        allow write: if isAdmin();
+      allow read: if true; // safe to expose basic coupon data for validation on client
+      allow create, update, delete: if isAdmin() &&
+        request.resource.data.keys().hasOnly(["code", "discountType", "discountValue", "startDate", "endDate", "isActive", "createdAt", "updatedAt"]) &&
+        (request.resource.data.discountType in ["percentage", "flat"]) &&
+        (request.resource.data.discountValue is number && request.resource.data.discountValue >= 0) &&
+        (request.resource.data.isActive is bool);
     }
 
-    // Site Content (Hero, Promos, etc.): Public read, admin-only write.
+    // Site Content (Hero, Promos, etc.): Public read, admin-only write. Single doc `global` used by app.
     match /siteContent/{contentId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow create, update, delete: if isAdmin();
     }
   }
 }

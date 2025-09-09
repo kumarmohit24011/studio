@@ -13,31 +13,16 @@ import type { UserProfile, Product, Order } from "@/lib/types";
 
 
 export default async function AdminDashboard() {
-    const recentOrdersData = await getAllOrders(); 
-    const recentCustomersData = await getRecentCustomers(5);
-    const recentProductsData = await getRecentProducts(5);
+    // These services now return serializable data directly.
+    const recentOrders: Order[] = await getAllOrders();
+    const recentCustomers: UserProfile[] = await getRecentCustomers(5);
+    const recentProducts: Product[] = await getRecentProducts(5);
     
     const totalCustomers = await getTotalCustomers();
     const totalProducts = await getTotalProducts();
     const totalCategories = (await getAllCategories()).length;
 
-    // Helper to convert Firestore Timestamps to serializable strings
-    const toPlainObject = (data: any) => {
-        if (data?.createdAt?.seconds) {
-            data.createdAt = new Date(data.createdAt.seconds * 1000).toISOString();
-        }
-         if (data?.updatedAt?.seconds) {
-            data.updatedAt = new Date(data.updatedAt.seconds * 1000).toISOString();
-        }
-        return data;
-    }
-
-    const recentOrders: Order[] = recentOrdersData.map(toPlainObject);
-    const recentCustomers: UserProfile[] = recentCustomersData.map(toPlainObject);
-    const recentProducts: Product[] = recentProductsData.map(toPlainObject);
-
     const totalRevenue = recentOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
-
 
   return (
     <div className="flex flex-col gap-4">
