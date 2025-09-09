@@ -118,20 +118,9 @@ export function CheckoutClientPage() {
                 
                 <div className="space-y-8">
                     <section>
-                        <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
-                        <div className="flex items-center gap-3 p-4 rounded-md border bg-muted/50">
-                            <Mail className="h-5 w-5 text-muted-foreground"/>
-                            <span>{userProfile.email}</span>
-                        </div>
-                    </section>
-
-                    <Separator/>
-                    
-                    <section>
                         <h2 className="text-xl font-semibold mb-4">Shipping Address</h2>
                         <ShippingForm onFormSubmit={setShippingAddress} />
                     </section>
-
                 </div>
 
 
