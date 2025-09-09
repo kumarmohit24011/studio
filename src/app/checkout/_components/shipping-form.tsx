@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -59,25 +58,16 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
 
   useEffect(() => {
     const addresses: StoredAddress[] = userProfile?.addresses || [];
-    if (addresses.length > 0) {
+    if (addresses.length > 0 && !showNewAddressForm) {
       const defaultAddress = addresses.find((addr: StoredAddress) => addr.isDefault) || addresses[0];
       if(defaultAddress && !selectedAddressId) {
         handleAddressSelection(defaultAddress.id);
       }
-    } else {
-        // If there are no addresses, ensure the form is shown by default.
-        if (!showNewAddressForm) {
-            setShowNewAddressForm(true);
-            form.reset({
-                name: userProfile?.name || '',
-                phone: userProfile?.phone || '',
-                street: '', city: '', state: '', zipCode: '', country: 'India',
-                saveAddress: true, isDefault: false,
-            });
-        }
+    } else if (addresses.length === 0) {
+      // Don't automatically show form. Wait for user click.
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userProfile?.addresses]); 
+  }, [userProfile?.addresses, showNewAddressForm]); 
 
   const handleAddressSelection = (addressId: string) => {
     setShowNewAddressForm(false);
