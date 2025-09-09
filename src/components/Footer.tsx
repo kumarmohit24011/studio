@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Facebook, Instagram, Twitter, Youtube, Send, Gem } from "lucide-react";
+import { Instagram, Send, Gem, Mail, Phone } from "lucide-react";
 import Link from "next/link";
 
 export function Footer() {
@@ -37,9 +37,17 @@ export function Footer() {
                 <Gem />
                 REDBOW
             </Link>
-            <p className="text-muted-foreground pr-4">
+            <p className="text-muted-foreground pr-4 mb-4">
               Crafting memories with every piece of jewelry. Timeless elegance for modern life.
             </p>
+            <div className="space-y-2 text-muted-foreground">
+                <a href="mailto:support@redbow.com" className="flex items-center gap-2 hover:text-primary transition-colors">
+                    <Mail className="h-4 w-4" /> support@redbow.com
+                </a>
+                <a href="tel:+919876543210" className="flex items-center gap-2 hover:text-primary transition-colors">
+                    <Phone className="h-4 w-4" /> +91 987 654 3210
+                </a>
+            </div>
           </div>
           
           <div>
@@ -56,10 +64,7 @@ export function Footer() {
         {/* Social and Payment Methods */}
         <div className="py-8 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-border/60">
              <div className="flex space-x-4">
-                <Link href="#" aria-label="Facebook" className="text-muted-foreground hover:text-primary transition-colors"><Facebook /></Link>
                 <Link href="#" aria-label="Instagram" className="text-muted-foreground hover:text-primary transition-colors"><Instagram /></Link>
-                <Link href="#" aria-label="Twitter" className="text-muted-foreground hover:text-primary transition-colors"><Twitter /></Link>
-                <Link href="#" aria-label="Youtube" className="text-muted-foreground hover:text-primary transition-colors"><Youtube /></Link>
             </div>
             <div className="flex items-center space-x-4">
               <PaymentIcon src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Mastercard_2019_logo.svg" alt="Mastercard" />
