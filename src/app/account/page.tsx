@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 function AccountPageSkeleton() {
     return (
-        <div className="container mx-auto px-4 py-8 space-y-12">
+        <div className="container mx-auto px-4 py-8 space-y-8">
             <div className="flex items-center gap-4">
                 <Skeleton className="h-20 w-20 rounded-full" />
                 <div>
@@ -14,17 +14,10 @@ function AccountPageSkeleton() {
                 </div>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
-                <div className="md:col-span-2">
-                    <Skeleton className="h-96 w-full" />
-                </div>
-                <div>
-                    <Skeleton className="h-64 w-full" />
-                </div>
+            <div className='space-y-6'>
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-96 w-full" />
             </div>
-
-             <Skeleton className="h-64 w-full" />
-             <Skeleton className="h-96 w-full" />
       </div>
     )
 }
