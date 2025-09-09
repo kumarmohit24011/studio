@@ -2,22 +2,13 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'Permissions-Policy',
-            value: 'payment "*", publickey-credentials-get "*"',
-          },
-        ],
-      },
-    ];
-  },
   /* config options here */
   // Allow cross-origin requests for Replit preview environment
-  allowedDevOrigins: ['*'],
+  experimental: {
+    serverActions: {
+      allowedOrigins: ["*.google.com", "*.firebase.app", "*.cloud.run", "*.cloudworkstations.dev"],
+    },
+  },
   images: {
     remotePatterns: [
       {
