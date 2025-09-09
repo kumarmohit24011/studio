@@ -64,7 +64,7 @@ export function Footer() {
         {/* Social and Payment Methods */}
         <div className="py-8 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-border/60">
              <div className="flex space-x-4">
-                <Link href="#" aria-label="Instagram" className="text-muted-foreground hover:text-primary transition-colors"><Instagram /></Link>
+                <Link href="https://www.instagram.com/redbow.jewels" aria-label="Instagram" className="text-muted-foreground hover:text-primary transition-colors"><Instagram /></Link>
             </div>
             <div className="flex items-center space-x-4">
               <PaymentIcon src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Mastercard_2019_logo.svg" alt="Mastercard" />
