@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import Image from "next/image";
-import { Trash2, ShoppingCart } from "lucide-react";
+import { Trash2, ShoppingCart, Plus, Minus } from "lucide-react";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -88,13 +88,23 @@ export default function CartPage() {
                       <p className="text-muted-foreground text-sm">₹{item.price?.toFixed(2)}</p>
                     </div>
                     <div className="flex items-center gap-1 md:gap-2">
-                      <Input
-                        type="number"
-                        min="1"
-                        value={item.quantity}
-                        onChange={(e) => updateQuantity(item.productId, parseInt(e.target.value))}
-                        className="w-14 h-9"
-                      />
+                       <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="h-8 w-8"
+                            onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                        >
+                           <Minus className="h-4 w-4" />
+                       </Button>
+                       <span className="w-10 text-center font-medium">{item.quantity}</span>
+                       <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="h-8 w-8"
+                            onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                        >
+                           <Plus className="h-4 w-4" />
+                       </Button>
                     </div>
                     <p className="font-semibold w-20 text-right hidden sm:block">
                       ₹{((item.price || 0) * item.quantity).toFixed(2)}
