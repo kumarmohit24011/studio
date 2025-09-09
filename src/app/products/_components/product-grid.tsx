@@ -11,7 +11,7 @@ interface ProductGridProps {
   products: Product[];
 }
 
-const ITEMS_PER_PAGE = 12;
+const ITEMS_PER_PAGE = 15;
 
 export function ProductGrid({ products }: ProductGridProps) {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
@@ -39,7 +39,7 @@ export function ProductGrid({ products }: ProductGridProps) {
           <p className="mt-2 max-w-xs">Your search or filter combination didn't return any results. Try adjusting your filters.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
           {visibleProducts.map(product => (
             <ProductCard key={product.id} product={product} />
           ))}
