@@ -13,15 +13,17 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { updateUserProfile } from "@/services/userService";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { OrderHistory } from "./order-history";
-import { Home } from "lucide-react";
+import { Home, Plus } from "lucide-react";
 import { WishlistTab } from "./wishlist-tab";
 import type { StoredAddress } from "@/lib/types";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AddressCard } from "./address-card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AddressForm } from "./address-form";
 
 
 const profileSchema = z.object({
@@ -30,11 +32,13 @@ const profileSchema = z.object({
 });
 
 export function AccountPageContent() {
-  const { user, userProfile, authLoading, signOutUser } = useAuth();
+  const { user, userProfile, authLoading, signOutUser, refreshUserProfile } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const defaultTab = searchParams.get('tab') || 'profile';
+  const [isAddressFormOpen, setAddressFormOpen] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<StoredAddress | null>(null);
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
@@ -64,6 +68,7 @@ export function AccountPageContent() {
         title: "Success",
         description: "Your profile has been updated.",
       });
+      refreshUserProfile();
     } catch (error) {
       toast({
         variant: "destructive",
@@ -72,6 +77,16 @@ export function AccountPageContent() {
       });
     }
   };
+
+  const handleEditAddress = (address: StoredAddress) => {
+    setEditingAddress(address);
+    setAddressFormOpen(true);
+  }
+
+  const handleAddNewAddress = () => {
+    setEditingAddress(null);
+    setAddressFormOpen(true);
+  }
   
   if (authLoading || !user || !userProfile) {
     return (
@@ -94,6 +109,24 @@ export function AccountPageContent() {
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
+        <Dialog open={isAddressFormOpen} onOpenChange={setAddressFormOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{editingAddress ? 'Edit Address' : 'Add New Address'}</DialogTitle>
+                    <DialogDescription>
+                        {editingAddress ? 'Update your shipping address details.' : 'Add a new shipping address to your profile.'}
+                    </DialogDescription>
+                </DialogHeader>
+                <AddressForm 
+                    address={editingAddress} 
+                    onSuccess={() => {
+                        setAddressFormOpen(false);
+                        refreshUserProfile();
+                    }} 
+                />
+            </DialogContent>
+        </Dialog>
+
         <header>
             <div className="flex items-center gap-4">
                 <Avatar className="h-20 w-20">
@@ -167,27 +200,29 @@ export function AccountPageContent() {
                     </div>
                     <div>
                         <Card>
-                                <CardHeader>
-                                <CardTitle>Saved Addresses</CardTitle>
-                                <CardDescription>Your saved shipping addresses.</CardDescription>
+                            <CardHeader className="flex flex-row items-center justify-between">
+                                <div>
+                                    <CardTitle>Saved Addresses</CardTitle>
+                                    <CardDescription>Manage your shipping addresses.</CardDescription>
+                                </div>
+                                <Button size="sm" onClick={handleAddNewAddress}>
+                                    <Plus className="mr-2 h-4 w-4"/> Add New
+                                </Button>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 {userProfile.addresses && userProfile.addresses.length > 0 ? (
                                     userProfile.addresses.map((addr: StoredAddress) => (
-                                        <div key={addr.id} className="text-sm p-3 rounded-md border bg-muted/30 relative">
-                                            {addr.isDefault && <Badge className="absolute -top-2 -right-2">Default</Badge>}
-                                            <p className="font-semibold">{addr.name}</p>
-                                            <p className="text-muted-foreground">{addr.street}, {addr.city}</p>
-                                            <p className="text-muted-foreground">{addr.state}, {addr.zipCode}</p>
-                                            <p className="text-muted-foreground">{addr.country}</p>
-                                            <p className="text-muted-foreground mt-2">{addr.phone}</p>
-                                        </div>
+                                        <AddressCard 
+                                            key={addr.id} 
+                                            address={addr} 
+                                            onEdit={() => handleEditAddress(addr)}
+                                        />
                                     ))
                                 ) : (
                                     <div className="text-center py-8 text-muted-foreground text-sm">
                                         <Home className="mx-auto h-8 w-8 mb-2" />
                                         <p>No saved addresses.</p>
-                                        <p>Your addresses will appear here after you save them during checkout.</p>
+                                        <p>Your addresses will appear here once added.</p>
                                     </div>
                                 )}
                             </CardContent>

@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { onAuthStateChanged, User, signOut, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { createUserProfile, getUserProfile } from '@/services/userService';
@@ -13,6 +13,7 @@ interface AuthContextType {
   user: User | null;
   userProfile: UserProfile | null;
   authLoading: boolean;
+  refreshUserProfile: () => void;
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string, displayName: string) => Promise<void>;
@@ -25,6 +26,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+
+  const refreshUserProfile = useCallback(async () => {
+    if (user) {
+        setAuthLoading(true);
+        const profile = await getUserProfile(user.uid);
+        setUserProfile(profile);
+        setAuthLoading(false);
+    }
+  }, [user]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -47,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     userProfile,
     authLoading,
+    refreshUserProfile,
     // The methods will be provided by the hook now
     signInWithGoogle: async () => {},
     signInWithEmail: async () => {},
