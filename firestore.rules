@@ -1,66 +1,62 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Helper function to check if a user is an authenticated admin
-    function isAdmin() {
-      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    
+    // Check if the user is authenticated
+    function isAuth() {
+      return request.auth != null;
     }
 
-    // Helper function to check if a user is the owner of a document
+    // Check if the user is the owner of the document
     function isOwner(userId) {
-      return request.auth != null && request.auth.uid == userId;
-    }
-
-    // Default deny all access to prevent unsecured collections
-    match /{document=**} {
-      allow read, write: if false;
-    }
-
-    // Products can be read by anyone, but only written by admins.
-    match /products/{productId} {
-      allow get, list: if resource.data.isPublished == true || isAdmin();
-      allow create, update, delete: if isAdmin();
-    }
-
-    // Categories can be read by anyone, but only written by admins.
-    match /categories/{categoryId} {
-      allow get, list: if true;
-      allow create, update, delete: if isAdmin();
+      return request.auth.uid == userId;
     }
     
-    // Coupons can only be read and written by admins.
-    match /coupons/{couponId} {
-      allow get, list, create, update, delete: if isAdmin();
+    // Check if the user is an admin.
+    // This relies on the user being able to read their own document.
+    function isAdmin() {
+      return isAuth() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
-    // Users can read/write to their own document. Admins can read any user document.
+    // Products: Public can read, only admins can write.
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Categories: Public can read, only admins can write.
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Users: Users can manage their own profile, admins can read any profile.
     match /users/{userId} {
-      allow get, update: if isOwner(userId);
-      allow get, list: if isAdmin();
-      // Deny create and delete to prevent users from creating their own profiles
-      // or deleting them arbitrarily. This should be handled by server-side logic
-      // during sign-up and account deletion processes.
-      allow create, delete: if false;
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuth(); // Allow creation for new sign-ups
+      allow update: if isOwner(userId); // Users can only update their own profile
+      allow delete: if isAdmin(); // Only admins can delete users
     }
 
-    // Orders can be created by any authenticated user.
-    // Users can only read their own orders.
-    // Admins can read all orders and update their status.
+    // Orders: Users can create/read their own, admins can read all and update status.
     match /orders/{orderId} {
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow get, list: if isOwner(resource.data.userId) || isAdmin();
-      allow update: if isAdmin(); // Only admins can update order status etc.
-      allow delete: if false; // Orders should not be deleted, but archived or cancelled.
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow read: if (isAuth() && resource.data.userId == request.auth.uid) || isAdmin();
+      allow update: if isAdmin(); // Only admins can update order status
+      allow delete: if false; // Orders should not be deleted.
     }
 
-    // Site-wide content can be read by anyone, but only managed by admins.
-    match /siteContent/global {
-      allow get: if true;
-      allow create, update: if isAdmin();
-      allow delete: if false; // This document should not be deleted.
+    // Coupons: Read-only for authenticated users, full access for admins.
+    match /coupons/{couponId} {
+        allow read: if isAuth();
+        allow write: if isAdmin();
+    }
+
+    // Site Content (Hero, Promos, etc.): Public read, admin-only write.
+    match /siteContent/{contentId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
   }
 }
