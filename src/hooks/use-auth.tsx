@@ -41,7 +41,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAuthLoading(true);
       if (user) {
         setUser(user);
-        const profile = await getUserProfile(user.uid);
+        let profile = await getUserProfile(user.uid);
+        if (!profile) {
+            // This can happen if a user signs in but their profile creation was interrupted.
+            // We create it here to be safe.
+            profile = await createUserProfile(user.uid, user.email!, user.displayName || 'New User', user.photoURL || undefined);
+        }
         setUserProfile(profile);
       } else {
         setUser(null);
@@ -53,12 +58,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
+  // This base context value is minimal, the real implementation is in the `useAuth` hook
   const value = {
     user,
     userProfile,
     authLoading,
     refreshUserProfile,
-    // The methods will be provided by the hook now
     signInWithGoogle: async () => {},
     signInWithEmail: async () => {},
     signUpWithEmail: async () => {},
@@ -77,7 +82,7 @@ export function useAuth(redirectUrl?: string) {
   }
 
   const handleAuthSuccess = (profile: UserProfile | null) => {
-    const finalRedirectUrl = redirectUrl || (profile?.isAdmin ? '/admin' : '/');
+    const finalRedirectUrl = redirectUrl || (profile?.isAdmin ? '/admin' : '/account');
     router.push(finalRedirectUrl);
   }
 
@@ -91,13 +96,17 @@ export function useAuth(redirectUrl?: string) {
     try {
       const result = await signInWithPopup(auth, provider);
       const { uid, email, displayName, photoURL } = result.user;
+      
+      // Check if user profile exists, if not, create it
       let profile = await getUserProfile(uid);
       if (!profile) {
-        profile = await createUserProfile(uid, email!, displayName!, photoURL!);
+        profile = await createUserProfile(uid, email!, displayName || 'New User', photoURL || undefined);
       }
+      
       handleAuthSuccess(profile);
     } catch (error) {
-      handleAuthError(error);
+      // Don't re-throw the error here to avoid unhandled promise rejections on the client
+      console.error("Google sign-in failed", error);
     }
   };
 
@@ -131,5 +140,6 @@ export function useAuth(redirectUrl?: string) {
     }
   };
 
+  // Return the original context spread with our new methods
   return { ...context, signInWithGoogle, signInWithEmail, signUpWithEmail, signOutUser };
 }
