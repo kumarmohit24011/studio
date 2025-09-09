@@ -31,7 +31,7 @@ export function Footer() {
         </div>
         
         {/* Main Footer Links */}
-        <div className="py-12 grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
+        <div className="py-12 grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
           <div className="col-span-2 md:col-span-1">
              <Link href="/" className="text-2xl font-headline font-bold text-primary tracking-wider mb-4 flex items-center gap-2">
                 <Gem />
@@ -41,16 +41,6 @@ export function Footer() {
               Crafting memories with every piece of jewelry. Timeless elegance for modern life.
             </p>
           </div>
-
-          <div>
-            <h3 className="font-semibold text-base mb-4 uppercase tracking-wider">Shop</h3>
-            <ul className="space-y-3 text-muted-foreground">
-              <li><Link href="/products" className="hover:text-primary transition-colors">All Products</Link></li>
-              <li><Link href="/products?category=Rings" className="hover:text-primary transition-colors">Rings</Link></li>
-              <li><Link href="/products?category=Necklaces" className="hover:text-primary transition-colors">Necklaces</Link></li>
-              <li><Link href="/products?category=Earrings" className="hover:text-primary transition-colors">Earrings</Link></li>
-            </ul>
-          </div>
           
           <div>
             <h3 className="font-semibold text-base mb-4 uppercase tracking-wider">Customer Service</h3>
@@ -59,15 +49,6 @@ export function Footer() {
               <li><Link href="/faq" className="hover:text-primary transition-colors">FAQ</Link></li>
               <li><Link href="/shipping" className="hover:text-primary transition-colors">Shipping & Returns</Link></li>
                <li><Link href="/contact" className="hover:text-primary transition-colors">Contact Us</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="font-semibold text-base mb-4 uppercase tracking-wider">About Us</h3>
-            <ul className="space-y-3 text-muted-foreground">
-              <li><Link href="/about" className="hover:text-primary transition-colors">Our Story</Link></li>
-              <li><Link href="/careers" className="hover:text-primary transition-colors">Careers</Link></li>
-              <li><Link href="/press" className="hover:text-primary transition-colors">Press</Link></li>
             </ul>
           </div>
         </div>
