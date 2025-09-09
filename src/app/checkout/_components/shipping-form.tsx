@@ -59,24 +59,25 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
 
   useEffect(() => {
     const addresses: StoredAddress[] = userProfile?.addresses || [];
-    if (addresses.length > 0 && !showNewAddressForm) {
+    if (addresses.length > 0) {
       const defaultAddress = addresses.find((addr: StoredAddress) => addr.isDefault) || addresses[0];
-      if(defaultAddress) {
+      if(defaultAddress && !selectedAddressId) {
         handleAddressSelection(defaultAddress.id);
       }
     } else {
-      setShowNewAddressForm(true);
-      setSelectedAddressId(null);
-      onFormSubmit(null);
-      form.reset({
-         name: userProfile?.name || '',
-         phone: userProfile?.phone || '',
-         street: '', city: '', state: '', zipCode: '', country: 'India',
-         saveAddress: true, isDefault: false,
-      });
+        // If there are no addresses, ensure the form is shown by default.
+        if (!showNewAddressForm) {
+            setShowNewAddressForm(true);
+            form.reset({
+                name: userProfile?.name || '',
+                phone: userProfile?.phone || '',
+                street: '', city: '', state: '', zipCode: '', country: 'India',
+                saveAddress: true, isDefault: false,
+            });
+        }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userProfile, showNewAddressForm]); 
+  }, [userProfile?.addresses]); 
 
   const handleAddressSelection = (addressId: string) => {
     setShowNewAddressForm(false);
