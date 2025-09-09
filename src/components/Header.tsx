@@ -158,9 +158,6 @@ export function Header({ categories = [] }: HeaderProps) {
                      <Link href="/" className="text-2xl font-headline font-bold text-primary tracking-wider" onClick={() => setMobileMenuOpen(false)}>
                         REDBOW
                     </Link>
-                    <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)}>
-                        <X className="h-6 w-6" />
-                    </Button>
                 </div>
                 <nav className="flex flex-col gap-4 p-4 text-lg">
                     {React.Children.map(navLinks.props.children, child => 
