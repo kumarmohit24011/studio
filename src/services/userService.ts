@@ -1,7 +1,8 @@
 
-import { db } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { UserProfile, StoredAddress } from '@/lib/types';
 import { doc, getDoc, setDoc, serverTimestamp, updateDoc, collection, query, orderBy, limit, getDocs, getCountFromServer } from 'firebase/firestore';
+import { updateProfile } from 'firebase/auth';
 
 const toPlainObject = (user: any): UserProfile => {
     if (!user) return user;
@@ -136,7 +137,24 @@ export const updateUserProfile = async (uid: string, data: Partial<Omit<UserProf
             }
         }
         
+        // Update Firestore document
         await updateDoc(userRef, data);
+
+        // Also update Firebase Auth profile if name or photoURL is changed
+        const currentUser = auth.currentUser;
+        if (currentUser && currentUser.uid === uid) {
+            const authUpdateData: { displayName?: string; photoURL?: string } = {};
+            if (data.name) {
+                authUpdateData.displayName = data.name;
+            }
+            if (data.photoURL) {
+                authUpdateData.photoURL = data.photoURL;
+            }
+            if (Object.keys(authUpdateData).length > 0) {
+                await updateProfile(currentUser, authUpdateData);
+            }
+        }
+
     } catch (error) {
         console.error("Error updating user profile:", error);
         throw error;
