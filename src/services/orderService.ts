@@ -46,22 +46,18 @@ export const createOrder = async (orderData: Omit<Order, 'id' | 'createdAt' | 'u
 export const getOrdersByUserId = async (userId: string): Promise<Order[]> => {
     try {
         const ordersRef = collection(db, 'orders');
-        // Fetch orders by user ID
-        const q = query(ordersRef, where("userId", "==", userId));
+        // Fetch orders by user ID and sort by creation date descending
+        const q = query(ordersRef, where("userId", "==", userId), orderBy("createdAt", "desc"));
         const snapshot = await getDocs(q);
         
         if (snapshot.empty) {
             return [];
         }
 
-        const orders = snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
-
-        // Sort orders by date client-side
-        return orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
 
     } catch (error) {
         console.error("Error fetching orders for user: ", error);
-        // In a real app, you might want to return an empty array or handle this differently
         return [];
     }
 }
