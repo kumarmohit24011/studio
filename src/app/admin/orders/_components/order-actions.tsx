@@ -174,6 +174,7 @@ export function OrderActions({ orders }: { orders: Order[] }) {
                                         <p>{order.shippingAddress.street}, {order.shippingAddress.city}</p>
                                         <p>{order.shippingAddress.state}, {order.shippingAddress.zipCode}</p>
                                         <p>{order.shippingAddress.country}</p>
+                                        <p>{order.shippingAddress.phone}</p>
                                         <p className="mt-2">Payment ID: <span className="font-mono text-xs bg-muted p-1 rounded">{order.razorpayPaymentId}</span></p>
                                     </div>
                                 </div>
