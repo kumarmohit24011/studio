@@ -5,6 +5,9 @@ import { OrderActions } from "./_components/order-actions";
 import type { Order } from "@/lib/types";
 import { getUserProfile } from "@/services/userService";
 
+// Revalidate this page every 30 seconds
+export const revalidate = 30;
+
 export default async function AdminOrdersPage({
   searchParams,
 }: {

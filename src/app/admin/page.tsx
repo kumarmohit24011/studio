@@ -11,6 +11,8 @@ import { getAllCategories } from "@/services/categoryService";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { UserProfile, Product, Order } from "@/lib/types";
 
+// Revalidate this page every 30 seconds
+export const revalidate = 30;
 
 export default async function AdminDashboard() {
     // These services now return serializable data directly.

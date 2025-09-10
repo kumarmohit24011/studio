@@ -4,6 +4,9 @@ import { getAllCategories } from "@/services/categoryService";
 import { CategoryActions } from "./_components/actions";
 import type { Category } from "@/lib/types";
 
+// Revalidate this page every 30 seconds
+export const revalidate = 30;
+
 export default async function AdminCategoriesPage() {
   // Now fetching already serialized data, no need for client-side conversion
   const categories: Category[] = await getAllCategories();
