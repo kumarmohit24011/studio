@@ -134,7 +134,7 @@ export const getProductsByCategory = async (category: string): Promise<Product[]
         if (snapshot.empty) {
             return [];
         }
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+        return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
     } catch (error) {
         console.error(`Error fetching products for category ${category}: `, error);
         return [];
