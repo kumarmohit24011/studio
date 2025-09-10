@@ -156,6 +156,7 @@ export function ShippingForm({ onFormSubmit }: ShippingFormProps) {
                                 selectedAddressId === addr.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
                             )}
                          >
+                            {selectedAddressId === addr.id && <Badge variant="default" className="absolute -top-2 -left-2">Selected</Badge>}
                             {addr.isDefault && <Badge className="absolute -top-2 -right-2">Default</Badge>}
                             <p className="font-semibold">{addr.name}</p>
                             <p className="text-muted-foreground text-sm mt-1">{addr.street}, {addr.city}</p>
