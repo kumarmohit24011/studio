@@ -205,27 +205,46 @@ export const updateProduct = async (
 }
 
 export const deleteProduct = async (id: string, imageUrlsToDelete: string[] = []): Promise<void> => {
-     try {
+    try {
         const productRef = doc(db, 'products', id);
         await deleteDoc(productRef);
-        
-        for (const url of imageUrlsToDelete) {
-             if (url.includes('firebasestorage.googleapis.com')) {
-                try {
-                    const imageRef = ref(storage, url);
-                    await deleteObject(imageRef);
-                } catch (error: any) {
-                     if (error.code !== 'storage/object-not-found') {
-                        console.error(`Failed to delete image ${url}:`, error);
+
+        const deletePromises = imageUrlsToDelete.map(async (url) => {
+            if (!url.includes('firebasestorage.googleapis.com')) {
+                return;
+            }
+            try {
+                // Correctly create a reference from the download URL
+                const imageRef = ref(storage, url);
+                await deleteObject(imageRef);
+            } catch (error: any) {
+                if (error.code === 'storage/object-not-found') {
+                    console.warn(`Image not found, skipping deletion: ${url}`);
+                } else if (error.code === 'storage/invalid-argument') {
+                    // This can happen if the URL is not a valid storage URL.
+                    // Let's try to extract the path.
+                    try {
+                        const path = new URL(url).pathname.split('/o/')[1];
+                        const decodedPath = decodeURIComponent(path.split('?')[0]);
+                        const pathRef = ref(storage, decodedPath);
+                        await deleteObject(pathRef);
+                    } catch (pathError) {
+                        console.error(`Failed to delete image from path ${url}:`, pathError);
                     }
+                } else {
+                    console.error(`Failed to delete image ${url}:`, error);
                 }
             }
-        }
+        });
+        
+        await Promise.all(deletePromises);
+
     } catch (error) {
         console.error("Error deleting product and its images:", error);
         throw error;
     }
-}
+};
+
 
 export const deleteMultipleProducts = async (productsToDelete: Product[]): Promise<void> => {
     try {
