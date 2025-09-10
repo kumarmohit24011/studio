@@ -38,7 +38,7 @@ export default async function LoginPage({
 }: {
   searchParams?: { [key: string]: string | string[] | undefined };
 }) {
-  const redirectUrl = typeof searchParams?.redirect === 'string' ? searchParams.redirect : undefined;
+  const redirectUrl = typeof searchParams?.redirect === 'string' ? searchParams.redirect : '/';
 
   return (
     <Suspense fallback={<LoginPageSkeleton />}>
