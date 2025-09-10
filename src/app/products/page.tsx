@@ -37,7 +37,7 @@ function ProductPageSkeleton() {
 }
 
 interface PageProps {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams: { [key: string]: string | string[] | undefined };
 }
 
 export default async function ProductsPage({ searchParams }: PageProps) {

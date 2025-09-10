@@ -33,7 +33,7 @@ function LoginPageSkeleton() {
 }
 
 interface PageProps {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams: { [key: string]: string | string[] | undefined };
 }
 
 // Correctly type the props for a Next.js page component

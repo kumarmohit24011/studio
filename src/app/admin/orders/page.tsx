@@ -1,5 +1,4 @@
 
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAllOrders, getOrdersByUserId } from "@/services/orderService";
 import { OrderActions } from "./_components/order-actions";
@@ -7,7 +6,7 @@ import type { Order } from "@/lib/types";
 import { getUserProfile } from "@/services/userService";
 
 interface PageProps {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams: { [key: string]: string | string[] | undefined };
 }
 
 export default async function AdminOrdersPage({ searchParams }: PageProps) {
