@@ -32,7 +32,6 @@ function LoginPageSkeleton() {
   );
 }
 
-// Correctly type the props for a Next.js page component
 export default async function LoginPage({
   searchParams,
 }: {

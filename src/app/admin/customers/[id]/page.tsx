@@ -21,8 +21,12 @@ const toPlainObject = (data: any) => {
     return data;
 }
 
-export default async function CustomerDetailPage(props: any) {
-    const id = props.params?.id;
+export default async function CustomerDetailPage({
+    params,
+}: {
+    params: { id: string };
+}) {
+    const id = params?.id;
     if (!id) {
         notFound();
     }

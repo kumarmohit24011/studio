@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getSiteContent, type SiteContent, type PlainSiteContent } from "@/services/siteContentService";
+import { getSiteContent, type SiteContent } from "@/services/siteContentService";
 import { HeroForm } from "./_components/hero-form";
 
 
@@ -12,7 +12,7 @@ export default async function AdminHeroPage() {
     ...siteContent.heroSection,
     updatedAt: (siteContent.heroSection.updatedAt?.seconds && !isNaN(siteContent.heroSection.updatedAt.seconds)) 
       ? new Date(siteContent.heroSection.updatedAt.seconds * 1000).toISOString() 
-      : undefined,
+      : new Date().toISOString(), // Fallback to current date if updatedAt is invalid
   };
 
 

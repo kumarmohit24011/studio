@@ -6,8 +6,8 @@ import { ProductDetailsClient } from "./_components/product-details-client";
 import { Separator } from "@/components/ui/separator";
 import { ProductCard } from "../_components/product-card";
 
-export default async function ProductPage(props: any) {
-  const id = props.params?.id;
+export default async function ProductPage({ params }: { params: { id: string } }) {
+  const id = params?.id;
   const product = await getProductById(id);
 
   if (!product || !product.isPublished) {
