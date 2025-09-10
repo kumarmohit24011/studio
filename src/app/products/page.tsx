@@ -1,5 +1,5 @@
 
-import { getAllProducts, getProductsByCategory } from "@/services/productService";
+import { getAllProducts } from "@/services/productService";
 import { getAllCategories } from "@/services/categoryService";
 import type { Product, Category } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,22 +37,17 @@ function ProductPageSkeleton() {
 }
 
 interface PageProps {
-  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+  searchParams?: { [key: string]: string | string[] | undefined };
 }
 
 export default async function ProductsPage({ searchParams }: PageProps) {
-  const resolvedSearchParams = await searchParams;
-  const categoryParam = resolvedSearchParams?.category as string | undefined;
-  const sortParam = resolvedSearchParams?.sort as string | undefined;
+  const categoryParam = searchParams?.category as string | undefined;
+  const sortParam = searchParams?.sort as string | undefined;
 
-  const productsData = categoryParam 
-    ? await getProductsByCategory(categoryParam)
-    : await getAllProducts();
-    
   const categoriesData = await getAllCategories();
+  const productsData = await getAllProducts();
 
-  const products: Product[] = productsData
-    .filter((p: Product) => p.isPublished);
+  const products: Product[] = productsData.filter((p: Product) => p.isPublished);
 
   const categories: Category[] = categoriesData;
   const activeCategory = categories.find((c: Category) => c.name === categoryParam) || null;
