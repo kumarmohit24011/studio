@@ -5,11 +5,11 @@ import { OrderActions } from "./_components/order-actions";
 import type { Order } from "@/lib/types";
 import { getUserProfile } from "@/services/userService";
 
-interface PageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
-}
-
-export default async function AdminOrdersPage({ searchParams }: PageProps) {
+export default async function AdminOrdersPage({
+  searchParams,
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
   const customerId = searchParams?.customerId as string | undefined;
 
   // The service now returns serializable data directly

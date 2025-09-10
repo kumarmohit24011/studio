@@ -36,11 +36,11 @@ function ProductPageSkeleton() {
   );
 }
 
-interface PageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
-}
-
-export default async function ProductsPage({ searchParams }: PageProps) {
+export default async function ProductsPage({
+  searchParams,
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
   const categoryParam = searchParams?.category as string || 'all';
   const sortParam = searchParams?.sort as string || 'newest';
 
