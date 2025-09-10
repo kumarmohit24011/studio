@@ -82,7 +82,7 @@ export function useAuth(redirectUrl?: string) {
   }
 
   const handleAuthSuccess = (profile: UserProfile | null) => {
-    const finalRedirectUrl = redirectUrl || (profile?.isAdmin ? '/admin' : '/account');
+    const finalRedirectUrl = redirectUrl || (profile?.isAdmin ? '/admin' : '/');
     router.push(finalRedirectUrl);
   }
 
