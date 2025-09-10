@@ -23,7 +23,7 @@ function ProductPageSkeleton() {
          <div className="mb-6">
             <Skeleton className="h-5 w-48" />
         </div>
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 md:gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
         {[...Array(9)].map((_, i) => (
           <div key={i} className="flex flex-col gap-2">
             <Skeleton className="aspect-square w-full" />
@@ -41,8 +41,8 @@ interface PageProps {
 }
 
 export default async function ProductsPage({ searchParams }: PageProps) {
-  const categoryParam = searchParams?.category as string | undefined;
-  const sortParam = searchParams?.sort as string | undefined;
+  const categoryParam = searchParams?.category as string || 'all';
+  const sortParam = searchParams?.sort as string || 'newest';
 
   const categoriesData = await getAllCategories();
   const productsData = await getAllProducts();
@@ -50,7 +50,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   const products: Product[] = productsData.filter((p: Product) => p.isPublished);
 
   const categories: Category[] = categoriesData;
-  const activeCategory = categories.find((c: Category) => c.name === categoryParam) || null;
+  const activeCategory = categories.find((c: Category) => c.name === categoryParam);
   const pageTitle = activeCategory ? activeCategory.name : "All Products";
   const pageDescription = activeCategory ? activeCategory.description : "Explore our exquisite range of handcrafted jewelry. Use the filters to find the perfect piece.";
 
@@ -65,8 +65,8 @@ export default async function ProductsPage({ searchParams }: PageProps) {
          <ProductView 
             initialProducts={products} 
             categories={categories}
-            initialCategory={categoryParam || 'all'}
-            initialSort={sortParam || 'newest'}
+            initialCategory={categoryParam}
+            initialSort={sortParam}
           />
       </Suspense>
     </div>
