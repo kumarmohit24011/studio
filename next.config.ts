@@ -6,7 +6,9 @@ const nextConfig: NextConfig = {
   // Allow cross-origin requests for Replit preview environment
   experimental: {
     serverActions: {
-      allowedOrigins: ["*.google.com", "*.firebase.app", "*.cloud.run", "*.cloudworkstations.dev", "*.replit.dev", "*.repl.co"],
+      allowedOrigins: process.env.NODE_ENV === 'development' 
+        ? ["*.replit.dev", "*.repl.co", "localhost"]
+        : [], // Restrict in production - add specific domains as needed
     },
   },
   // Allow dev origins for Replit proxy environment
