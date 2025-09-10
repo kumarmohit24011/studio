@@ -95,7 +95,7 @@ export function OrderHistory({ userId, initialOrders }: OrderHistoryProps) {
                             </p>
                         </div>
                         <div className="text-right">
-                           <p className="font-semibold">₹{order.totalAmount.toFixed(2)}</p>
+                           <p>₹{order.totalAmount.toFixed(2)}</p>
                             <Badge variant={order.orderStatus === 'delivered' ? 'default' : 'secondary'} className='capitalize mt-1'>{order.orderStatus}</Badge>
                         </div>
                     </div>

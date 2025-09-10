@@ -144,7 +144,7 @@ export function OrderActions({ orders }: { orders: Order[] }) {
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div>
                                     <h4 className="font-semibold mb-2 font-headline">Order Items</h4>
-                                    <ul className="space-y-2">
+                                    <ul className="space-y-2 font-body">
                                         {order.items.map((item: any) => (
                                             <li key={item.productId} className='flex justify-between items-center text-sm gap-2'>
                                                 <Link href={`/admin/products/${item.productId}/edit`} className="flex items-center gap-2 hover:underline">
@@ -156,7 +156,7 @@ export function OrderActions({ orders }: { orders: Order[] }) {
                                         ))}
                                     </ul>
                                     <Separator className="my-3"/>
-                                    <div className="flex justify-between font-semibold text-sm">
+                                    <div className="flex justify-between text-sm">
                                         <span>Total</span>
                                         <span>₹{order.totalAmount.toFixed(2)}</span>
                                     </div>
