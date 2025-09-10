@@ -5,13 +5,22 @@ import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp, updateDoc, d
 
 const couponsCol = collection(db, 'coupons');
 
+const toPlainObject = (coupon: any): Coupon => {
+    if (!coupon) return coupon;
+    const plain = { ...coupon };
+    if (coupon.createdAt?.seconds) {
+        plain.createdAt = new Date(coupon.createdAt.seconds * 1000).toISOString();
+    }
+    return plain;
+};
+
 export const getAllCoupons = async (): Promise<Coupon[]> => {
     try {
         const snapshot = await getDocs(couponsCol);
         if (snapshot.empty) {
             return [];
         }
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Coupon)).sort((a, b) => a.code.localeCompare(b.code));
+        return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() })).sort((a, b) => a.code.localeCompare(b.code));
     } catch (error) {
         console.error("Error fetching coupons: ", error);
         throw error;
