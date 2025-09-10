@@ -24,9 +24,10 @@ const toPlainObject = (data: any) => {
 export default async function CustomerDetailPage({
     params,
 }: {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }) {
-    const id = params?.id;
+    const resolvedParams = await params;
+    const id = resolvedParams?.id;
     if (!id) {
         notFound();
     }

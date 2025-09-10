@@ -9,9 +9,10 @@ import type { Product, Category } from "@/lib/types";
 export default async function EditProductPage({
     params,
 }: {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }) {
-  const id = params?.id;
+  const resolvedParams = await params;
+  const id = resolvedParams?.id;
   const product: Product | null = await getProductById(id);
   
   if (!product) {

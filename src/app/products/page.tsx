@@ -39,10 +39,11 @@ function ProductPageSkeleton() {
 export default async function ProductsPage({
   searchParams,
 }: {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const categoryParam = searchParams?.category as string || 'all';
-  const sortParam = searchParams?.sort as string || 'newest';
+  const resolvedSearchParams = await searchParams;
+  const categoryParam = resolvedSearchParams?.category as string || 'all';
+  const sortParam = resolvedSearchParams?.sort as string || 'newest';
 
   const categoriesData = await getAllCategories();
   const productsData = await getAllProducts();

@@ -8,9 +8,10 @@ import { getUserProfile } from "@/services/userService";
 export default async function AdminOrdersPage({
   searchParams,
 }: {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const customerId = searchParams?.customerId as string | undefined;
+  const resolvedSearchParams = await searchParams;
+  const customerId = resolvedSearchParams?.customerId as string | undefined;
 
   // The service now returns serializable data directly
   const orders: Order[] = customerId
