@@ -9,6 +9,14 @@ const nextConfig: NextConfig = {
       allowedOrigins: ["*.google.com", "*.firebase.app", "*.cloud.run", "*.cloudworkstations.dev", "*.replit.dev", "*.repl.co"],
     },
   },
+  // Allow dev origins for Replit proxy environment
+  allowedDevOrigins: [
+    '*.replit.dev',
+    '*.repl.co',
+    '*.kirk.replit.dev',
+    'localhost:5000',
+    '127.0.0.1:5000'
+  ],
   // Enable trust proxy for Replit environment
   async headers() {
     return [
