@@ -6,8 +6,22 @@ const nextConfig: NextConfig = {
   // Allow cross-origin requests for Replit preview environment
   experimental: {
     serverActions: {
-      allowedOrigins: ["*.google.com", "*.firebase.app", "*.cloud.run", "*.cloudworkstations.dev"],
+      allowedOrigins: ["*.google.com", "*.firebase.app", "*.cloud.run", "*.cloudworkstations.dev", "*.replit.dev", "*.repl.co"],
     },
+  },
+  // Enable trust proxy for Replit environment
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+        ],
+      },
+    ]
   },
   images: {
     remotePatterns: [
