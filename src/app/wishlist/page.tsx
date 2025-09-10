@@ -6,17 +6,15 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { Skeleton } from "@/components/ui/skeleton";
 
+// This page is now effectively deprecated, but we keep it to handle old bookmarks gracefully.
 export default function WishlistPage() {
   const router = useRouter();
   const { authLoading, user } = useAuth();
   
   useEffect(() => {
     if (!authLoading) {
-      if (user) {
-        router.replace('/account');
-      } else {
-        router.replace('/login?redirect=/account');
-      }
+      // Always redirect to the account page with the wishlist tab.
+      router.replace('/account?tab=wishlist');
     }
   }, [router, authLoading, user]);
 

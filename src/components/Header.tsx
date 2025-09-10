@@ -128,7 +128,7 @@ export function Header({ categories = [] }: HeaderProps) {
             <span className="sr-only">Search</span>
           </Button>
            <Button variant="ghost" size="icon" asChild className="hidden md:inline-flex">
-              <Link href="/wishlist" className="relative" prefetch={true}>
+              <Link href="/account?tab=wishlist" className="relative" prefetch={true}>
                 <Heart className="h-5 w-5" />
                 {isClient && wishlistItemCount > 0 && <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">{wishlistItemCount}</span>}
                 <span className="sr-only">Wishlist</span>
