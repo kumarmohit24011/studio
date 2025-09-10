@@ -19,20 +19,6 @@ const nextConfig: NextConfig = {
     'localhost:5000',
     '127.0.0.1:5000'
   ],
-  // Enable trust proxy for Replit environment
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN',
-          },
-        ],
-      },
-    ]
-  },
   images: {
     remotePatterns: [
       {
