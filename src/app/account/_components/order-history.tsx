@@ -64,7 +64,7 @@ export function OrderHistory({ userId, initialOrders }: OrderHistoryProps) {
     return (
        <Card>
             <CardHeader>
-                <CardTitle>Order History</CardTitle>
+                <CardTitle className="font-headline">Order History</CardTitle>
                 <CardDescription>View your past orders and their status.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -79,7 +79,7 @@ export function OrderHistory({ userId, initialOrders }: OrderHistoryProps) {
   return (
     <Card>
         <CardHeader>
-            <CardTitle>Order History</CardTitle>
+            <CardTitle className="font-headline">Order History</CardTitle>
             <CardDescription>View your past orders and their status.</CardDescription>
         </CardHeader>
         <CardContent>

@@ -143,7 +143,7 @@ export function OrderActions({ orders }: { orders: Order[] }) {
                         <div className="p-4 bg-muted/50 rounded-md">
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div>
-                                    <h4 className="font-semibold mb-2">Order Items</h4>
+                                    <h4 className="font-semibold mb-2 font-headline">Order Items</h4>
                                     <ul className="space-y-2">
                                         {order.items.map((item: any) => (
                                             <li key={item.productId} className='flex justify-between items-center text-sm gap-2'>
@@ -168,7 +168,7 @@ export function OrderActions({ orders }: { orders: Order[] }) {
                                     )}
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold mb-2">Shipping To</h4>
+                                    <h4 className="font-semibold mb-2 font-headline">Shipping To</h4>
                                     <div className="text-sm text-muted-foreground">
                                         <p className='font-medium text-foreground'>{order.shippingAddress.name}</p>
                                         <p>{order.shippingAddress.street}, {order.shippingAddress.city}</p>
