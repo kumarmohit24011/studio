@@ -127,10 +127,10 @@ export const getSiteContent = async (): Promise<SiteContent> => {
 export const updateHeroSection = async (data: Omit<HeroSectionData, 'imageUrl' | 'updatedAt'>, imageFile?: File): Promise<void> => {
     try {
         const docData = await getDoc(siteContentRef);
-        const currentData = docData.data() as SiteContent;
+        const currentData = docData.exists() ? docData.data() as SiteContent : null;
 
         const updateData: any = {
-            ...(currentData.heroSection || {}),
+            ...(currentData?.heroSection || {}),
             ...data,
             updatedAt: serverTimestamp()
         };
@@ -152,10 +152,10 @@ export const updateHeroSection = async (data: Omit<HeroSectionData, 'imageUrl' |
 export const updatePromoBanner = async (bannerId: 'promoBanner1' | 'promoBanner2', data: Omit<PromoBannerData, 'imageUrl' | 'updatedAt'>, imageFile?: File): Promise<void> => {
     try {
         const docData = await getDoc(siteContentRef);
-        const currentData = docData.data() as SiteContent;
+        const currentData = docData.exists() ? docData.data() as SiteContent : null;
 
         const updateData: any = {
-            ...(currentData[bannerId] || {}),
+            ...(currentData?.[bannerId] || {}),
             ...data,
             updatedAt: serverTimestamp()
         };
@@ -179,10 +179,10 @@ export const updatePromoBanner = async (bannerId: 'promoBanner1' | 'promoBanner2
 export const updateShippingSettings = async (data: Omit<ShippingSettingsData, 'updatedAt'>): Promise<void> => {
     try {
         const docData = await getDoc(siteContentRef);
-        const currentData = docData.data() as SiteContent;
+        const currentData = docData.exists() ? docData.data() as SiteContent : null;
 
         const updateData = {
-            ...(currentData.shippingSettings || {}),
+            ...(currentData?.shippingSettings || {}),
             ...data,
             updatedAt: serverTimestamp()
         };
