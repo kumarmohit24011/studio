@@ -4,6 +4,10 @@
 This is a Next.js 15 e-commerce application for jewelry sales, built with Firebase backend, Tailwind CSS, and Radix UI components. The project includes a complete admin panel and customer-facing storefront.
 
 ## Recent Changes
+- **2025-09-10**: FIXED critical admin panel ERR_BLOCKED_BY_CLIENT error by renaming ad-triggering paths
+- **2025-09-10**: RESOLVED Firebase PERMISSION_DENIED errors by removing server-side write-on-read
+- **2025-09-10**: Added automatic cache revalidation (60s home/products, 30s admin) for live site
+- **2025-09-10**: Created manual cache invalidation API at /api/cache for immediate updates
 - **2024-09-08**: Fixed Next.js 15 compatibility issues with async searchParams
 - **2024-09-08**: Resolved date validation errors in admin pages  
 - **2024-09-08**: Configured dev server for Replit environment

@@ -2,11 +2,12 @@ import { NextRequest } from 'next/server';
 import { revalidateTag, revalidatePath } from 'next/cache';
 
 export async function POST(request: NextRequest) {
-  const secret = request.nextUrl.searchParams.get('secret');
+  const authHeader = request.headers.get('authorization');
+  const secret = authHeader?.replace('Bearer ', '') || request.nextUrl.searchParams.get('secret');
   const tag = request.nextUrl.searchParams.get('tag');
   const path = request.nextUrl.searchParams.get('path');
   
-  // Check for secret token to prevent unauthorized revalidation
+  // Check for secret token to prevent unauthorized cache refresh
   if (secret !== process.env.REVALIDATE_TOKEN) {
     return Response.json({ message: 'Invalid secret' }, { status: 401 });
   }

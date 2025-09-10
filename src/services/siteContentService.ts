@@ -102,19 +102,13 @@ export const getSiteContent = async (): Promise<SiteContent> => {
                 shippingSettings: toPlainObject(data.shippingSettings || defaultData.shippingSettings),
             };
         } else {
-            console.log("Site content document doesn't exist, creating one with default data.");
-            const serializableDefault = {
-                heroSection: { ...defaultData.heroSection, updatedAt: serverTimestamp() },
-                promoBanner1: { ...defaultData.promoBanner1, updatedAt: serverTimestamp() },
-                promoBanner2: { ...defaultData.promoBanner2, updatedAt: serverTimestamp() },
-                shippingSettings: { ...defaultData.shippingSettings, updatedAt: serverTimestamp() }
-            };
-            await setDoc(siteContentRef, serializableDefault);
+            // Return default data instead of trying to create the document on server-side
+            console.log("Site content document doesn't exist, returning defaults.");
             return {
-                heroSection: { ...defaultData.heroSection, updatedAt: new Date().toISOString() },
-                promoBanner1: { ...defaultData.promoBanner1, updatedAt: new Date().toISOString() },
-                promoBanner2: { ...defaultData.promoBanner2, updatedAt: new Date().toISOString() },
-                shippingSettings: { ...defaultData.shippingSettings, updatedAt: new Date().toISOString() }
+                heroSection: toPlainObject(defaultData.heroSection),
+                promoBanner1: toPlainObject(defaultData.promoBanner1),
+                promoBanner2: toPlainObject(defaultData.promoBanner2),
+                shippingSettings: toPlainObject(defaultData.shippingSettings),
             };
         }
     } catch (error) {
@@ -167,7 +161,7 @@ export const updatePromoBanner = async (bannerId: 'promoBanner1' | 'promoBanner2
         };
 
         if (imageFile) {
-            const storageRef = ref(storage, `promo-images/${bannerId}-${imageFile.name}-${Date.now()}`);
+            const storageRef = ref(storage, `content-images/${bannerId}-${imageFile.name}-${Date.now()}`);
             const snapshot = await uploadBytes(storageRef, imageFile);
             updateData.imageUrl = await getDownloadURL(snapshot.ref);
         }
