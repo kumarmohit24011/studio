@@ -51,7 +51,7 @@ export function OrderSummary({ subtotal, shippingCost, total, discount, appliedC
                 <CouponForm applyCoupon={applyCoupon} />
             ) : (
                 <div className="flex justify-between items-center text-sm">
-                    <p className="font-medium text-primary">Coupon Applied: <Badge variant="secondary" className="ml-2">{appliedCoupon.code}</Badge></p>
+                    <div className="font-medium text-primary">Coupon Applied: <Badge variant="secondary" className="ml-2">{appliedCoupon.code}</Badge></div>
                     <button onClick={removeCoupon} className="font-semibold text-xs text-muted-foreground hover:text-foreground uppercase tracking-wider">Remove</button>
                 </div>
             )}
