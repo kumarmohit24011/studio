@@ -6,6 +6,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ProductView } from "./_components/product-view";
 import { Suspense } from "react";
 
+// Revalidate this page every 60 seconds
+export const revalidate = 60;
+
 function ProductPageSkeleton() {
   return (
     <div>

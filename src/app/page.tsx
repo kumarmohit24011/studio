@@ -7,6 +7,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { ProductCard } from "./products/_components/product-card";
 
+// Revalidate this page every 60 seconds
+export const revalidate = 60;
+
 export default async function Home() {
   const newArrivalsData = await getNewArrivals(5);
   const trendingProductsData = await getTrendingProducts(5);
