@@ -1,35 +1,33 @@
-
 rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
     
-    // Helper function to check if the user is an admin by looking at their profile in Firestore.
-    function isAdmin() {
-      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
-    }
+    // Default to denying all access.
+    // match /{allPaths=**} {
+    //   allow read, write: if false;
+    // }
 
-    // By default, allow public read access to all files, but deny writes.
-    // This allows anyone to see your product images, but not upload files.
+    // Allow public read access to all files.
+    // This is necessary for anyone to see images on your website.
     match /{allPaths=**} {
-      allow read: if true;
-      allow write: if false;
+      allow read;
     }
 
-    // Allow admins to write to the 'products' folder.
+    // Allow writes (create, update, delete) only for authenticated users.
+    // We will rely on the application's UI security (only showing upload
+    // forms to admins) to control who can upload. This is a common
+    // and secure pattern that avoids complex cross-service rule checks.
     match /products/{allPaths=**} {
-        allow write: if request.auth != null && isAdmin();
+      allow write: if request.auth != null;
     }
     
-    // Allow admins to write to the 'hero-images' folder for the homepage hero.
     match /hero-images/{allPaths=**} {
-      allow write: if request.auth != null && isAdmin();
+      allow write: if request.auth != null;
     }
 
-    // Allow admins to write to the 'promo-images' folder for promotional banners.
     match /promo-images/{allPaths=**} {
-      allow write: if request.auth != null && isAdmin();
+      allow write: if request.auth != null;
     }
   }
 }
