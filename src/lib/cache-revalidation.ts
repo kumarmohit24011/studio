@@ -11,11 +11,11 @@ type RevalidationType = 'products' | 'categories' | 'orders' | 'site-content' | 
 const REVALIDATION_CONFIG: Record<RevalidationType, { tags: string[]; paths: string[] }> = {
   products: {
     tags: ['products'],
-    paths: ['/', '/products']
+    paths: ['/', '/products', '/admin/products']
   },
   categories: {
     tags: ['categories'],
-    paths: ['/', '/products']
+    paths: ['/', '/products', '/admin/categories']
   },
   orders: {
     tags: ['orders'],
@@ -23,11 +23,11 @@ const REVALIDATION_CONFIG: Record<RevalidationType, { tags: string[]; paths: str
   },
   'site-content': {
     tags: ['site-content'],
-    paths: ['/', '/products', '/about', '/contact']
+    paths: ['/', '/products', '/about', '/contact', '/admin/settings']
   },
   promotions: {
     tags: ['promotions'],
-    paths: ['/', '/products']
+    paths: ['/', '/products', '/admin/promotions']
   },
   coupons: {
     tags: ['coupons'],
