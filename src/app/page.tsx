@@ -82,13 +82,15 @@ export default async function Home() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="relative rounded-lg overflow-hidden h-80 flex items-center justify-center text-white text-center p-6">
-              <Image
-                src={promoBanner1.imageUrl}
-                alt={promoBanner1.headline}
-                data-ai-hint="jewelry sale"
-                fill
-                className="object-cover transition-transform duration-300 hover:scale-105"
-              />
+              {promoBanner1.imageUrl && (
+                <Image
+                  src={promoBanner1.imageUrl}
+                  alt={promoBanner1.headline}
+                  data-ai-hint="jewelry sale"
+                  fill
+                  className="object-cover transition-transform duration-300 hover:scale-105"
+                />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
               <div className="relative z-10 flex flex-col items-center">
                 <h3 className="text-3xl font-headline font-bold">{promoBanner1.headline}</h3>
@@ -99,13 +101,15 @@ export default async function Home() {
               </div>
             </div>
             <div className="relative rounded-lg overflow-hidden h-80 flex items-center justify-center text-white text-center p-6">
-              <Image
-                src={promoBanner2.imageUrl}
-                alt={promoBanner2.headline}
-                data-ai-hint="ring promotion"
-                fill
-                className="object-cover transition-transform duration-300 hover:scale-105"
-              />
+              {promoBanner2.imageUrl && (
+                <Image
+                  src={promoBanner2.imageUrl}
+                  alt={promoBanner2.headline}
+                  data-ai-hint="ring promotion"
+                  fill
+                  className="object-cover transition-transform duration-300 hover:scale-105"
+                />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
               <div className="relative z-10 flex flex-col items-center">
                 <h3 className="text-3xl font-headline font-bold">{promoBanner2.headline}</h3>
