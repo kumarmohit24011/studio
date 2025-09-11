@@ -24,8 +24,14 @@ export async function POST(request: NextRequest) {
     }
     
     // Ensure request comes from same origin and admin path
-    if (refUrl.origin !== requestOrigin) {
-      console.error(`Cache revalidation blocked: referer origin mismatch. Expected ${requestOrigin}, got ${refUrl.origin}`);
+    // Allow both localhost and 0.0.0.0 for development environment
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const allowedOrigins = isDevelopment 
+      ? [requestOrigin, 'http://localhost:5000', 'http://0.0.0.0:5000'] 
+      : [requestOrigin];
+    
+    if (!allowedOrigins.includes(refUrl.origin)) {
+      console.error(`Cache revalidation blocked: referer origin mismatch. Expected one of [${allowedOrigins.join(', ')}], got ${refUrl.origin}`);
       return Response.json({ error: 'Invalid request: origin mismatch' }, { status: 403 });
     }
     

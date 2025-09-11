@@ -19,7 +19,7 @@ export async function triggerCacheRevalidation(type: RevalidationType, specificP
       return;
     }
 
-    const response = await fetch('/api/admin/cache', {
+    const response = await fetch(new URL('/api/admin/cache', window.location.origin), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
