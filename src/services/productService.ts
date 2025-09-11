@@ -3,6 +3,7 @@ import { db, storage } from '@/lib/firebase';
 import { Product } from '@/lib/types';
 import { collection, getDocs, query, where, limit, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc, orderBy, getCountFromServer, writeBatch, documentId } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { invalidateCache } from '@/lib/cache-invalidation';
 
 const toPlainObject = (product: any): Product => {
     if (!product) return product;
@@ -166,6 +167,7 @@ export const addProduct = async (productData: Partial<Product> & { images?: File
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
         });
+        await invalidateCache('products');
     } catch (error) {
         console.error("Error adding product:", error);
         throw error;
@@ -197,6 +199,7 @@ export const updateProduct = async (
         };
 
         await updateDoc(productRef, updatePayload);
+        await invalidateCache('products');
 
     } catch (error) {
         console.error("Error updating product:", error);
