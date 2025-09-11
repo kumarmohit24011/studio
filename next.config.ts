@@ -7,18 +7,24 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       allowedOrigins: process.env.NODE_ENV === 'development' 
-        ? ["*.replit.dev", "*.repl.co", "localhost"]
+        ? ["*.replit.dev", "*.repl.co", "localhost", "127.0.0.1"]
         : [], // Restrict in production - add specific domains as needed
     },
   },
-  // Allow dev origins for Replit proxy environment
-  allowedDevOrigins: [
-    '*.replit.dev',
-    '*.repl.co',
-    '*.kirk.replit.dev',
-    'localhost:5000',
-    '127.0.0.1:5000'
-  ],
+  // Allow dev origins for Replit proxy environment - comprehensive setup
+  ...(process.env.NODE_ENV === 'development' && {
+    allowedDevOrigins: [
+      '*.replit.dev',
+      '*.repl.co', 
+      '*.kirk.replit.dev',
+      '*.riker.replit.dev',
+      '*-*.replit.dev',
+      'localhost:5000',
+      '127.0.0.1:5000',
+      'localhost',
+      '127.0.0.1'
+    ],
+  }),
   images: {
     remotePatterns: [
       {
