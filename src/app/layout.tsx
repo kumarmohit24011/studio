@@ -27,6 +27,9 @@ export const metadata: Metadata = {
   description: "Discover timeless elegance with Redbow's curated collection of fine jewelry. High-quality pieces for every occasion.",
 };
 
+// Revalidate layout every 60 seconds to update header categories
+export const revalidate = 60;
+
 export default async function RootLayout({
   children,
 }: Readonly<{
