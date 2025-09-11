@@ -2,6 +2,7 @@
 import { db, storage } from '@/lib/firebase';
 import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { triggerCacheRevalidation } from '@/lib/cache-client';
 
 export interface HeroSectionData {
     headline: string;
@@ -142,6 +143,7 @@ export const updateHeroSection = async (data: Omit<HeroSectionData, 'imageUrl' |
         }
 
         await updateDoc(siteContentRef, { heroSection: updateData });
+        await triggerCacheRevalidation('site-content');
 
     } catch (error) {
         console.error("Error in updateHeroSection:", error);
@@ -169,6 +171,7 @@ export const updatePromoBanner = async (bannerId: 'promoBanner1' | 'promoBanner2
         const firestoreUpdate = { [bannerId]: updateData };
 
         await updateDoc(siteContentRef, firestoreUpdate);
+        await triggerCacheRevalidation('site-content');
 
     } catch (error) {
         console.error(`Error in updatePromoBanner for ${bannerId}:`, error);
@@ -187,6 +190,7 @@ export const updateShippingSettings = async (data: Omit<ShippingSettingsData, 'u
             updatedAt: serverTimestamp()
         };
         await updateDoc(siteContentRef, { shippingSettings: updateData });
+        await triggerCacheRevalidation('site-content');
     } catch (error) {
         console.error("Error updating shipping settings:", error);
         throw error;

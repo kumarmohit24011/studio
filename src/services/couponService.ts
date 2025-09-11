@@ -2,6 +2,7 @@
 import { db } from '@/lib/firebase';
 import { Coupon } from '@/lib/types';
 import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
+import { triggerCacheRevalidation } from '@/lib/cache-client';
 
 const couponsCol = collection(db, 'coupons');
 
@@ -54,6 +55,7 @@ export const addCoupon = async (coupon: Omit<Coupon, 'id' | 'createdAt'>): Promi
             ...coupon,
             createdAt: serverTimestamp(),
         });
+        await triggerCacheRevalidation('coupons');
     } catch (error) {
         console.error("Error adding coupon: ", error);
         throw error;
@@ -64,6 +66,7 @@ export const updateCoupon = async (id: string, data: Partial<Omit<Coupon, 'id' |
     try {
         const couponRef = doc(db, 'coupons', id);
         await updateDoc(couponRef, data);
+        await triggerCacheRevalidation('coupons');
     } catch (error) {
         console.error("Error updating coupon: ", error);
         throw error;
@@ -74,6 +77,7 @@ export const deleteCoupon = async (id: string): Promise<void> => {
     try {
         const couponRef = doc(db, 'coupons', id);
         await deleteDoc(couponRef);
+        await triggerCacheRevalidation('coupons');
     } catch (error) {
         console.error("Error deleting coupon: ", error);
         throw error;

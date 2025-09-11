@@ -1,11 +1,9 @@
 import { NextRequest } from 'next/server';
-import { revalidateTag, revalidatePath } from 'next/cache';
+import { manualCacheRevalidation } from '@/lib/cache-revalidation';
 
 export async function POST(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
   const secret = authHeader?.replace('Bearer ', '') || request.nextUrl.searchParams.get('secret');
-  const tag = request.nextUrl.searchParams.get('tag');
-  const path = request.nextUrl.searchParams.get('path');
   
   // Check for secret token to prevent unauthorized cache refresh
   if (secret !== process.env.REVALIDATE_TOKEN) {
@@ -13,25 +11,41 @@ export async function POST(request: NextRequest) {
   }
   
   try {
-    if (tag) {
-      revalidateTag(tag); // Revalidate all pages using this tag
-    }
+    const tag = request.nextUrl.searchParams.get('tag');
+    const path = request.nextUrl.searchParams.get('path');
+    
+    // Support both query params and JSON body
+    let paths: string[] = [];
+    let tags: string[] = [];
     
     if (path) {
-      revalidatePath(path); // Revalidate specific path
-    } else {
-      // If no specific path, revalidate main pages
-      revalidatePath('/');
-      revalidatePath('/products');
-      revalidatePath('/admin');
+      paths = [path];
     }
+    if (tag) {
+      tags = [tag];
+    }
+    
+    // Try to get from JSON body if not in query params
+    if (!path && !tag) {
+      try {
+        const body = await request.json();
+        paths = body.paths || ['/'];
+        tags = body.tags || [];
+      } catch {
+        // Default revalidation if no specific instructions
+        paths = ['/', '/products', '/admin'];
+      }
+    }
+    
+    await manualCacheRevalidation(paths, tags);
     
     return Response.json({ 
       revalidated: true, 
       now: Date.now(),
-      message: `Successfully revalidated ${tag ? `tag: ${tag}` : `path: ${path || 'main pages'}`}`
+      message: `Successfully revalidated paths: ${paths.join(', ')}, tags: ${tags.join(', ')}`
     });
   } catch (err) {
+    console.error('Cache revalidation error:', err);
     return Response.json({ message: 'Error revalidating' }, { status: 500 });
   }
 }

@@ -2,6 +2,7 @@
 import { db } from '@/lib/firebase';
 import { Order } from '@/lib/types';
 import { collection, addDoc, serverTimestamp, query, where, getDocs, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { triggerCacheRevalidation } from '@/lib/cache-client';
 
 const toPlainObject = (order: any): Order => {
     if (!order) return order;
@@ -36,6 +37,7 @@ export const createOrder = async (orderData: Omit<Order, 'id' | 'createdAt' | 'u
         }
 
         await addDoc(orderCol, dataToSave);
+        await triggerCacheRevalidation('orders');
     } catch (error) {
         console.error("Error creating order: ", error);
         throw error;
@@ -88,6 +90,7 @@ export const updateOrderStatus = async (orderId: string, status: Order['orderSta
             orderStatus: status,
             updatedAt: serverTimestamp()
         });
+        await triggerCacheRevalidation('orders');
     } catch (error) {
         console.error("Error updating order status: ", error);
         throw error;
