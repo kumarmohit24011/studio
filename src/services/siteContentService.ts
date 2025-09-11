@@ -1,6 +1,6 @@
 
 import { db, storage } from '@/lib/firebase';
-import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { triggerCacheRevalidation } from '@/lib/cache-client';
 
@@ -127,11 +127,9 @@ export const getSiteContent = async (): Promise<SiteContent> => {
 
 export const updateHeroSection = async (data: Omit<HeroSectionData, 'imageUrl' | 'updatedAt'>, imageFile?: File): Promise<void> => {
     try {
-        const docData = await getDoc(siteContentRef);
-        const currentData = docData.exists() ? docData.data() as SiteContent : null;
+        const updatePayload: Partial<SiteContent> = {};
 
         const updateData: any = {
-            ...(currentData?.heroSection || {}),
             ...data,
             updatedAt: serverTimestamp()
         };
@@ -142,7 +140,9 @@ export const updateHeroSection = async (data: Omit<HeroSectionData, 'imageUrl' |
             updateData.imageUrl = await getDownloadURL(snapshot.ref);
         }
 
-        await updateDoc(siteContentRef, { heroSection: updateData });
+        updatePayload.heroSection = updateData;
+
+        await setDoc(siteContentRef, updatePayload, { merge: true });
         await triggerCacheRevalidation('site-content');
 
     } catch (error) {
@@ -153,11 +153,7 @@ export const updateHeroSection = async (data: Omit<HeroSectionData, 'imageUrl' |
 
 export const updatePromoBanner = async (bannerId: 'promoBanner1' | 'promoBanner2', data: Omit<PromoBannerData, 'imageUrl' | 'updatedAt'>, imageFile?: File): Promise<void> => {
     try {
-        const docData = await getDoc(siteContentRef);
-        const currentData = docData.exists() ? docData.data() as SiteContent : null;
-
         const updateData: any = {
-            ...(currentData?.[bannerId] || {}),
             ...data,
             updatedAt: serverTimestamp()
         };
@@ -170,7 +166,7 @@ export const updatePromoBanner = async (bannerId: 'promoBanner1' | 'promoBanner2
         
         const firestoreUpdate = { [bannerId]: updateData };
 
-        await updateDoc(siteContentRef, firestoreUpdate);
+        await setDoc(siteContentRef, firestoreUpdate, { merge: true });
         await triggerCacheRevalidation('site-content');
 
     } catch (error) {
@@ -181,15 +177,11 @@ export const updatePromoBanner = async (bannerId: 'promoBanner1' | 'promoBanner2
 
 export const updateShippingSettings = async (data: Omit<ShippingSettingsData, 'updatedAt'>): Promise<void> => {
     try {
-        const docData = await getDoc(siteContentRef);
-        const currentData = docData.exists() ? docData.data() as SiteContent : null;
-
         const updateData = {
-            ...(currentData?.shippingSettings || {}),
             ...data,
             updatedAt: serverTimestamp()
         };
-        await updateDoc(siteContentRef, { shippingSettings: updateData });
+        await setDoc(siteContentRef, { shippingSettings: updateData }, { merge: true });
         await triggerCacheRevalidation('site-content');
     } catch (error) {
         console.error("Error updating shipping settings:", error);
