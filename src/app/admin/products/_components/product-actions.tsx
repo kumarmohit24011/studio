@@ -75,7 +75,10 @@ export function ProductActions({ products, categories }: ProductActionsProps) {
             await deleteMultipleProducts(selectedProducts);
             toast({ title: "Success", description: `${selectedProducts.length} products deleted.` });
             setSelectedProducts([]);
-            router.refresh();
+            // Wait a bit for cache revalidation to complete, then refresh
+            setTimeout(() => {
+                router.refresh();
+            }, 100);
         } catch (error) {
             toast({ variant: 'destructive', title: "Error", description: "Failed to delete products." });
         }

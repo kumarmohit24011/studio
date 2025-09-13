@@ -107,7 +107,10 @@ export function CategoryActions({ categories: initialCategories }: { categories:
     try {
         await deleteCategory(id);
         toast({ title: "Success", description: "Category deleted successfully." });
-        router.refresh(); 
+        // Wait a bit for cache revalidation to complete, then refresh
+        setTimeout(() => {
+          router.refresh();
+        }, 100);
     } catch(error) {
         toast({ variant: "destructive", title: "Error", description: "Failed to delete category." });
     }
@@ -117,7 +120,10 @@ export function CategoryActions({ categories: initialCategories }: { categories:
     try {
       await updateCategory(category.id, { isFeatured: !category.isFeatured });
       toast({ title: "Success", description: `Category "${category.name}" has been ${!category.isFeatured ? 'featured' : 'unfeatured'}.` });
-      router.refresh();
+      // Wait a bit for cache revalidation to complete, then refresh
+      setTimeout(() => {
+        router.refresh();
+      }, 100);
     } catch (error) {
        toast({ variant: "destructive", title: "Error", description: "Failed to update category status." });
     }
@@ -135,7 +141,10 @@ export function CategoryActions({ categories: initialCategories }: { categories:
       }
       setDialogOpen(false);
       setEditingCategory(null);
-      router.refresh();
+      // Wait a bit for cache revalidation to complete, then refresh
+      setTimeout(() => {
+        router.refresh();
+      }, 100);
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -164,7 +173,10 @@ export function CategoryActions({ categories: initialCategories }: { categories:
     try {
       await updateCategoryOrder(updatedOrder);
       toast({ title: "Order Updated", description: "Category order saved successfully." });
-      router.refresh();
+      // Wait a bit for cache revalidation to complete, then refresh
+      setTimeout(() => {
+        router.refresh();
+      }, 100);
     } catch (error) {
       toast({ variant: "destructive", title: "Error", description: "Failed to save category order." });
     }

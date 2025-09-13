@@ -54,7 +54,10 @@ export function ProductTable({ products, selectedProducts, setSelectedProducts }
         try {
             await deleteProduct(product.id, product.imageUrls);
             toast({ title: "Success", description: "Product deleted successfully." });
-            router.refresh();
+            // Wait a bit for cache revalidation to complete, then refresh
+            setTimeout(() => {
+                router.refresh();
+            }, 100);
         } catch (error) {
             toast({ variant: "destructive", title: "Error", description: "Failed to delete product." });
         }
@@ -64,7 +67,10 @@ export function ProductTable({ products, selectedProducts, setSelectedProducts }
         try {
             await updateProductStatus(productId, { [statusType]: value });
             toast({ title: "Status Updated", description: "Product status changed successfully." });
-            router.refresh();
+            // Wait a bit for cache revalidation to complete, then refresh
+            setTimeout(() => {
+                router.refresh();
+            }, 100);
         } catch (error) {
             toast({ variant: "destructive", title: "Error", description: "Failed to update product status." });
         }
