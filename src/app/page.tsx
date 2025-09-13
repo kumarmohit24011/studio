@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { getNewArrivals, getTrendingProducts } from "@/services/productService";
+import { getNewArrivals, getTrendingProducts } from "@/services/server/productQueries";
 import { getSiteContent } from "@/services/siteContentService";
 import type { Product, Category } from "@/lib/types";
 import Image from "next/image";
