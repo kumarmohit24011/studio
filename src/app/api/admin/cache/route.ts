@@ -6,8 +6,12 @@ type RevalidationType = 'products' | 'categories' | 'orders' | 'site-content' | 
 export async function POST(request: NextRequest) {
   try {
     // Same-origin protection: ensure request comes from admin interface
-    const referer = request.headers.get('referer');
-    const requestOrigin = new URL(request.url).origin;
+  const referer = request.headers.get('referer');
+  const requestOrigin = new URL(request.url).origin;
+  console.log('[Cache Revalidation] Incoming request');
+  console.log('[Cache Revalidation] request.url:', request.url);
+  console.log('[Cache Revalidation] requestOrigin:', requestOrigin);
+  console.log('[Cache Revalidation] referer:', referer);
     
     // Verify request originates from admin interface using Referer header
     if (!referer) {
@@ -18,6 +22,8 @@ export async function POST(request: NextRequest) {
     let refUrl;
     try {
       refUrl = new URL(referer);
+      console.log('[Cache Revalidation] refUrl.origin:', refUrl.origin);
+      console.log('[Cache Revalidation] refUrl.pathname:', refUrl.pathname);
     } catch (error) {
       console.error('Cache revalidation blocked: invalid referer URL:', referer);
       return Response.json({ error: 'Invalid request: invalid referer URL' }, { status: 403 });
@@ -38,9 +44,9 @@ export async function POST(request: NextRequest) {
           requestOrigin,
           'https://studio--redbow-24723.asia-east1.hosted.app/'
         ];
-    
+    console.log('[Cache Revalidation] allowedOrigins:', allowedOrigins);
     if (!allowedOrigins.includes(refUrl.origin)) {
-      console.error(`Cache revalidation blocked: referer origin mismatch. Expected one of [${allowedOrigins.join(', ')}], got ${refUrl.origin}`);
+      console.error(`[Cache Revalidation] referer origin mismatch. Expected one of [${allowedOrigins.join(', ')}], got ${refUrl.origin}`);
       return Response.json({ error: 'Invalid request: origin mismatch' }, { status: 403 });
     }
     
