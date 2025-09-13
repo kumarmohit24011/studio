@@ -24,10 +24,16 @@ export async function POST(request: NextRequest) {
     }
     
     // Ensure request comes from same origin and admin path
-    // Allow both localhost and 0.0.0.0 for development environment
+    // Allow both localhost and 0.0.0.0 for development environment, plus Replit domains
     const isDevelopment = process.env.NODE_ENV === 'development';
+    const replitDomain = process.env.REPLIT_DEV_DOMAIN;
     const allowedOrigins = isDevelopment 
-      ? [requestOrigin, 'http://localhost:5000', 'http://0.0.0.0:5000'] 
+      ? [
+          requestOrigin, 
+          'http://localhost:5000', 
+          'http://0.0.0.0:5000',
+          ...(replitDomain ? [`https://${replitDomain}`, `http://${replitDomain}`] : [])
+        ] 
       : [requestOrigin];
     
     if (!allowedOrigins.includes(refUrl.origin)) {
