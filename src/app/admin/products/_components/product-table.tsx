@@ -72,6 +72,7 @@ export function ProductTable({ products, selectedProducts, setSelectedProducts }
                 router.refresh();
             }, 100);
         } catch (error) {
+            console.error("Error updating product status:", error);
             toast({ variant: "destructive", title: "Error", description: "Failed to update product status." });
         }
     }
@@ -145,15 +146,45 @@ export function ProductTable({ products, selectedProducts, setSelectedProducts }
                     <TableCell>
                         <div className="flex flex-col gap-2 items-start">
                            <div className="flex items-center space-x-2">
-                                <Switch id={`published-${product.id}`} checked={product.isPublished} onCheckedChange={(val) => handleToggleStatus(product.id, 'isPublished', val)} />
+                                <Switch 
+                                    id={`published-${product.id}`} 
+                                    checked={product.isPublished} 
+                                    onCheckedChange={(val) => {
+                                        try {
+                                            handleToggleStatus(product.id, 'isPublished', val);
+                                        } catch (error) {
+                                            console.error("Toggle error:", error);
+                                        }
+                                    }} 
+                                />
                                 <Label htmlFor={`published-${product.id}`} className="text-xs flex items-center gap-1">{product.isPublished ? <Eye className="h-3 w-3"/> : <EyeOff className="h-3 w-3"/>} Published</Label>
                             </div>
                             <div className="flex items-center space-x-2">
-                                <Switch id={`new-${product.id}`} checked={product.tags?.includes('new')} onCheckedChange={(val) => handleToggleStatus(product.id, 'isNew', val)}/>
+                                <Switch 
+                                    id={`new-${product.id}`} 
+                                    checked={product.tags?.includes('new') || false} 
+                                    onCheckedChange={(val) => {
+                                        try {
+                                            handleToggleStatus(product.id, 'isNew', val);
+                                        } catch (error) {
+                                            console.error("Toggle error:", error);
+                                        }
+                                    }}
+                                />
                                 <Label htmlFor={`new-${product.id}`} className="text-xs flex items-center gap-1"><Sparkles className="h-3 w-3"/> New</Label>
                             </div>
                            <div className="flex items-center space-x-2">
-                                <Switch id={`trending-${product.id}`} checked={product.tags?.includes('popular')} onCheckedChange={(val) => handleToggleStatus(product.id, 'isTrending', val)}/>
+                                <Switch 
+                                    id={`trending-${product.id}`} 
+                                    checked={product.tags?.includes('popular') || false} 
+                                    onCheckedChange={(val) => {
+                                        try {
+                                            handleToggleStatus(product.id, 'isTrending', val);
+                                        } catch (error) {
+                                            console.error("Toggle error:", error);
+                                        }
+                                    }}
+                                />
                                 <Label htmlFor={`trending-${product.id}`} className="text-xs flex items-center gap-1"><TrendingUp className="h-3 w-3"/> Trending</Label>
                             </div>
                         </div>
