@@ -22,6 +22,9 @@ export async function triggerCacheRevalidation(type: RevalidationType, specificP
       return;
     }
 
+  console.log('[Cache Revalidation] API_URL:', API_URL);
+  console.log('[Cache Revalidation] Window location:', typeof window !== 'undefined' ? window.location.href : 'N/A');
+  console.log('[Cache Revalidation] Type:', type, 'SpecificPath:', specificPath);
   const response = await fetch(`${API_URL}/api/admin/cache`, {
       method: 'POST',
       headers: {
@@ -35,7 +38,9 @@ export async function triggerCacheRevalidation(type: RevalidationType, specificP
 
     if (!response.ok) {
       const error = await response.text();
-      console.error(`Cache revalidation failed for ${type}:`, error);
+      console.error(`[Cache Revalidation] Failed for ${type}:`, error);
+      console.error('[Cache Revalidation] Response status:', response.status);
+      console.error('[Cache Revalidation] Response headers:', JSON.stringify([...response.headers]));
       return;
     }
 
