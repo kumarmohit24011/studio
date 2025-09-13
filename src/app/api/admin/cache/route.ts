@@ -34,7 +34,10 @@ export async function POST(request: NextRequest) {
           'http://0.0.0.0:5000',
           ...(replitDomain ? [`https://${replitDomain}`, `http://${replitDomain}`] : [])
         ] 
-      : [requestOrigin];
+      : [
+          requestOrigin,
+          'https://studio--redbow-24723.asia-east1.hosted.app/'
+        ];
     
     if (!allowedOrigins.includes(refUrl.origin)) {
       console.error(`Cache revalidation blocked: referer origin mismatch. Expected one of [${allowedOrigins.join(', ')}], got ${refUrl.origin}`);
