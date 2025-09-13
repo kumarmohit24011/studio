@@ -1,3 +1,4 @@
+declare const process: any;
 
 /**
  * Client-side cache invalidation utility
@@ -6,6 +7,8 @@
  */
 
 type RevalidationType = 'products' | 'categories' | 'orders' | 'site-content' | 'promotions' | 'coupons';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined' ? window.location.origin : '');
 
 /**
  * Trigger cache revalidation from client-side by calling secure server endpoint
@@ -19,7 +22,7 @@ export async function triggerCacheRevalidation(type: RevalidationType, specificP
       return;
     }
 
-    const response = await fetch(new URL('/api/admin/cache', window.location.origin), {
+  const response = await fetch(`${API_URL}/api/admin/cache`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
