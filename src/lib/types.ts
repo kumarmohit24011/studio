@@ -12,6 +12,7 @@ export interface Product {
     stock: number;
     tags?: string[];
     isPublished: boolean; // Controls visibility on the storefront
+    isNewArrival?: boolean;
     featured?: boolean;
     createdAt?: any | string;
     updatedAt?: any | string;

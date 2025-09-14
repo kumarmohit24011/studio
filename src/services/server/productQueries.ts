@@ -25,7 +25,7 @@ export const getNewArrivals = async (count: number): Promise<Product[]> => {
         const q = query(
             productsRef, 
             where("isPublished", "==", true), 
-            where("tags", "array-contains", "new"),
+            where("isNewArrival", "==", true),
             orderBy("createdAt", "desc"), 
             limit(count)
         );
@@ -58,6 +58,7 @@ export const getTrendingProducts = async (count: number): Promise<Product[]> => 
         return [];
     }
 };
+
 
 
 

@@ -63,7 +63,7 @@ export function ProductTable({ products, selectedProducts, setSelectedProducts }
         }
     }
 
-    const handleToggleStatus = async (productId: string, statusType: 'isPublished' | 'isNew' | 'isTrending', value: boolean) => {
+    const handleToggleStatus = async (productId: string, statusType: 'isPublished' | 'isNewArrival' | 'isTrending', value: boolean) => {
         try {
             await updateProductStatus(productId, { [statusType]: value });
             toast({ title: "Status Updated", description: "Product status changed successfully." });
@@ -162,10 +162,10 @@ export function ProductTable({ products, selectedProducts, setSelectedProducts }
                             <div className="flex items-center space-x-2">
                                 <Switch 
                                     id={`new-${product.id}`} 
-                                    checked={product.tags?.includes('new') || false} 
+                                    checked={product.isNewArrival || false} 
                                     onCheckedChange={(val) => {
                                         try {
-                                            handleToggleStatus(product.id, 'isNew', val);
+                                            handleToggleStatus(product.id, 'isNewArrival', val);
                                         } catch (error) {
                                             console.error("Toggle error:", error);
                                         }

@@ -85,7 +85,7 @@ export const getProductById = async (id: string): Promise<Product | null> => {
 export const getNewArrivals = async (count: number): Promise<Product[]> => {
     try {
         const productsRef = collection(db, 'products');
-        const q = query(productsRef, where("tags", "array-contains", "new"), where("isPublished", "==", true), limit(count));
+        const q = query(productsRef, where("isNewArrival", "==", true), where("isPublished", "==", true), limit(count));
         const snapshot = await getDocs(q);
         if (snapshot.empty) {
             return [];
@@ -286,7 +286,7 @@ export const deleteMultipleProducts = async (productsToDelete: Product[]): Promi
 
 export const updateProductStatus = async (
     productId: string, 
-    status: { isPublished?: boolean; isNew?: boolean; isTrending?: boolean }
+    status: { isPublished?: boolean; isNew?: boolean; isTrending?: boolean; isNewArrival?: boolean; }
 ): Promise<void> => {
     try {
         const productRef = doc(db, 'products', productId);
@@ -319,6 +319,10 @@ export const updateProductStatus = async (
 
         if (status.isPublished !== undefined) {
             updateData.isPublished = status.isPublished;
+        }
+
+        if (status.isNewArrival !== undefined) {
+            updateData.isNewArrival = status.isNewArrival;
         }
 
         await updateDoc(productRef, updateData);

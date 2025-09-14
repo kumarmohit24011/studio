@@ -56,7 +56,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
       category: product?.category || '',
       sku: product?.sku || '',
       tags: product?.tags || [],
-      isNewArrival: product?.tags?.includes('new') || false,
+      isNewArrival: product?.isNewArrival || false,
       isTrending: product?.tags?.includes('popular') || false,
       isPublished: product?.isPublished ?? true,
       images: [],
@@ -107,9 +107,6 @@ export function ProductForm({ product, categories }: ProductFormProps) {
     try {
       // Handle special tags from toggles
       let finalTags = values.tags?.filter(tag => tag !== 'new' && tag !== 'popular') || [];
-      if (values.isNewArrival) {
-        finalTags.push('new');
-      }
       if (values.isTrending) {
         finalTags.push('popular');
       }
