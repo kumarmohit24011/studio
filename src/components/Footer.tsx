@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Instagram, Send, Gem, Mail, Phone } from "lucide-react";
 import Link from "next/link";
+import { FooterNewsletterForm } from "./footer-newsletter-form";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -21,12 +22,7 @@ export function Footer() {
                     <h2 className="text-2xl md:text-3xl font-headline font-semibold">Subscribe to our Newsletter</h2>
                     <p className="text-muted-foreground mt-2">Get exclusive access to new collections, sales, and events.</p>
                 </div>
-                <form className="flex w-full max-w-md mx-auto lg:mx-0 items-center space-x-2">
-                    <Input type="email" placeholder="Enter your email address" className="bg-background flex-grow"/>
-                    <Button type="submit" size="icon" aria-label="Subscribe">
-                        <Send className="h-5 w-5"/>
-                    </Button>
-                </form>
+                <FooterNewsletterForm />
             </div>
         </div>
         
