@@ -3,7 +3,7 @@ import 'server-only';
 import { db } from '@/lib/firebase';
 import { Product } from '@/lib/types';
 import { collection, getDocs, query, where, limit, orderBy } from 'firebase/firestore';
-import { unstable_cache } from 'next/cache';
+import { revalidatePath, unstable_cache } from 'next/cache';
 
 const toPlainObject = (product: any): Product => {
     if (!product) return product;
@@ -17,19 +17,25 @@ const toPlainObject = (product: any): Product => {
     return plainProduct;
 };
 
+// This function now fetches directly from Firebase to avoid caching issues.
 export const getNewArrivals = async (count: number): Promise<Product[]> => {
     try {
         const productsRef = collection(db, 'products');
-        const q = query(productsRef, where("isPublished", "==", true), orderBy("createdAt", "desc"), limit(count));
+        // Query for products that are published and have the 'new' tag.
+        const q = query(
+            productsRef, 
+            where("isPublished", "==", true), 
+            where("tags", "array-contains", "new"),
+            orderBy("createdAt", "desc"), 
+            limit(count)
+        );
         const snapshot = await getDocs(q);
 
-        const allNewArrivals = snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
+        if (snapshot.empty) {
+            return [];
+        }
         
-        // Further filter for 'new' tag if needed, but sorting by createdAt is more reliable
-        const newTagged = allNewArrivals.filter(p => p.tags?.includes('new'));
-        
-        // If there are enough 'new' tagged products, return them. Otherwise, return the most recent.
-        return newTagged.length > 0 ? newTagged.slice(0, count) : allNewArrivals;
+        return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
 
     } catch (error) {
         console.error("Error fetching new arrivals: ", error);
@@ -37,7 +43,7 @@ export const getNewArrivals = async (count: number): Promise<Product[]> => {
     }
 };
 
-// Changed to a direct fetch to avoid caching issues.
+// This function now fetches directly from Firebase to avoid caching issues.
 export const getTrendingProducts = async (count: number): Promise<Product[]> => {
     try {
         const productsRef = collection(db, 'products');
@@ -52,5 +58,6 @@ export const getTrendingProducts = async (count: number): Promise<Product[]> => 
         return [];
     }
 };
+
 
 
