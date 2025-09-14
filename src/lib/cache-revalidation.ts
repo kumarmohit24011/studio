@@ -1,3 +1,4 @@
+
 import { revalidatePath, revalidateTag } from 'next/cache';
 
 /**
@@ -10,7 +11,7 @@ type RevalidationType = 'products' | 'categories' | 'orders' | 'site-content' | 
 
 const REVALIDATION_CONFIG: Record<RevalidationType, { tags: string[]; paths: string[] }> = {
   products: {
-    tags: ['products'],
+    tags: ['products', 'new-arrivals', 'trending-products'],
     paths: ['/', '/products', '/admin/products']
   },
   categories: {
