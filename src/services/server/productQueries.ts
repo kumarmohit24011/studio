@@ -1,9 +1,8 @@
 
-import 'server-only';
+'use server';
 import { db } from '@/lib/firebase';
 import { Product } from '@/lib/types';
 import { collection, getDocs, query, where, limit, orderBy } from 'firebase/firestore';
-import { revalidatePath, unstable_cache } from 'next/cache';
 
 const toPlainObject = (product: any): Product => {
     if (!product) return product;
@@ -58,7 +57,3 @@ export const getTrendingProducts = async (count: number): Promise<Product[]> => 
         return [];
     }
 };
-
-
-
-
