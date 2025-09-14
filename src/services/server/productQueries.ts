@@ -1,3 +1,4 @@
+
 import 'server-only';
 import { db } from '@/lib/firebase';
 import { Product } from '@/lib/types';
@@ -16,44 +17,40 @@ const toPlainObject = (product: any): Product => {
     return plainProduct;
 };
 
-const getNewArrivalsInternal = async (count: number): Promise<Product[]> => {
-    try {
-        const productsRef = collection(db, 'products');
-        const q = query(productsRef, where("tags", "array-contains", "new"), where("isPublished", "==", true), limit(count));
-        const snapshot = await getDocs(q);
-        if (snapshot.empty) {
-            return [];
-        }
-        return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
-    } catch (error) {
-        console.error("Error fetching new arrivals: ", error);
-        return [];
-    }
-};
-
-const getTrendingProductsInternal = async (count: number): Promise<Product[]> => {
-    try {
-        const productsRef = collection(db, 'products');
-        const q = query(productsRef, where("tags", "array-contains", "popular"), where("isPublished", "==", true), limit(count));
-        const snapshot = await getDocs(q);
-        if (snapshot.empty) {
-            return [];
-        }
-        return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
-    } catch (error) {
-        console.error("Error fetching trending products: ", error);
-        return [];
-    }
-};
-
 export const getNewArrivals = unstable_cache(
-    getNewArrivalsInternal,
+    async (count: number): Promise<Product[]> => {
+        try {
+            const productsRef = collection(db, 'products');
+            const q = query(productsRef, where("tags", "array-contains", "new"), where("isPublished", "==", true), limit(count));
+            const snapshot = await getDocs(q);
+            if (snapshot.empty) {
+                return [];
+            }
+            return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            console.error("Error fetching new arrivals: ", error);
+            return [];
+        }
+    },
     ['new-arrivals'],
     { tags: ['products'] }
 );
 
 export const getTrendingProducts = unstable_cache(
-    getTrendingProductsInternal,
+    async (count: number): Promise<Product[]> => {
+        try {
+            const productsRef = collection(db, 'products');
+            const q = query(productsRef, where("tags", "array-contains", "popular"), where("isPublished", "==", true), limit(count));
+            const snapshot = await getDocs(q);
+            if (snapshot.empty) {
+                return [];
+            }
+            return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            console.error("Error fetching trending products: ", error);
+            return [];
+        }
+    },
     ['trending-products'],
     { tags: ['products'] }
 );
