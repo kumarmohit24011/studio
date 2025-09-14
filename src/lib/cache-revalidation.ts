@@ -49,12 +49,15 @@ export async function revalidateDataCache(type: RevalidationType, specificPath?:
   }
 
   try {
-    // Revalidate by tags (preferred approach)
+    // Revalidate by tags
     for (const tag of config.tags) {
       revalidateTag(tag);
     }
 
-    // Revalidate by paths
+    // Force revalidation of the homepage to ensure data is fresh.
+    revalidatePath('/');
+
+    // Revalidate by other paths
     for (const path of config.paths) {
       revalidatePath(path);
     }
