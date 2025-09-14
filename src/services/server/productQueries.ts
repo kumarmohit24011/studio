@@ -17,29 +17,25 @@ const toPlainObject = (product: any): Product => {
     return plainProduct;
 };
 
-export const getNewArrivals = unstable_cache(
-    async (count: number): Promise<Product[]> => {
-        try {
-            const productsRef = collection(db, 'products');
-            const q = query(productsRef, where("isPublished", "==", true), orderBy("createdAt", "desc"), limit(count));
-            const snapshot = await getDocs(q);
+export const getNewArrivals = async (count: number): Promise<Product[]> => {
+    try {
+        const productsRef = collection(db, 'products');
+        const q = query(productsRef, where("isPublished", "==", true), orderBy("createdAt", "desc"), limit(count));
+        const snapshot = await getDocs(q);
 
-            const allNewArrivals = snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
-            
-            // Further filter for 'new' tag if needed, but sorting by createdAt is more reliable
-            const newTagged = allNewArrivals.filter(p => p.tags?.includes('new'));
-            
-            // If there are enough 'new' tagged products, return them. Otherwise, return the most recent.
-            return newTagged.length > 0 ? newTagged.slice(0, count) : allNewArrivals;
+        const allNewArrivals = snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
+        
+        // Further filter for 'new' tag if needed, but sorting by createdAt is more reliable
+        const newTagged = allNewArrivals.filter(p => p.tags?.includes('new'));
+        
+        // If there are enough 'new' tagged products, return them. Otherwise, return the most recent.
+        return newTagged.length > 0 ? newTagged.slice(0, count) : allNewArrivals;
 
-        } catch (error) {
-            console.error("Error fetching new arrivals: ", error);
-            return [];
-        }
-    },
-    ['new-arrivals'],
-    { tags: ['products', 'new-arrivals'] }
-);
+    } catch (error) {
+        console.error("Error fetching new arrivals: ", error);
+        return [];
+    }
+};
 
 // Changed to a direct fetch to avoid caching issues.
 export const getTrendingProducts = async (count: number): Promise<Product[]> => {
@@ -56,4 +52,5 @@ export const getTrendingProducts = async (count: number): Promise<Product[]> => 
         return [];
     }
 };
+
 
