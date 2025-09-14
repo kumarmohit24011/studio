@@ -11,14 +11,10 @@ import { ProductCard } from "./products/_components/product-card";
 export const revalidate = 60;
 
 export default async function Home() {
-  const newArrivalsData = await getNewArrivals(5);
-  const trendingProductsData = await getTrendingProducts(5);
+  const newArrivals = await getNewArrivals(5);
+  const trendingProducts = await getTrendingProducts(5);
   const siteContent = await getSiteContent();
   const { heroSection, promoBanner1, promoBanner2 } = siteContent;
-
-  const newArrivals: Product[] = newArrivalsData.filter(p => p.isPublished);
-  const trendingProducts: Product[] = trendingProductsData.filter(p => p.isPublished);
-
 
   return (
     <div className="flex flex-col min-h-screen">
