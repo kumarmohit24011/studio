@@ -1,64 +1,56 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function to check if a user is an admin.
-    // It safely checks for the existence of the user document and the isAdmin flag.
-    function isAdmin() {
-      return request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    // Default deny all reads and writes
+    match /{document=**} {
+      allow read, write: if false;
     }
     
-    // Helper function to check if the user is the owner of the document.
-    function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-    }
-
-    // PUBLIC READ-ONLY: Products are world-readable for the storefront and admin panel.
-    // WRITE access is restricted to admins only.
+    // Allow public read access for products and categories
     match /products/{productId} {
-      allow read: if true;
-      allow create, update, delete: if isAdmin();
-    }
-    
-    // PUBLIC READ-ONLY: Categories are world-readable.
-    // WRITE access is restricted to admins only.
-    match /categories/{categoryId} {
-      allow read: if true;
-      allow create, update, delete: if isAdmin();
+      allow get, list: if true;
+      allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
-    // PUBLIC READ-ONLY: Coupons are world-readable.
-    // WRITE access is restricted to admins only.
-    match /coupons/{couponId} {
-      allow read: if true;
-      allow create, update, delete: if isAdmin();
+    match /categories/{categoryId} {
+      allow get, list: if true;
+      allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
-    
-    // PUBLIC READ-ONLY: Site content is world-readable.
-    // WRITE access is restricted to admins only.
-    match /siteContent/{docId} {
-      allow read: if true;
-      allow create, update, delete: if isAdmin();
-    }
-    
-    // USERS: Users can be read by anyone (for admin lists).
-    // However, a user can only update their own document.
+
+    // Allow users to read and write to their own profile
     match /users/{userId} {
-      allow read: if true;
-      allow create: if isOwner(userId); // A user can create their own profile on signup.
-      allow update: if isOwner(userId); // A user can only update their own profile.
-      allow delete: if false; // Nobody can delete user profiles.
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Admins can read any user profile
+      allow get: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // Allow logged-in users to create orders, but only admins can read/update them
+    match /orders/{orderId} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+      // Users can read their own orders
+      allow list, get: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    // Allow anyone to read coupons, but only admins can manage them
+    match /coupons/{couponId} {
+      allow get, list: if true;
+      allow create, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
     
-    // ORDERS: Orders can be read by anyone (for the admin panel).
-    // Creation is allowed by the owner.
-    // Updates (like status changes) are restricted to admins.
-    match /orders/{orderId} {
-      allow read: if true;
-      allow create: if isOwner(request.resource.data.userId);
-      allow update: if isAdmin();
-      allow delete: if false; // Nobody can delete orders.
+    // Allow anyone to read site content, but only admins can manage it
+    match /siteContent/{contentId} {
+        allow get: if true;
+        allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // Allow anyone to subscribe to the newsletter
+    match /subscribers/{subscriberId} {
+        allow create: if true;
+        allow read, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
   }
 }

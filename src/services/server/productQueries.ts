@@ -18,6 +18,7 @@ const toPlainObject = (product: any): Product => {
 
 // This function now fetches directly from Firebase to avoid caching issues.
 export const getNewArrivals = async (count: number): Promise<Product[]> => {
+    console.log("Attempting to fetch new arrivals...");
     try {
         const productsRef = collection(db, 'products');
         // Query for products that are published and have the 'new' tag.
@@ -28,13 +29,18 @@ export const getNewArrivals = async (count: number): Promise<Product[]> => {
             orderBy("createdAt", "desc"), 
             limit(count)
         );
+        console.log("Executing Firestore query for new arrivals.");
         const snapshot = await getDocs(q);
+        console.log(`Query returned ${snapshot.docs.length} documents.`);
 
         if (snapshot.empty) {
+            console.log("No new arrival products found in the database.");
             return [];
         }
         
-        return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
+        const products = snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
+        console.log(`Successfully mapped ${products.length} products.`);
+        return products;
 
     } catch (error) {
         console.error("Error fetching new arrivals: ", error);
@@ -57,3 +63,4 @@ export const getTrendingProducts = async (count: number): Promise<Product[]> => 
         return [];
     }
 };
+
