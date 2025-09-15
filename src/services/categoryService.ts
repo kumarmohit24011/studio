@@ -2,7 +2,7 @@
 import { db } from '@/lib/firebase';
 import { Category } from '@/lib/types';
 import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc, writeBatch, query, where } from 'firebase/firestore';
-import { triggerCategoryCacheRevalidation } from '@/lib/cache-client';
+import { triggerCacheRevalidation } from '@/lib/cache-client';
 
 export const getAllCategories = async (): Promise<Category[]> => {
     try {
@@ -74,7 +74,7 @@ export const addCategory = async (category: Omit<Category, 'id' | 'createdAt'>):
             ...category,
             createdAt: serverTimestamp(),
         });
-        await triggerCategoryCacheRevalidation();
+        await triggerCacheRevalidation('categories');
     } catch (error) {
         console.error("Error adding category: ", error);
         throw error;
@@ -85,7 +85,7 @@ export const updateCategory = async (id: string, data: Partial<Omit<Category, 'i
     try {
         const categoryRef = doc(db, 'categories', id);
         await updateDoc(categoryRef, data);
-        await triggerCategoryCacheRevalidation();
+        await triggerCacheRevalidation('categories');
     } catch (error) {
         console.error("Error updating category: ", error);
         throw error;
@@ -100,7 +100,7 @@ export const updateCategoryOrder = async (categories: { id: string; order: numbe
             batch.update(categoryRef, { order: category.order });
         });
         await batch.commit();
-        await triggerCategoryCacheRevalidation();
+        await triggerCacheRevalidation('categories');
     } catch (error) {
         console.error("Error updating category order: ", error);
         throw error;
@@ -112,7 +112,7 @@ export const deleteCategory = async (id: string): Promise<void> => {
     try {
         const categoryRef = doc(db, 'categories', id);
         await deleteDoc(categoryRef);
-        await triggerCategoryCacheRevalidation();
+        await triggerCacheRevalidation('categories');
     } catch (error) {
         console.error("Error deleting category: ", error);
         throw error;

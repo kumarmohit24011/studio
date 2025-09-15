@@ -3,7 +3,7 @@ import { db, storage } from '@/lib/firebase';
 import { Product } from '@/lib/types';
 import { collection, getDocs, query, where, limit, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc, orderBy, getCountFromServer, writeBatch, documentId } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { triggerProductCacheRevalidation } from '@/lib/cache-client';
+import { triggerCacheRevalidation } from '@/lib/cache-client';
 
 const toPlainObject = (product: any): Product => {
     if (!product) return product;
@@ -167,7 +167,7 @@ export const addProduct = async (productData: Partial<Product> & { images?: File
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
         });
-        await triggerProductCacheRevalidation();
+        await triggerCacheRevalidation('products');
     } catch (error) {
         console.error("Error adding product:", error);
         throw error;
@@ -199,7 +199,7 @@ export const updateProduct = async (
         };
 
         await updateDoc(productRef, updatePayload);
-        await triggerProductCacheRevalidation(id);
+        await triggerCacheRevalidation('products', `/products/${id}`);
 
     } catch (error) {
         console.error("Error updating product:", error);
@@ -241,7 +241,7 @@ export const deleteProduct = async (id: string, imageUrlsToDelete: string[] = []
         });
         
         await Promise.all(deletePromises);
-        await triggerProductCacheRevalidation(id);
+        await triggerCacheRevalidation('products', `/products/${id}`);
 
     } catch (error) {
         console.error("Error deleting product and its images:", error);
@@ -276,7 +276,7 @@ export const deleteMultipleProducts = async (productsToDelete: Product[]): Promi
             }
         }
         
-        await triggerProductCacheRevalidation();
+        await triggerCacheRevalidation('products');
 
     } catch (error) {
         console.error("Error bulk deleting products:", error);
@@ -326,7 +326,7 @@ export const updateProductStatus = async (
         }
 
         await updateDoc(productRef, updateData);
-        await triggerProductCacheRevalidation(productId);
+        await triggerCacheRevalidation('products', `/products/${productId}`);
     } catch (error) {
         console.error("Error updating product status:", error);
         throw error;

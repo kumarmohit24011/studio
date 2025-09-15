@@ -1,15 +1,17 @@
 
-declare const process: any;
+'use client';
 
 /**
  * Client-side cache invalidation utility
  * Calls the secure server-side API to trigger cache revalidation
- * Uses Firebase authentication to verify admin access
  */
 
 type RevalidationType = 'products' | 'categories' | 'orders' | 'site-content' | 'promotions' | 'coupons';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+const getApiUrl = () => {
+    if (typeof window === 'undefined') return '';
+    return window.location.origin;
+}
 
 /**
  * Trigger cache revalidation from client-side by calling secure server endpoint
@@ -17,17 +19,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined
  */
 export async function triggerCacheRevalidation(type: RevalidationType, specificPath?: string) {
   try {
-    // Only trigger if we're in admin context (same-origin protection on server)
-    if (typeof window === 'undefined' || !window.location.pathname.includes('/admin')) {
-      console.warn('Cache revalidation skipped: not in admin context');
-      return;
-    }
-
-    const apiUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+    const apiUrl = getApiUrl();
     const fullUrl = `${apiUrl}/api/revalidate-data`;
-
-    console.log('[Cache Revalidation] Calling API at:', fullUrl);
-    console.log('[Cache Revalidation] Type:', type, 'SpecificPath:', specificPath);
     
     const response = await fetch(fullUrl, {
       method: 'POST',
@@ -43,8 +36,6 @@ export async function triggerCacheRevalidation(type: RevalidationType, specificP
     if (!response.ok) {
       const error = await response.text();
       console.error(`[Cache Revalidation] Failed for ${type}:`, error);
-      console.error('[Cache Revalidation] Response status:', response.status);
-      console.error('[Cache Revalidation] Response headers:', JSON.stringify([...response.headers]));
       return;
     }
 
