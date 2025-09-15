@@ -42,10 +42,11 @@ export async function POST(request: NextRequest) {
         ] 
       : [
           requestOrigin,
-          'https://studio--redbow-24723.asia-east1.hosted.app/'
+          'https://studio--redbow-24723.us-central1.hosted.app',
+          'https://studio--redbow-24723.asia-east1.hosted.app'
         ];
     console.log('[Cache Revalidation] allowedOrigins:', allowedOrigins);
-    if (!allowedOrigins.includes(refUrl.origin)) {
+    if (!allowedOrigins.some(origin => refUrl.origin.startsWith(origin.replace(/:\d+$/, '')))) {
       console.error(`[Cache Revalidation] referer origin mismatch. Expected one of [${allowedOrigins.join(', ')}], got ${refUrl.origin}`);
       return Response.json({ error: 'Invalid request: origin mismatch' }, { status: 403 });
     }

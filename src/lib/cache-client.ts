@@ -24,7 +24,7 @@ export async function triggerCacheRevalidation(type: RevalidationType, specificP
     }
 
     const apiUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
-    const fullUrl = `${apiUrl}/api/admin/cache`;
+    const fullUrl = `${apiUrl}/api/revalidate-data`;
 
     console.log('[Cache Revalidation] Calling API at:', fullUrl);
     console.log('[Cache Revalidation] Type:', type, 'SpecificPath:', specificPath);
