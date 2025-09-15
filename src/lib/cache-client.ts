@@ -1,3 +1,4 @@
+
 declare const process: any;
 
 /**
@@ -17,15 +18,18 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined
 export async function triggerCacheRevalidation(type: RevalidationType, specificPath?: string) {
   try {
     // Only trigger if we're in admin context (same-origin protection on server)
-    if (!window.location.pathname.includes('/admin')) {
+    if (typeof window === 'undefined' || !window.location.pathname.includes('/admin')) {
       console.warn('Cache revalidation skipped: not in admin context');
       return;
     }
 
-  console.log('[Cache Revalidation] API_URL:', API_URL);
-  console.log('[Cache Revalidation] Window location:', typeof window !== 'undefined' ? window.location.href : 'N/A');
-  console.log('[Cache Revalidation] Type:', type, 'SpecificPath:', specificPath);
-  const response = await fetch(`${API_URL}/api/admin/cache`, {
+    const apiUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+    const fullUrl = `${apiUrl}/api/admin/cache`;
+
+    console.log('[Cache Revalidation] Calling API at:', fullUrl);
+    console.log('[Cache Revalidation] Type:', type, 'SpecificPath:', specificPath);
+    
+    const response = await fetch(fullUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
