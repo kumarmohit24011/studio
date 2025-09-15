@@ -30,7 +30,7 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       allowedOrigins: process.env.NODE_ENV === 'development' 
-        ? ["*.replit.dev", "*.repl.co", "localhost", "127.0.0.1"]
+        ? ["*.replit.dev", "*.repl.co", "localhost", "127.0.0.1", "*.cloudworkstations.dev"]
         : [], // Restrict in production - add specific domains as needed
     },
   },
@@ -42,6 +42,7 @@ const nextConfig: NextConfig = {
       '*.kirk.replit.dev',
       '*.riker.replit.dev',
       '*-*.replit.dev',
+      '*.cloudworkstations.dev',
       'localhost:5000',
       '127.0.0.1:5000',
       'localhost',
