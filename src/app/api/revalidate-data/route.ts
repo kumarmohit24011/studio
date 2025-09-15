@@ -1,3 +1,4 @@
+
 import { NextRequest } from 'next/server';
 import { revalidateDataCache } from '@/lib/cache-revalidation';
 
@@ -6,12 +7,8 @@ type RevalidationType = 'products' | 'categories' | 'orders' | 'site-content' | 
 export async function POST(request: NextRequest) {
   try {
     // Same-origin protection: ensure request comes from admin interface
-  const referer = request.headers.get('referer');
-  const requestOrigin = new URL(request.url).origin;
-  console.log('[Cache Revalidation] Incoming request');
-  console.log('[Cache Revalidation] request.url:', request.url);
-  console.log('[Cache Revalidation] requestOrigin:', requestOrigin);
-  console.log('[Cache Revalidation] referer:', referer);
+    const referer = request.headers.get('referer');
+    const requestOrigin = new URL(request.url).origin;
     
     // Verify request originates from admin interface using Referer header
     if (!referer) {
@@ -22,31 +19,41 @@ export async function POST(request: NextRequest) {
     let refUrl;
     try {
       refUrl = new URL(referer);
-      console.log('[Cache Revalidation] refUrl.origin:', refUrl.origin);
-      console.log('[Cache Revalidation] refUrl.pathname:', refUrl.pathname);
     } catch (error) {
       console.error('Cache revalidation blocked: invalid referer URL:', referer);
       return Response.json({ error: 'Invalid request: invalid referer URL' }, { status: 403 });
     }
     
     // Ensure request comes from same origin and admin path
-    // Allow both localhost and 0.0.0.0 for development environment, plus Replit domains
     const isDevelopment = process.env.NODE_ENV === 'development';
-    const replitDomain = process.env.REPLIT_DEV_DOMAIN;
+    
     const allowedOrigins = isDevelopment 
       ? [
-          requestOrigin, 
           'http://localhost:5000', 
           'http://0.0.0.0:5000',
-          ...(replitDomain ? [`https://${replitDomain}`, `http://${replitDomain}`] : [])
+          'http://127.0.0.1:5000',
         ] 
       : [
-          requestOrigin,
           'https://studio--redbow-24723.us-central1.hosted.app',
           'https://studio--redbow-24723.asia-east1.hosted.app'
         ];
-    console.log('[Cache Revalidation] allowedOrigins:', allowedOrigins);
-    if (!allowedOrigins.some(origin => refUrl.origin.startsWith(origin.replace(/:\d+$/, '')))) {
+
+    // Add dynamic dev origins for environments like Replit or Cloud Workstations
+    if (isDevelopment) {
+        const replitDomain = process.env.REPLIT_DEV_DOMAIN;
+        if(replitDomain) allowedOrigins.push(`https://${replitDomain}`);
+        
+        // Allow any replit dev domain
+        if (refUrl.hostname.endsWith('.replit.dev') || refUrl.hostname.endsWith('.repl.co')) {
+             allowedOrigins.push(refUrl.origin);
+        }
+         // Allow any cloud workstation domain
+        if (refUrl.hostname.endsWith('.cloudworkstations.dev')) {
+            allowedOrigins.push(refUrl.origin);
+        }
+    }
+    
+    if (!allowedOrigins.some(origin => refUrl.origin.startsWith(origin))) {
       console.error(`[Cache Revalidation] referer origin mismatch. Expected one of [${allowedOrigins.join(', ')}], got ${refUrl.origin}`);
       return Response.json({ error: 'Invalid request: origin mismatch' }, { status: 403 });
     }
