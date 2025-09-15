@@ -1,6 +1,7 @@
+
 [
   {
-  "origin": ["*", "https://studio--redbow-24723.asia-east1.hosted.app/"],
+    "origin": ["*", "https://studio--redbow-24723.asia-east1.hosted.app/", "https://studio--redbow-24723.us-central1.hosted.app/"],
     "method": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     "responseHeader": [
       "Content-Type",
