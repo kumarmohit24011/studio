@@ -63,4 +63,3 @@ export const getTrendingProducts = async (count: number): Promise<Product[]> => 
         return [];
     }
 };
-
