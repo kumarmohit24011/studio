@@ -13,16 +13,6 @@ const nextConfig: NextConfig = {
             value: "camera=(), microphone=(), geolocation=(), payment=*, publickey-credentials-create=(), publickey-credentials-get=(), clipboard-write=(), web-share=(), otp-credentials=()",
           },
         ],
-      },
-      {
-        // Apply these headers to all API routes
-        source: "/api/:path*",
-        headers: [
-          { key: "Access-Control-Allow-Credentials", value: "true" },
-          { key: "Access-Control-Allow-Origin", value: process.env.NODE_ENV === 'development' ? "*" : "https://yourdomain.com" }, // Restrict origins in production
-          { key: "Access-Control-Allow-Methods", value: "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
-          { key: "Access-Control-Allow-Headers", value: "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization" },
-        ]
       }
     ];
   },
@@ -31,7 +21,7 @@ const nextConfig: NextConfig = {
     serverActions: {
       allowedOrigins: process.env.NODE_ENV === 'development' 
         ? ["*.replit.dev", "*.repl.co", "localhost", "127.0.0.1", "*.cloudworkstations.dev"]
-        : [], // Restrict in production - add specific domains as needed
+        : (process.env.ALLOWED_ORIGINS?.split(',') || ["redbow-24723.web.app", "redbow-24723.firebaseapp.com"]), // Environment-driven allowed origins
     },
   },
   // Add allowedDevOrigins to fix cross-origin warnings in development

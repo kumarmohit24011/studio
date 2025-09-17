@@ -4,14 +4,15 @@
 This is a Next.js 15 e-commerce application for jewelry sales, built with Firebase backend, Tailwind CSS, and Radix UI components. The project includes a complete admin panel and customer-facing storefront.
 
 ## Recent Changes
+- **2025-09-17**: COMPLETED deployment configuration with CI/CD pipeline and Firebase rules
+- **2025-09-17**: Added category image upload system with Firebase Storage integration
+- **2025-09-17**: Fixed Firebase Storage rules to allow authenticated category uploads
+- **2025-09-17**: Updated production CORS settings for Firebase Hosting domains
+- **2025-09-17**: Created comprehensive deployment scripts and GitHub Actions workflow
 - **2025-09-10**: FIXED critical admin panel ERR_BLOCKED_BY_CLIENT error by renaming ad-triggering paths
 - **2025-09-10**: RESOLVED Firebase PERMISSION_DENIED errors by removing server-side write-on-read
 - **2025-09-10**: Added automatic cache revalidation (60s home/products, 30s admin) for live site
 - **2025-09-10**: Created manual cache invalidation API at /api/cache for immediate updates
-- **2024-09-08**: Fixed Next.js 15 compatibility issues with async searchParams
-- **2024-09-08**: Resolved date validation errors in admin pages  
-- **2024-09-08**: Configured dev server for Replit environment
-- **2024-09-08**: Set up deployment configuration for production
 
 ## Project Architecture
 
@@ -41,10 +42,24 @@ This is a Next.js 15 e-commerce application for jewelry sales, built with Fireba
 - Hot reload enabled with Turbopack
 
 ### Deployment
-- Configured for autoscale deployment
-- Build command: `npm run build`  
-- Start command: `npm start`
-- Ready for Firebase hosting deployment
+- **Production Hosting**: Firebase Hosting with Next.js Framework backend
+- **Automated CI/CD**: GitHub Actions workflow for continuous deployment
+- **Manual Deployment**: `./deploy.sh` script with Firebase CLI
+- **Environment Setup**: Copy `.env.example` to `.env.local` and configure secrets
+- **Build Commands**: `npm run build` → `npm start`
+
+#### Deployment Options:
+1. **GitHub Actions** (Recommended):
+   - Push to main branch triggers automatic deployment
+   - Requires Firebase service account key in GitHub Secrets
+   
+2. **Manual Script**:
+   ```bash
+   ./deploy.sh  # Requires Firebase CLI login or FIREBASE_TOKEN
+   ```
+
+3. **Firebase Console**:
+   - Deploy storage rules manually via Firebase Console → Storage → Rules
 
 ## File Structure
 - `src/app/` - Next.js app router pages
