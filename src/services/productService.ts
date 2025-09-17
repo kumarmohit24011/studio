@@ -284,6 +284,56 @@ export const deleteMultipleProducts = async (productsToDelete: Product[]): Promi
     }
 };
 
+export const searchProducts = async (searchTerm: string): Promise<Product[]> => {
+    try {
+        if (!searchTerm.trim()) {
+            return [];
+        }
+
+        // Get all published products and filter on the client side
+        // Firestore doesn't support full-text search, so we'll do client-side filtering
+        const productsRef = collection(db, 'products');
+        const q = query(productsRef, where("isPublished", "==", true));
+        const snapshot = await getDocs(q);
+        
+        if (snapshot.empty) {
+            return [];
+        }
+
+        const products = snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
+        const searchTermLower = searchTerm.toLowerCase().trim();
+        
+        // Filter products that match the search term
+        const filteredProducts = products.filter(product => {
+            const nameMatch = product.name?.toLowerCase().includes(searchTermLower);
+            const descriptionMatch = product.description?.toLowerCase().includes(searchTermLower);
+            const categoryMatch = product.category?.toLowerCase().includes(searchTermLower);
+            const skuMatch = product.sku?.toLowerCase().includes(searchTermLower);
+            const tagsMatch = product.tags?.some(tag => tag.toLowerCase().includes(searchTermLower));
+            
+            return nameMatch || descriptionMatch || categoryMatch || skuMatch || tagsMatch;
+        });
+
+        // Sort results by relevance (name matches first, then description, etc.)
+        return filteredProducts.sort((a, b) => {
+            const aNameMatch = a.name?.toLowerCase().includes(searchTermLower) ? 1 : 0;
+            const bNameMatch = b.name?.toLowerCase().includes(searchTermLower) ? 1 : 0;
+            
+            if (aNameMatch !== bNameMatch) {
+                return bNameMatch - aNameMatch; // Name matches first
+            }
+            
+            // If both or neither match name, sort by creation date (newest first)
+            const aDate = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const bDate = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return bDate - aDate;
+        });
+    } catch (error) {
+        console.error("Error searching products:", error);
+        return [];
+    }
+};
+
 export const updateProductStatus = async (
     productId: string, 
     status: { isPublished?: boolean; isNew?: boolean; isTrending?: boolean; isNewArrival?: boolean; }
