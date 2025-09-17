@@ -108,6 +108,42 @@ export const updateCategoryOrder = async (categories: { id: string; order: numbe
 };
 
 
+export const searchCategories = async (searchTerm: string): Promise<Category[]> => {
+    try {
+        if (!searchTerm.trim()) {
+            return [];
+        }
+
+        // Get all categories and filter on the client side
+        const categories = await getAllCategories();
+        const searchTermLower = searchTerm.toLowerCase().trim();
+        
+        // Filter categories that match the search term
+        const filteredCategories = categories.filter(category => {
+            const nameMatch = category.name?.toLowerCase().includes(searchTermLower);
+            const descriptionMatch = category.description?.toLowerCase().includes(searchTermLower);
+            
+            return nameMatch || descriptionMatch;
+        });
+
+        // Sort results by relevance (name matches first, then by order)
+        return filteredCategories.sort((a, b) => {
+            const aNameMatch = a.name?.toLowerCase().includes(searchTermLower) ? 1 : 0;
+            const bNameMatch = b.name?.toLowerCase().includes(searchTermLower) ? 1 : 0;
+            
+            if (aNameMatch !== bNameMatch) {
+                return bNameMatch - aNameMatch; // Name matches first
+            }
+            
+            // If both or neither match name, sort by order
+            return (a.order ?? 0) - (b.order ?? 0);
+        });
+    } catch (error) {
+        console.error("Error searching categories:", error);
+        return [];
+    }
+};
+
 export const deleteCategory = async (id: string): Promise<void> => {
     try {
         const categoryRef = doc(db, 'categories', id);
