@@ -22,16 +22,7 @@ const nextConfig = {
         : (process.env.ALLOWED_ORIGINS?.split(',') || ["redbow-24723.web.app", "redbow-24723.firebaseapp.com"]), // Environment-driven allowed origins
     },
   },
-  // Add allowedDevOrigins to fix cross-origin warnings in development
-  ...(process.env.NODE_ENV === 'development' && {
-    allowedDevOrigins: [
-      "*.replit.dev", 
-      "*.repl.co",
-      "*.kirk.repl.co", 
-      "localhost",
-      "127.0.0.1"
-    ]
-  }),
+  // Note: allowedDevOrigins is deprecated and removed as it's no longer supported
   images: {
     remotePatterns: [
       {
