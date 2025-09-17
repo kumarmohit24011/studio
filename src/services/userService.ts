@@ -22,7 +22,9 @@ export const createUserProfile = async (uid: string, email: string, name: string
         return toPlainObject(docSnap.data());
     }
 
-    const isAdmin = email === 'admin@redbow.com';
+    // More flexible admin system - check for admin emails list or existing admin users
+    const adminEmails = process.env.ADMIN_EMAILS?.split(',') || ['admin@redbow.com'];
+    const isAdmin = adminEmails.some(adminEmail => adminEmail.trim().toLowerCase() === email.toLowerCase());
 
     const userProfile: UserProfile = {
         uid,
