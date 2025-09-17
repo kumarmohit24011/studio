@@ -1,5 +1,5 @@
 
-import { getAllProducts } from "@/services/productService";
+import { getAllProducts, searchProducts } from "@/services/productService";
 import { getAllCategories } from "@/services/categoryService";
 import type { Product, Category } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,16 +47,32 @@ export default async function ProductsPage({
   const resolvedSearchParams = await searchParams;
   const categoryParam = resolvedSearchParams?.category as string || 'all';
   const sortParam = resolvedSearchParams?.sort as string || 'newest';
+  const searchParam = resolvedSearchParams?.search as string || '';
 
   const categoriesData = await getAllCategories();
-  const productsData = await getAllProducts();
-
-  const products: Product[] = productsData.filter((p: Product) => p.isPublished);
+  
+  // If there's a search query, use search results; otherwise get all products
+  let productsData: Product[];
+  if (searchParam) {
+    productsData = await searchProducts(searchParam);
+  } else {
+    const allProducts = await getAllProducts();
+    productsData = allProducts.filter((p: Product) => p.isPublished);
+  }
 
   const categories: Category[] = categoriesData;
   const activeCategory = categories.find((c: Category) => c.name === categoryParam);
-  const pageTitle = activeCategory ? activeCategory.name : "All Products";
-  const pageDescription = activeCategory ? activeCategory.description : "Explore our exquisite range of handcrafted jewelry. Use the filters to find the perfect piece.";
+  
+  let pageTitle: string;
+  let pageDescription: string;
+  
+  if (searchParam) {
+    pageTitle = `Search Results for "${searchParam}"`;
+    pageDescription = `Found ${productsData.length} ${productsData.length === 1 ? 'product' : 'products'} matching your search.`;
+  } else {
+    pageTitle = activeCategory ? activeCategory.name : "All Products";
+    pageDescription = activeCategory ? activeCategory.description : "Explore our exquisite range of handcrafted jewelry. Use the filters to find the perfect piece.";
+  }
 
 
   return (
