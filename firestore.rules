@@ -77,7 +77,7 @@ service cloud.firestore {
       // Users can only cancel pending orders, no other updates
       allow update: if isSignedIn() && 
                       resource.data.userId == request.auth.uid &&
-                      resource.data.orderStatus == 'processing' &&
+                      resource.data.orderStatus == 'pending' &&
                       request.resource.data.orderStatus == 'cancelled' &&
                       request.resource.data.diff(resource.data).changedKeys().hasOnly(['orderStatus', 'updatedAt']);
       
