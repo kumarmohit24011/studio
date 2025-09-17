@@ -129,7 +129,7 @@ export function HeroForm({ heroData }: { heroData: PlainHeroData }) {
                      <FormLabel>Background Image</FormLabel>
                     {preview && (
                         <div className="relative w-full aspect-video rounded-md overflow-hidden border">
-                            <Image src={preview} alt="Hero image preview" fill className="object-cover" />
+                            <Image src={preview} alt="Hero image preview" fill sizes="100vw" className="object-cover" />
                         </div>
                     )}
                      <Input type="file" accept="image/*" onChange={onFileChange} />

@@ -17,7 +17,7 @@ import { useState } from 'react';
 import type { Product, Category } from '@/lib/types';
 import { addProduct, updateProduct } from '@/services/productService';
 import { Badge } from '@/components/ui/badge';
-import { X, UploadCloud, TrendingUp, Sparkles, Eye } from 'lucide-react';
+import { X, CloudUpload, TrendingUp, Sparkles, Eye } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
@@ -368,7 +368,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                                 <FormLabel>Upload Images</FormLabel>
                                 <FormControl>
                                     <div className="relative w-full border-2 border-dashed border-muted-foreground/50 rounded-lg p-4 text-center hover:bg-muted/50 transition-colors">
-                                        <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
+                                        <CloudUpload className="mx-auto h-12 w-12 text-muted-foreground" />
                                         <p className="mt-2 text-sm text-muted-foreground">Drag & drop files here, or click to browse</p>
                                         <Input 
                                             type="file" 
@@ -387,7 +387,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                         <div className="grid grid-cols-3 gap-2">
                             {previews.map((src, index) => (
                                 <div key={index} className="relative group aspect-square rounded-md overflow-hidden border">
-                                    <Image src={src} alt={`Preview ${index + 1}`} fill className="object-cover"/>
+                                    <Image src={src} alt={`Preview ${index + 1}`} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover"/>
                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                                         <Button
                                             type="button"
