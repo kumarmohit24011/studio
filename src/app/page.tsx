@@ -2,10 +2,12 @@
 import { Button } from "@/components/ui/button";
 import { getNewArrivals, getTrendingProducts } from "@/services/server/productQueries";
 import { getSiteContent } from "@/services/siteContentService";
+import { getAllCategories } from "@/services/categoryService";
 import type { Product, Category } from "@/lib/types";
 import Image from "next/image";
 import Link from "next/link";
 import { ProductCard } from "./products/_components/product-card";
+import { ShopByCategory } from "@/components/shop-by-category";
 
 // Revalidate this page every 60 seconds
 export const revalidate = 60;
@@ -14,6 +16,7 @@ export default async function Home() {
   const newArrivals = await getNewArrivals(5);
   const trendingProducts = await getTrendingProducts(5);
   const siteContent = await getSiteContent();
+  const categories = await getAllCategories();
   const { heroSection, promoBanner1, promoBanner2 } = siteContent;
 
   return (
@@ -39,6 +42,8 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      <ShopByCategory categories={categories} />
 
       <section id="new-arrivals" className="py-16 lg:py-24 bg-background">
         <div className="container mx-auto px-4">
