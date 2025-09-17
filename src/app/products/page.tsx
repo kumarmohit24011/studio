@@ -83,7 +83,7 @@ export default async function ProductsPage({
       </div>
       <Suspense fallback={<ProductPageSkeleton/>}>
          <ProductView 
-            initialProducts={products} 
+            initialProducts={productsData} 
             categories={categories}
             initialCategory={categoryParam}
             initialSort={sortParam}
