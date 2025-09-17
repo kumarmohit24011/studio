@@ -13,7 +13,7 @@ import {
   DialogClose
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { PlusCircle, MoreHorizontal, Trash2, Pencil, GripVertical } from 'lucide-react';
+import { Plus, MoreHorizontal, Trash2, Pencil, Grip, Upload, X } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -56,6 +56,7 @@ import type { Category } from '@/lib/types';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { addCategory, updateCategory, deleteCategory, updateCategoryOrder } from '@/services/categoryService';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Switch } from '@/components/ui/switch';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
@@ -64,8 +65,10 @@ const categorySchema = z.object({
   id: z.string().optional(),
   name: z.string().min(2, 'Category name must be at least 2 characters.'),
   description: z.string().min(10, 'Description must be at least 10 characters.'),
+  imageUrl: z.string().optional(),
   isFeatured: z.boolean().optional(),
   order: z.number().optional(),
+  image: z.instanceof(File).optional(),
 });
 
 export function CategoryActions({ categories: initialCategories }: { categories: Category[] }) {
@@ -74,6 +77,7 @@ export function CategoryActions({ categories: initialCategories }: { categories:
   const { toast } = useToast();
   const router = useRouter();
   const [categories, setCategories] = useState(initialCategories);
+  const [preview, setPreview] = useState<string>('');
 
   useEffect(() => {
     setCategories(initialCategories);
@@ -84,6 +88,7 @@ export function CategoryActions({ categories: initialCategories }: { categories:
     defaultValues: {
       name: '',
       description: '',
+      imageUrl: '',
       isFeatured: false,
     },
   });
@@ -95,10 +100,13 @@ export function CategoryActions({ categories: initialCategories }: { categories:
         id: category.id,
         name: category.name,
         description: category.description,
+        imageUrl: category.imageUrl || '',
         isFeatured: category.isFeatured || false,
       });
+      setPreview(category.imageUrl || '');
     } else {
-      form.reset({ name: '', description: '', isFeatured: false });
+      form.reset({ name: '', description: '', imageUrl: '', isFeatured: false });
+      setPreview('');
     }
     setDialogOpen(true);
   };
@@ -129,18 +137,35 @@ export function CategoryActions({ categories: initialCategories }: { categories:
     }
   };
 
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      form.setValue('image', file);
+      setPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleRemoveImage = () => {
+    form.setValue('image', undefined);
+    form.setValue('imageUrl', '');
+    setPreview('');
+  };
+
   const onSubmit = async (values: z.infer<typeof categorySchema>) => {
     try {
+      const { image, ...categoryData } = values;
+      
       if (editingCategory) {
-        await updateCategory(editingCategory.id, values);
+        await updateCategory(editingCategory.id, categoryData, image);
         toast({ title: 'Success', description: 'Category updated successfully.' });
       } else {
-        const newCategory = { ...values, order: categories.length };
-        await addCategory(newCategory);
+        const newCategory = { ...categoryData, order: categories.length };
+        await addCategory(newCategory, image);
         toast({ title: 'Success', description: 'Category added successfully.' });
       }
       setDialogOpen(false);
       setEditingCategory(null);
+      setPreview('');
       // Wait a bit for cache revalidation to complete, then refresh
       setTimeout(() => {
         router.refresh();
@@ -188,7 +213,7 @@ export function CategoryActions({ categories: initialCategories }: { categories:
         <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="h-8 gap-1" onClick={() => handleDialogOpen()}>
-              <PlusCircle className="h-3.5 w-3.5" />
+              <Plus className="h-3.5 w-3.5" />
               <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Add Category</span>
             </Button>
           </DialogTrigger>
@@ -222,6 +247,46 @@ export function CategoryActions({ categories: initialCategories }: { categories:
                       <FormLabel>Description</FormLabel>
                       <FormControl>
                         <Textarea placeholder="A short description of the category" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="image"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>Category Image</FormLabel>
+                      <FormControl>
+                        <div className="space-y-4">
+                          {preview && (
+                            <div className="relative w-32 h-32 rounded-md overflow-hidden border">
+                              <Image src={preview} alt="Category preview" fill sizes="128px" className="object-cover"/>
+                              <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity">
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="icon"
+                                  className="h-7 w-7"
+                                  onClick={handleRemoveImage}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                          <div className="relative w-full border-2 border-dashed border-muted-foreground/50 rounded-lg p-4 text-center hover:bg-muted/50 transition-colors">
+                            <Upload className="mx-auto h-12 w-12 text-muted-foreground" />
+                            <p className="mt-2 text-sm text-muted-foreground">Upload category image</p>
+                            <Input 
+                              type="file" 
+                              accept="image/*" 
+                              onChange={onFileChange} 
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            />
+                          </div>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -282,7 +347,7 @@ export function CategoryActions({ categories: initialCategories }: { categories:
                     {(provided) => (
                       <TableRow ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
                         <TableCell>
-                          <GripVertical className="h-5 w-5 text-muted-foreground" />
+                          <Grip className="h-5 w-5 text-muted-foreground" />
                         </TableCell>
                         <TableCell className="font-medium">{category.name}</TableCell>
                         <TableCell>{category.description}</TableCell>

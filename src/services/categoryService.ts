@@ -1,7 +1,8 @@
 
-import { db } from '@/lib/firebase';
+import { db, storage } from '@/lib/firebase';
 import { Category } from '@/lib/types';
 import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc, writeBatch, query, where } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { triggerCacheRevalidation } from '@/lib/cache-client';
 
 export const getAllCategories = async (): Promise<Category[]> => {
@@ -67,11 +68,24 @@ export const getCategoryById = async (id: string): Promise<Category | null> => {
 };
 
 
-export const addCategory = async (category: Omit<Category, 'id' | 'createdAt'>): Promise<void> => {
+const uploadCategoryImage = async (imageFile: File): Promise<string> => {
+    const storageRef = ref(storage, `categories/${imageFile.name}-${Date.now()}`);
+    const snapshot = await uploadBytes(storageRef, imageFile);
+    return await getDownloadURL(snapshot.ref);
+};
+
+export const addCategory = async (category: Omit<Category, 'id' | 'createdAt'>, imageFile?: File): Promise<void> => {
     try {
+        let imageUrl = category.imageUrl || '';
+        
+        if (imageFile) {
+            imageUrl = await uploadCategoryImage(imageFile);
+        }
+        
         const categoriesCol = collection(db, 'categories');
         await addDoc(categoriesCol, {
             ...category,
+            imageUrl,
             createdAt: serverTimestamp(),
         });
         await triggerCacheRevalidation('categories');
@@ -81,10 +95,17 @@ export const addCategory = async (category: Omit<Category, 'id' | 'createdAt'>):
     }
 };
 
-export const updateCategory = async (id: string, data: Partial<Omit<Category, 'id' | 'createdAt'>>): Promise<void> => {
+export const updateCategory = async (id: string, data: Partial<Omit<Category, 'id' | 'createdAt'>>, imageFile?: File): Promise<void> => {
     try {
+        let updateData = { ...data };
+        
+        if (imageFile) {
+            const imageUrl = await uploadCategoryImage(imageFile);
+            updateData = { ...updateData, imageUrl };
+        }
+        
         const categoryRef = doc(db, 'categories', id);
-        await updateDoc(categoryRef, data);
+        await updateDoc(categoryRef, updateData);
         await triggerCacheRevalidation('categories');
     } catch (error) {
         console.error("Error updating category: ", error);
