@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Skeleton } from "./ui/skeleton";
+import { SearchDialog } from "./ui/search-dialog";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
@@ -123,10 +124,14 @@ export function Header({ categories = [] }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="hidden md:inline-flex">
-            <Search className="h-5 w-5" />
-            <span className="sr-only">Search</span>
-          </Button>
+          <div className="hidden md:inline-flex">
+            <SearchDialog>
+              <Button variant="ghost" size="icon">
+                <Search className="h-5 w-5" />
+                <span className="sr-only">Search</span>
+              </Button>
+            </SearchDialog>
+          </div>
            <Button variant="ghost" size="icon" asChild className="hidden md:inline-flex">
               <Link href="/account?tab=wishlist" className="relative" prefetch={true}>
                 <Heart className="h-5 w-5" />
@@ -158,6 +163,14 @@ export function Header({ categories = [] }: HeaderProps) {
                      <Link href="/" className="text-2xl font-headline font-bold text-primary tracking-wider" onClick={() => setMobileMenuOpen(false)}>
                         REDBOW
                     </Link>
+                </div>
+                <div className="p-4">
+                  <SearchDialog>
+                    <Button variant="outline" className="w-full justify-start">
+                      <Search className="h-4 w-4 mr-2" />
+                      Search products & categories...
+                    </Button>
+                  </SearchDialog>
                 </div>
                 <nav className="flex flex-col gap-4 p-4 text-lg">
                     {React.Children.map(navLinks.props.children, child => 
