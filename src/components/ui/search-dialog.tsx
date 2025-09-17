@@ -89,10 +89,13 @@ export function SearchDialog({ children }: SearchDialogProps) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl" aria-describedby="search-description">
         <DialogHeader>
           <DialogTitle>Search Products & Categories</DialogTitle>
         </DialogHeader>
+        <div id="search-description" className="sr-only">
+          Search through our product catalog and categories to find what you're looking for
+        </div>
         <div className="space-y-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
