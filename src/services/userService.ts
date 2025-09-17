@@ -23,7 +23,7 @@ export const createUserProfile = async (uid: string, email: string, name: string
     }
 
     // More flexible admin system - check for admin emails list or existing admin users
-    const adminEmails = process.env.ADMIN_EMAILS?.split(',') || ['admin@redbow.com'];
+    const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',') || ['admin@redbow.com'];
     const isAdmin = adminEmails.some(adminEmail => adminEmail.trim().toLowerCase() === email.toLowerCase());
 
     const userProfile: UserProfile = {
@@ -85,7 +85,7 @@ export const getAllCustomers = async (): Promise<UserProfile[]> => {
         return snapshot.docs.map(doc => toPlainObject(doc.data()));
     } catch (error) {
         console.error("Error fetching all customers: ", error);
-        return [];
+        throw new Error(`Failed to fetch customers: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 }
 
@@ -96,7 +96,7 @@ export const getTotalCustomers = async (): Promise<number> => {
         return snapshot.data().count;
     } catch (error) {
         console.error("Error fetching user count: ", error);
-        return 0;
+        throw new Error(`Failed to fetch user count: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 };
 
@@ -113,7 +113,7 @@ export const getRecentCustomers = async (count: number): Promise<UserProfile[]> 
         return snapshot.docs.map(doc => toPlainObject(doc.data() as UserProfile));
     } catch (error) {
         console.error("Error fetching recent customers: ", error);
-        return [];
+        throw new Error(`Failed to fetch recent customers: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 }
 

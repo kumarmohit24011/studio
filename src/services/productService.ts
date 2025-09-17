@@ -28,7 +28,7 @@ export const getAllProducts = async (): Promise<Product[]> => {
         return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
     } catch (error) {
         console.error("Error fetching products: ", error);
-        return [];
+        throw new Error(`Failed to fetch products: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 };
 
@@ -63,7 +63,7 @@ export const getTotalProducts = async (): Promise<number> => {
         return snapshot.data().count;
     } catch (error) {
         console.error("Error fetching product count: ", error);
-        return 0;
+        throw new Error(`Failed to fetch product count: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 };
 
@@ -108,7 +108,7 @@ export const getRecentProducts = async (count: number): Promise<Product[]> => {
         return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() } as Product));
     } catch (error) {
         console.error("Error fetching recent products: ", error);
-        return [];
+        throw new Error(`Failed to fetch recent products: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 }
 

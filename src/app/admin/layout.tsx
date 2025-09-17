@@ -54,13 +54,16 @@ export default function AdminLayout({
 
   useEffect(() => {
     if (!authLoading) {
-      if (!user || !userProfile?.isAdmin) {
-        router.push('/login');
+      if (!user) {
+        router.push('/login?redirect=/admin');
+      } else if (userProfile && !userProfile.isAdmin) {
+        router.push('/?error=unauthorized');
       }
     }
   }, [user, userProfile, authLoading, router]);
 
-  if (authLoading || !userProfile) {
+  // Show loading while auth is loading
+  if (authLoading) {
     return (
       <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
         <div className="hidden border-r bg-muted/40 md:block">
@@ -94,9 +97,31 @@ export default function AdminLayout({
     );
   }
 
-  if (!userProfile.isAdmin) {
-    // This will be caught by the useEffect, but as a fallback
-    return null; 
+  // Handle the case where user is loaded but profile is still loading
+  if (!userProfile && user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle unauthorized users
+  if (userProfile && !userProfile.isAdmin) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Access Denied</h2>
+          <p className="text-muted-foreground mb-4">You don't have permission to access the admin panel.</p>
+          <Button onClick={() => router.push('/')} variant="outline">
+            Return to Home
+          </Button>
+        </div>
+      </div>
+    );
   }
   
   const isActive = (path: string) => pathname === path;

@@ -78,7 +78,7 @@ export const getAllOrders = async (): Promise<Order[]> => {
         return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
     } catch (error) {
         console.error("Error fetching all orders: ", error);
-        return [];
+        throw new Error(`Failed to fetch all orders: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 }
 

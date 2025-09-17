@@ -23,7 +23,7 @@ export const getAllCategories = async (): Promise<Category[]> => {
             .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     } catch (error) {
         console.error("Error fetching categories: ", error);
-        return [];
+        throw new Error(`Failed to fetch categories: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 };
 
