@@ -60,7 +60,7 @@ export const getOrdersByUserId = async (userId: string): Promise<Order[]> => {
 
     } catch (error) {
         console.error("Error fetching orders for user: ", error);
-        return [];
+        throw new Error(`Failed to fetch orders for user: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 }
 

@@ -23,15 +23,21 @@ export function OrderHistory({ userId, initialOrders }: OrderHistoryProps) {
     if (!initialOrders) {
         const fetchOrders = async () => {
           setLoading(true);
-          const userOrders = await getOrdersByUserId(userId);
-          // Sort orders by date client-side
-          const sortedOrders = userOrders.sort((a, b) => {
-            const timeA = typeof a.createdAt === 'string' ? new Date(a.createdAt).getTime() : a.createdAt?.seconds * 1000 || 0;
-            const timeB = typeof b.createdAt === 'string' ? new Date(b.createdAt).getTime() : b.createdAt?.seconds * 1000 || 0;
-            return timeB - timeA;
-          });
-          setOrders(sortedOrders);
-          setLoading(false);
+          try {
+            const userOrders = await getOrdersByUserId(userId);
+            // Sort orders by date client-side
+            const sortedOrders = userOrders.sort((a, b) => {
+              const timeA = typeof a.createdAt === 'string' ? new Date(a.createdAt).getTime() : a.createdAt?.seconds * 1000 || 0;
+              const timeB = typeof b.createdAt === 'string' ? new Date(b.createdAt).getTime() : b.createdAt?.seconds * 1000 || 0;
+              return timeB - timeA;
+            });
+            setOrders(sortedOrders);
+          } catch (error) {
+            console.error("Failed to load user orders:", error);
+            // Orders will remain empty array from initial state
+          } finally {
+            setLoading(false);
+          }
         };
         fetchOrders();
     }
