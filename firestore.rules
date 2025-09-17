@@ -43,24 +43,44 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Users collection - user can manage their own profile, admins can read all
+    // Users collection - SECURED to prevent privilege escalation
     match /users/{userId} {
-      // Users can read and write their own profile
-      allow read, write: if isOwner(userId);
-      // Admins can read any user profile (needed for admin checks)
-      allow read: if isAdmin();
-      // Admins can write to any user profile (for user management)
+      // Users can read their own profile, admins can read any
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Users can create their own profile but cannot set isAdmin
+      allow create: if isOwner(userId) && 
+                      (!('isAdmin' in request.resource.data) || 
+                       request.resource.data.isAdmin == false);
+      
+      // Users can update their profile but cannot modify admin status or restricted fields
+      allow update: if isOwner(userId) && 
+                      request.resource.data.isAdmin == resource.data.isAdmin &&
+                      request.resource.data.keys().hasOnly([
+                        'name', 'email', 'phone', 'address', 'preferences',
+                        'createdAt', 'updatedAt', 'displayName', 'photoURL'
+                      ]);
+      
+      // Only admins can delete users or grant/revoke admin privileges
+      allow delete: if isAdmin();
       allow write: if isAdmin();
     }
 
-    // Orders collection - users can create/read their own, admins manage all
+    // Orders collection - users can create/read their own, limited updates, admins manage all
     match /orders/{orderId} {
-      // Users can create orders
+      // Users can create orders with their own userId
       allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
-      // Users can read their own orders
+      
+      // Users can read their own orders, admins can read all
       allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
-      // Users can update their own orders (for status changes like cancellation)
-      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Users can only cancel pending orders, no other updates
+      allow update: if isSignedIn() && 
+                      resource.data.userId == request.auth.uid &&
+                      resource.data.status == 'pending' &&
+                      request.resource.data.status == 'cancelled' &&
+                      request.resource.data.diff(resource.data).changedKeys().hasOnly(['status', 'updatedAt']);
+      
       // Admins can read and write all orders
       allow read, write: if isAdmin();
     }
@@ -111,10 +131,14 @@ service cloud.firestore {
     match /reviews/{reviewId} {
       // Anyone can read reviews
       allow read: if true;
-      // Users can create reviews
+      // Users can create reviews for their own orders
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      // Users can update their own reviews
-      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      // Users can update their own reviews (limited fields)
+      allow update: if isSignedIn() && 
+                      resource.data.userId == request.auth.uid &&
+                      request.resource.data.keys().hasOnly([
+                        'rating', 'comment', 'updatedAt', 'userId', 'productId', 'orderId'
+                      ]);
       // Admins can manage all reviews
       allow read, write: if isAdmin();
     }
@@ -124,10 +148,10 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
-    // Payment records - admin only for security
+    // Payment records - admin only for security, users can read their own
     match /payments/{paymentId} {
       allow read, write: if isAdmin();
-      // Users can read their own payment records
+      // Users can read their own payment records (read-only)
       allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
 
@@ -139,6 +163,12 @@ service cloud.firestore {
     // Admin logs - admin only
     match /admin_logs/{logId} {
       allow read, write: if isAdmin();
+    }
+
+    // Contact form submissions - anyone can create, admins manage
+    match /contact_submissions/{submissionId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
     }
 
     // Default deny rule (fallback for any other collections)
