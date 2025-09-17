@@ -34,6 +34,16 @@ const nextConfig: NextConfig = {
         : [], // Restrict in production - add specific domains as needed
     },
   },
+  // Add allowedDevOrigins to fix cross-origin warnings in development
+  ...(process.env.NODE_ENV === 'development' && {
+    allowedDevOrigins: [
+      "*.replit.dev", 
+      "*.repl.co",
+      "*.kirk.repl.co", 
+      "localhost",
+      "127.0.0.1"
+    ]
+  }),
   images: {
     remotePatterns: [
       {
