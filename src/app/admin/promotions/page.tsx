@@ -2,6 +2,9 @@
 import { getSiteContent, type PlainSiteContent, SiteContent } from "@/services/siteContentService";
 import { PromoBannerForm } from "./_components/promo-banner-form";
 
+// Disable static generation to avoid prerendering Firebase data during build
+export const dynamic = 'force-dynamic';
+
 // Helper function to convert Timestamp to string
 const toPlainData = (data: any) => {
     if (data?.updatedAt?.seconds) {

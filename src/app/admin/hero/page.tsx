@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getSiteContent, type SiteContent } from "@/services/siteContentService";
 import { HeroForm } from "./_components/hero-form";
 
+// Disable static generation to avoid prerendering Firebase data during build
+export const dynamic = 'force-dynamic';
 
 export default async function AdminHeroPage() {
   const siteContent: SiteContent = await getSiteContent();

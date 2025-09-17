@@ -17,7 +17,7 @@ import { useState } from 'react';
 import type { Product, Category } from '@/lib/types';
 import { addProduct, updateProduct } from '@/services/productService';
 import { Badge } from '@/components/ui/badge';
-import { X, CloudUpload, TrendingUp, Sparkles, Eye } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
@@ -304,7 +304,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                         render={({ field }) => (
                             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                             <div className="space-y-0.5">
-                                <FormLabel className="flex items-center gap-2"><Eye className="h-4 w-4 text-green-500" /> Published</FormLabel>
+                                <FormLabel className="flex items-center gap-2"><span className="text-green-500">👁️</span> Published</FormLabel>
                                 <FormDescription>Make this product visible to customers.</FormDescription>
                             </div>
                             <FormControl>
@@ -322,7 +322,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                         render={({ field }) => (
                             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                             <div className="space-y-0.5">
-                                <FormLabel className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-yellow-500" /> New Arrival</FormLabel>
+                                <FormLabel className="flex items-center gap-2"><span className="text-yellow-500">✨</span> New Arrival</FormLabel>
                                 <FormDescription>Show in the "New Arrivals" section.</FormDescription>
                             </div>
                             <FormControl>
@@ -340,7 +340,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                         render={({ field }) => (
                             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                             <div className="space-y-0.5">
-                                <FormLabel className="flex items-center gap-2"><TrendingUp className="h-4 w-4 text-blue-500" /> Trending</FormLabel>
+                                <FormLabel className="flex items-center gap-2"><span className="text-blue-500">📈</span> Trending</FormLabel>
                                  <FormDescription>Show in the "Trending Products" section.</FormDescription>
                             </div>
                             <FormControl>
@@ -368,7 +368,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                                 <FormLabel>Upload Images</FormLabel>
                                 <FormControl>
                                     <div className="relative w-full border-2 border-dashed border-muted-foreground/50 rounded-lg p-4 text-center hover:bg-muted/50 transition-colors">
-                                        <CloudUpload className="mx-auto h-12 w-12 text-muted-foreground" />
+                                        <div className="mx-auto text-4xl text-muted-foreground">☁️⬆️</div>
                                         <p className="mt-2 text-sm text-muted-foreground">Drag & drop files here, or click to browse</p>
                                         <Input 
                                             type="file" 

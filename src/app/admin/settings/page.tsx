@@ -3,6 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getSiteContent, type SiteContent, type PlainShippingSettingsData } from "@/services/siteContentService";
 import { ShippingSettingsForm } from "./_components/shipping-settings-form";
 
+// Disable static generation to avoid prerendering Firebase data during build
+export const dynamic = 'force-dynamic';
+
 export default async function AdminSettingsPage() {
   const siteContent: SiteContent = await getSiteContent();
 

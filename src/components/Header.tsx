@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { Button } from "./ui/button";
-import { Heart, Search, ShoppingCart, User, Menu, X, LogOut, LayoutDashboard } from "lucide-react";
+import { X } from "lucide-react"; // Only X is available in this version
 import { useAuth } from "@/hooks/use-auth";
 import {
   DropdownMenu,
@@ -63,21 +63,21 @@ export function Header({ categories = [] }: HeaderProps) {
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link href="/account">
-                <User className="mr-2 h-4 w-4" />
+                <span className="mr-2 text-lg">👤</span>
                 <span>Profile</span>
               </Link>
             </DropdownMenuItem>
              {userProfile?.isAdmin && (
               <DropdownMenuItem asChild>
                 <Link href="/admin">
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  <span className="mr-2 text-lg">📊</span>
                   <span>Admin</span>
                 </Link>
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={signOutUser}>
-              <LogOut className="mr-2 h-4 w-4" />
+              <span className="mr-2 text-lg">🚪</span>
               <span>Log out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -127,21 +127,21 @@ export function Header({ categories = [] }: HeaderProps) {
           <div className="hidden md:inline-flex">
             <SearchDialog>
               <Button variant="ghost" size="icon">
-                <Search className="h-5 w-5" />
+                <span className="text-xl">🔍</span>
                 <span className="sr-only">Search</span>
               </Button>
             </SearchDialog>
           </div>
            <Button variant="ghost" size="icon" asChild className="hidden md:inline-flex">
               <Link href="/account?tab=wishlist" className="relative" prefetch={true}>
-                <Heart className="h-5 w-5" />
+                <span className="text-xl">❤️</span>
                 {isClient && wishlistItemCount > 0 && <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">{wishlistItemCount}</span>}
                 <span className="sr-only">Wishlist</span>
               </Link>
             </Button>
           <Button variant="ghost" size="icon" asChild>
             <Link href="/cart" className="relative" prefetch={true}>
-              <ShoppingCart className="h-5 w-5" />
+              <span className="text-xl">🛒</span>
               {isClient && cartItemCount > 0 && <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">{cartItemCount}</span>}
               <span className="sr-only">Cart</span>
             </Link>
@@ -154,7 +154,7 @@ export function Header({ categories = [] }: HeaderProps) {
           <Sheet open={isMobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-6 w-6" />
+                <span className="text-2xl">☰</span>
                 <span className="sr-only">Open menu</span>
               </Button>
             </SheetTrigger>
@@ -167,7 +167,7 @@ export function Header({ categories = [] }: HeaderProps) {
                 <div className="p-4">
                   <SearchDialog>
                     <Button variant="outline" className="w-full justify-start">
-                      <Search className="h-4 w-4 mr-2" />
+                      <span className="mr-2">🔍</span>
                       Search products & categories...
                     </Button>
                   </SearchDialog>

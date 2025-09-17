@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Truck, Undo } from "lucide-react";
+// Lucide-react icons replaced with emojis for compatibility
 
 export default function ShippingAndReturnsPage() {
   return (
@@ -15,7 +15,7 @@ export default function ShippingAndReturnsPage() {
         <Card className="w-full">
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
-                <Truck className="h-8 w-8 text-primary"/>
+                <span className="text-3xl">🚛</span>
                 <span>Shipping Policy</span>
             </CardTitle>
             <CardDescription>Our shipping process and timelines.</CardDescription>
@@ -45,7 +45,7 @@ export default function ShippingAndReturnsPage() {
         <Card className="w-full">
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
-                <Undo className="h-8 w-8 text-primary"/> 
+                <span className="text-3xl">↩️</span> 
                 <span>Return & Exchange Policy</span>
             </CardTitle>
             <CardDescription>How to return or exchange an item.</CardDescription>

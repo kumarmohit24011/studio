@@ -4,6 +4,9 @@ import { getAllCoupons } from "@/services/couponService";
 import { CouponActions } from "./_components/actions";
 import type { Coupon } from "@/lib/types";
 
+// Disable static generation to avoid prerendering Firebase data during build
+export const dynamic = 'force-dynamic';
+
 export default async function AdminCouponsPage() {
   const coupons: Coupon[] = await getAllCoupons();
 

@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mail, Phone, Instagram, MessageCircle } from "lucide-react";
+// Lucide-react icons replaced with emojis for compatibility
 import Link from "next/link";
 
 const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -40,7 +40,7 @@ export default function ContactPage() {
                 </CardHeader>
                 <CardContent className="space-y-6 text-muted-foreground">
                      <a href="mailto:support@redbow.com" className="flex items-start gap-4 hover:text-primary transition-colors">
-                        <Mail className="h-6 w-6 mt-1 flex-shrink-0" /> 
+                        <span className="text-2xl mt-1 flex-shrink-0">📧</span> 
                         <div>
                             <p className="font-semibold text-foreground">Email</p>
                             <p>support@redbow.com</p>
@@ -48,7 +48,7 @@ export default function ContactPage() {
                         </div>
                     </a>
                      <a href="tel:+919876543210" className="flex items-start gap-4 hover:text-primary transition-colors">
-                        <Phone className="h-6 w-6 mt-1 flex-shrink-0" />
+                        <span className="text-2xl mt-1 flex-shrink-0">📞</span>
                          <div>
                             <p className="font-semibold text-foreground">Phone</p>
                             <p>+91 987 654 3210</p>
@@ -75,7 +75,7 @@ export default function ContactPage() {
                     </Button>
                      <Button asChild className="w-full" size="lg" variant="secondary">
                         <Link href="https://www.instagram.com/redbow.jewels" target="_blank" rel="noopener noreferrer">
-                           <Instagram className="mr-2 h-5 w-5" />
+                           <span className="mr-2 text-lg">📷</span>
                            Message on Instagram
                         </Link>
                     </Button>

@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/alert-dialog"
 
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Pencil, Trash2, TrendingUp, Sparkles, Eye, EyeOff } from 'lucide-react';
+import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import type { Product } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
@@ -157,7 +157,7 @@ export function ProductTable({ products, selectedProducts, setSelectedProducts }
                                         }
                                     }} 
                                 />
-                                <Label htmlFor={`published-${product.id}`} className="text-xs flex items-center gap-1">{product.isPublished ? <Eye className="h-3 w-3"/> : <EyeOff className="h-3 w-3"/>} Published</Label>
+                                <Label htmlFor={`published-${product.id}`} className="text-xs flex items-center gap-1">{product.isPublished ? <span>👁️</span> : <span>🙈</span>} Published</Label>
                             </div>
                             <div className="flex items-center space-x-2">
                                 <Switch 
@@ -171,7 +171,7 @@ export function ProductTable({ products, selectedProducts, setSelectedProducts }
                                         }
                                     }}
                                 />
-                                <Label htmlFor={`new-${product.id}`} className="text-xs flex items-center gap-1"><Sparkles className="h-3 w-3"/> New</Label>
+                                <Label htmlFor={`new-${product.id}`} className="text-xs flex items-center gap-1"><span>✨</span> New</Label>
                             </div>
                            <div className="flex items-center space-x-2">
                                 <Switch 
@@ -185,7 +185,7 @@ export function ProductTable({ products, selectedProducts, setSelectedProducts }
                                         }
                                     }}
                                 />
-                                <Label htmlFor={`trending-${product.id}`} className="text-xs flex items-center gap-1"><TrendingUp className="h-3 w-3"/> Trending</Label>
+                                <Label htmlFor={`trending-${product.id}`} className="text-xs flex items-center gap-1"><span>📈</span> Trending</Label>
                             </div>
                         </div>
                     </TableCell>

@@ -14,7 +14,7 @@ import { shippingSchema } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Coupon } from "@/lib/types";
-import { CreditCard, Mail } from "lucide-react";
+// Lucide-react icons removed due to compatibility issues
 import { Separator } from "@/components/ui/separator";
 import { getSiteContent, type SiteContent } from "@/services/siteContentService";
 

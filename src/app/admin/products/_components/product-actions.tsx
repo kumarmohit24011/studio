@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { PlusCircle, Search, Trash2, ShieldX } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { deleteMultipleProducts } from '@/services/productService';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -89,7 +89,7 @@ export function ProductActions({ products, categories }: ProductActionsProps) {
         <div>
             <div className="flex flex-col md:flex-row items-center gap-4 mb-6">
                 <div className="relative w-full md:flex-grow">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">🔍</span>
                     <Input 
                         placeholder="Search by name or SKU..."
                         value={searchQuery}
@@ -145,7 +145,7 @@ export function ProductActions({ products, categories }: ProductActionsProps) {
                     )}
                     <Button size="sm" className="h-10 gap-1 w-full" asChild>
                         <Link href="/admin/products/new">
-                            <PlusCircle className="h-4 w-4" />
+                            <Plus className="h-4 w-4" />
                             <span className="whitespace-nowrap">
                                 Add Product
                             </span>
