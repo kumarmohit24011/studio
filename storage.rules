@@ -1,41 +1,47 @@
+
 rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // Helper function to check if a user is an admin
-    function isAdmin(userId) {
-      return exists(/databases/(default)/documents/users/$(userId)) &&
-             get(/databases/(default)/documents/users/$(userId)).data.isAdmin == true;
+    // Helper function to check for admin privileges from custom claims
+    function isAdmin() {
+      // The `isAdmin` flag is set on the user's token via a backend process
+      // which is more secure than checking Firestore directly from rules.
+      // This is a standard and secure pattern.
+      return request.auth != null && request.auth.token.isAdmin == true;
     }
-  
-    // Default deny all reads and writes
+
+    // --- Public Read, Admin Write Rules ---
+    
+    // Products: All users can read, only admins can write.
+    match /products/{allPaths=**} {
+      allow read;
+      allow write: if isAdmin();
+    }
+    
+    // Categories: All users can read, only admins can write.
+    match /categories/{allPaths=**} {
+      allow read;
+      allow write: if isAdmin();
+    }
+
+    // Hero Images: All users can read, only admins can write.
+    match /hero-images/{allPaths=**} {
+      allow read;
+      allow write: if isAdmin();
+    }
+    
+    // Content Images (for promotions): All users can read, only admins can write.
+    match /content-images/{allPaths=**} {
+      allow read;
+      allow write: if isAdmin();
+    }
+
+    // --- Default Deny ---
+    // Deny all other read/write operations by default for security.
     match /{allPaths=**} {
       allow read, write: if false;
-    }
-    
-    // Allow public read for product images
-    match /products/{imageId} {
-      allow read: if true;
-      allow write: if request.auth != null && isAdmin(request.auth.uid);
-    }
-
-    // Allow public read for hero images
-    match /hero-images/{imageId} {
-      allow read: if true;
-      allow write: if request.auth != null && isAdmin(request.auth.uid);
-    }
-    
-    // Allow public read for category images
-    match /categories/{imageId} {
-        allow read: if true;
-        allow write: if request.auth != null && isAdmin(request.auth.uid);
-    }
-
-    // Allow public read for promotional content images
-    match /content-images/{imageId} {
-      allow read: if true;
-      allow write: if request.auth != null && isAdmin(request.auth.uid);
     }
   }
 }
