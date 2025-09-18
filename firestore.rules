@@ -1,74 +1,77 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // --- Helper functions ---
-    function isAuth() {
-      return request.auth != null;
+  
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
     }
 
-    function isOwner(userId) {
-      return isAuth() && request.auth.uid == userId;
-    }
-
-    function isAdmin() {
-      return isAuth() && (
-        (request.auth.token.admin == true)
-        ||
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true)
-      );
-    }
-
-    // --- Products: public read, admin writes ---
-    match /products/{productId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // --- Categories: public read, admin writes ---
-    match /categories/{categoryId} {
-      allow read: if true;
-      allow write: if isAdmin();
+    // Rules for users
+    match /users/{userId} {
+      // A user can only read and write to their own profile
+      allow read, write: if request.auth.uid == userId;
+      // Allow user creation
+      allow create: if request.auth.uid != null;
     }
     
-    // Allow admins to list users, but not customers to list all users
-    match /users {
-      allow list: if isAdmin();
+    // Rules for products
+    match /products/{productId} {
+      // Anyone can read published products
+      allow read: if resource.data.isPublished == true;
+      // Admins can create, update, delete any product
+      allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
-    // --- Users: creation by auth user only for their own doc; admin read/delete; prevent isAdmin change by regular user ---
-    match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow create: if isAuth() && request.auth.uid == userId;
-      allow update: if isOwner(userId) && !('isAdmin' in request.resource.data);
-      allow delete: if isAdmin();
+    // Rules for categories
+    match /categories/{categoryId} {
+      // Anyone can read categories
+      allow read: if true;
+      // Admins can create, update, delete categories
+      allow create, update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
+                         && request.resource.data.name is string
+                         && request.resource.data.description is string
+                         && (request.resource.data.imageUrl is string || request.resource.data.imageUrl == null)
+                         && (request.resource.data.isFeatured is bool || request.resource.data.isFeatured == null)
+                         && (request.resource.data.order is number || request.resource.data.order == null);
+                         
+      allow delete: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
-    // --- Orders ---
+    // Rules for orders
     match /orders/{orderId} {
-      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
-      allow read: if (isAuth() && resource.data.userId == request.auth.uid) || isAdmin();
-      allow update: if isAdmin();
-      allow delete: if false; // Deletion of orders is disallowed for audit
+        // A user can read their own orders
+        allow read: if request.auth.uid == resource.data.userId;
+        // Admins can read all orders
+        allow read: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+        // Users can create their own orders
+        allow create: if request.auth.uid == request.resource.data.userId;
+        // Admins can update order status
+        allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
-    // --- Coupons ---
+    // Rules for coupons
     match /coupons/{couponId} {
-      allow read: if isAuth();
-      allow write: if isAdmin();
+        // Allow anyone to read coupons (needed for checkout)
+        allow read: if true;
+        // Only admins can create, update, or delete coupons
+        allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
-    // --- siteContent (heroSection, global, etc.) ---
+    // Rules for site content
     match /siteContent/{contentId} {
-      allow read: if true; // public
-      allow write: if isAdmin();
+        // Anyone can read site content
+        allow read: if true;
+        // Only admins can write to site content
+        allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
-
-    // --- Subscribers: public write for creating their own subscription ---
-    match /subscribers/{email} {
-      // Anyone can subscribe themselves. They cannot read other subscribers.
-      allow create: if true;
-      allow read, update, delete, list: if false;
+    
+    // Rules for subscribers
+    match /subscribers/{subscriberId} {
+      // Allow anyone to check if an email exists and create a subscription.
+      // This is secure because they can't list, update, or delete other data.
+      allow get, create: if true;
     }
   }
 }
