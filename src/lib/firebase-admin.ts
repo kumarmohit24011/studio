@@ -1,35 +1,29 @@
 
-import * as admin from 'firebase-admin';
+import admin from 'firebase-admin';
 
-let adminApp: admin.app.App | null = null;
-
-export async function initAdmin() {
-  if (adminApp) {
-    return adminApp;
-  }
-
-  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
-    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
-    : null;
-
-  if (!serviceAccount) {
-    throw new Error('Firebase service account credentials are not set in the environment variables.');
-  }
-  
+// Check if the app is already initialized to prevent errors
+if (!admin.apps.length) {
   try {
-    adminApp = admin.initializeApp({
+    const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
+      ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+      : null;
+
+    if (!serviceAccount) {
+      throw new Error('Firebase service account credentials are not set in the environment variables.');
+    }
+
+    admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
       storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    }, 'adminApp' + Date.now()); // Unique name to avoid re-initialization errors
-  } catch (error: any) {
-    if (error.code === 'app/duplicate-app') {
-       console.warn('Firebase admin app already initialized.');
-       adminApp = admin.app('adminApp');
-    } else {
-        console.error('Firebase admin initialization error:', error);
-        throw error;
-    }
+    });
+  } catch (error) {
+    console.error('Firebase admin initialization error:', error);
   }
-
-  return adminApp;
 }
+
+const adminApp = admin.app();
+const adminAuth = admin.auth();
+const adminDb = admin.firestore();
+const adminStorage = admin.storage();
+
+export { adminApp, adminAuth, adminDb, adminStorage };

@@ -2,9 +2,7 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { getAuth } from 'firebase-admin/auth';
-import { getStorage } from 'firebase-admin/storage';
-import { initAdmin } from '@/lib/firebase-admin';
+import { adminApp, adminAuth, adminStorage } from '@/lib/firebase-admin';
 import { getUserProfile } from '@/services/userService';
 
 /**
@@ -13,16 +11,13 @@ import { getUserProfile } from '@/services/userService';
  */
 export async function uploadPromoImage(formData: FormData): Promise<{ imageUrl?: string; error?: string }> {
   try {
-    const adminApp = await initAdmin();
-    const auth = getAuth(adminApp);
-
     // 1. Authenticate the user from the session cookie
     const sessionCookie = cookies().get('__session')?.value;
     if (!sessionCookie) {
       return { error: 'Authentication required. Please sign in.' };
     }
     
-    const decodedToken = await auth.verifySessionCookie(sessionCookie, true);
+    const decodedToken = await adminAuth.verifySessionCookie(sessionCookie, true);
     const uid = decodedToken.uid;
     
     // 2. Verify if the user is an admin
@@ -42,7 +37,7 @@ export async function uploadPromoImage(formData: FormData): Promise<{ imageUrl?:
         return { error: 'Banner ID is missing.'};
     }
 
-    const bucket = getStorage(adminApp).bucket();
+    const bucket = adminStorage.bucket();
     const filePath = `content-images/${bannerId}-${Date.now()}-${imageFile.name}`;
     const file = bucket.file(filePath);
 
