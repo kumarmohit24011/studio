@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -91,7 +92,7 @@ export function SearchDialog({ children }: SearchDialogProps) {
       </DialogTrigger>
       <DialogContent className="max-w-2xl" aria-describedby="search-description">
         <DialogHeader>
-          <DialogTitle>Search Products & Categories</DialogTitle>
+          <DialogTitle>Search Products</DialogTitle>
         </DialogHeader>
         <div id="search-description" className="sr-only">
           Search through our product catalog and categories to find what you're looking for
