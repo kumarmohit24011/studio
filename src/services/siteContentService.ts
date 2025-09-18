@@ -1,4 +1,5 @@
 
+
 import { db, storage } from '@/lib/firebase';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -150,30 +151,6 @@ export const updateHeroSection = async (data: Omit<HeroSectionData, 'imageUrl' |
         throw error;
     }
 };
-
-export const updatePromoBanner = async (bannerId: 'promoBanner1' | 'promoBanner2', data: Omit<PromoBannerData, 'imageUrl' | 'updatedAt'>, imageFile?: File): Promise<void> => {
-    try {
-        const updateData: any = {
-            ...data,
-            updatedAt: serverTimestamp()
-        };
-
-        if (imageFile) {
-            const storageRef = ref(storage, `content-images/${bannerId}-${imageFile.name}-${Date.now()}`);
-            const snapshot = await uploadBytes(storageRef, imageFile);
-            updateData.imageUrl = await getDownloadURL(snapshot.ref);
-        }
-        
-        const firestoreUpdate = { [bannerId]: updateData };
-
-        await setDoc(siteContentRef, firestoreUpdate, { merge: true });
-        await triggerCacheRevalidation('site-content');
-
-    } catch (error) {
-        console.error(`Error in updatePromoBanner for ${bannerId}:`, error);
-        throw error;
-    }
-}
 
 export const updateShippingSettings = async (data: Omit<ShippingSettingsData, 'updatedAt'>): Promise<void> => {
     try {

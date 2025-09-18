@@ -8,11 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { updatePromoBanner, type PromoBannerData } from '@/services/siteContentService';
+import { type PromoBannerData, getSiteContent, updateShippingSettings } from '@/services/siteContentService';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { uploadPromoImage } from '../_actions/upload-image-action';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { triggerCacheRevalidation } from '@/lib/cache-client';
 
 const bannerSchema = z.object({
   headline: z.string().min(5, 'Headline must be at least 5 characters.'),
@@ -28,6 +32,42 @@ interface PromoBannerFormProps {
     title: string;
     description: string;
 }
+
+const siteContentRef = doc(db, 'siteContent', 'global');
+
+async function updatePromoBanner(bannerId: 'promoBanner1' | 'promoBanner2', data: Omit<PromoBannerData, 'imageUrl' | 'updatedAt'>, imageFile?: File) {
+    try {
+        const updateData: any = {
+            ...data,
+            updatedAt: serverTimestamp()
+        };
+
+        if (imageFile) {
+            const formData = new FormData();
+            formData.append('image', imageFile);
+            formData.append('bannerId', bannerId);
+            
+            const result = await uploadPromoImage(formData);
+
+            if (result.error) {
+                throw new Error(result.error);
+            }
+            if (result.imageUrl) {
+                updateData.imageUrl = result.imageUrl;
+            }
+        }
+        
+        const firestoreUpdate = { [bannerId]: updateData };
+
+        await setDoc(siteContentRef, firestoreUpdate, { merge: true });
+        await triggerCacheRevalidation('site-content');
+
+    } catch (error) {
+        console.error(`Error in updatePromoBanner for ${bannerId}:`, error);
+        throw error;
+    }
+}
+
 
 export function PromoBannerForm({ bannerId, bannerData, title, description }: PromoBannerFormProps) {
   const { toast } = useToast();
