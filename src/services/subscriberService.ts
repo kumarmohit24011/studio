@@ -12,18 +12,19 @@ import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
  */
 export const addSubscriber = async (email: string): Promise<{ success: boolean; message: string }> => {
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        // Log the invalid email attempt for monitoring purposes
+        console.warn('[Subscription Attempt] Invalid email format provided', { email: email });
         return { success: false, message: 'Please provide a valid email address.' };
     }
 
+    const emailId = email.toLowerCase();
+    const subscriberRef = doc(db, 'subscribers', emailId);
+
     try {
-        // Use the email as the document ID for easy duplicate checking.
-        // Firestore is case-sensitive, so convert to lowercase to prevent duplicates.
-        const emailId = email.toLowerCase();
-        const subscriberRef = doc(db, 'subscribers', emailId);
         const docSnap = await getDoc(subscriberRef);
 
         if (docSnap.exists()) {
-            return { success: true, message: 'This email is already subscribed. Thank you!' };
+            return { success: true, message: 'This email is already subscribed. Thank you for being with us!' };
         }
 
         await setDoc(subscriberRef, {
@@ -33,8 +34,16 @@ export const addSubscriber = async (email: string): Promise<{ success: boolean; 
 
         return { success: true, message: 'Thank you for subscribing!' };
     } catch (error) {
-        console.error("Error adding subscriber: ", error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error(
+            `[Subscription Error] Failed to add subscriber. Email: ${emailId}, Reason: ${errorMessage}`,
+            {
+                email: emailId,
+                errorObject: JSON.stringify(error, Object.getOwnPropertyNames(error)),
+            }
+        );
+        
         // Return a generic error message to the user for security.
-        return { success: false, message: 'An unexpected error occurred. Please try again later.' };
+        return { success: false, message: 'Could not subscribe. Please try again in a moment.' };
     }
 };
