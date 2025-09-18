@@ -1,47 +1,32 @@
-
 rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // Helper function to check for admin privileges from custom claims
+    // Helper function to check for admin status by reading the user's profile from Firestore.
+    // This is the correct way to check for admin privileges based on the current app structure.
     function isAdmin() {
-      // The `isAdmin` flag is set on the user's token via a backend process
-      // which is more secure than checking Firestore directly from rules.
-      // This is a standard and secure pattern.
-      return request.auth != null && request.auth.token.isAdmin == true;
+      return exists(/databases/(default)/documents/users/$(request.auth.uid)) &&
+             get(/databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
-    // --- Public Read, Admin Write Rules ---
-    
-    // Products: All users can read, only admins can write.
-    match /products/{allPaths=**} {
-      allow read;
-      allow write: if isAdmin();
-    }
-    
-    // Categories: All users can read, only admins can write.
-    match /categories/{allPaths=**} {
-      allow read;
-      allow write: if isAdmin();
-    }
-
-    // Hero Images: All users can read, only admins can write.
-    match /hero-images/{allPaths=**} {
-      allow read;
-      allow write: if isAdmin();
-    }
-    
-    // Content Images (for promotions): All users can read, only admins can write.
-    match /content-images/{allPaths=**} {
-      allow read;
-      allow write: if isAdmin();
-    }
-
-    // --- Default Deny ---
-    // Deny all other read/write operations by default for security.
+    // Allow public read access for all files so they can be displayed on the website.
     match /{allPaths=**} {
-      allow read, write: if false;
+      allow read;
+    }
+
+    // Allow admin writes to all designated image folders.
+    match /products/{imageId} {
+      allow write: if isAdmin();
+    }
+    match /category-images/{imageId} {
+      allow write: if isAdmin();
+    }
+    match /hero-images/{imageId} {
+      allow write: if isAdmin();
+    }
+    match /content-images/{imageId} {
+      allow write: if isAdmin();
     }
   }
 }
