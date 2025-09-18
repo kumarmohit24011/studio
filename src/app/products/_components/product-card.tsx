@@ -5,7 +5,7 @@ import type { Product } from "@/lib/types";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Heart, ShoppingCart } from "lucide-react";
+import { Heart } from "lucide-react";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { AddToCartButton } from "@/components/shared/add-to-cart-button";
 
@@ -27,6 +27,9 @@ export function ProductCard({ product }: { product: Product }) {
     <Card className="overflow-hidden group border bg-card hover:shadow-lg transition-shadow duration-300 flex flex-col">
       <Link href={`/products/${product.id}`} className="block flex flex-col h-full">
         <div className="relative w-full aspect-square overflow-hidden">
+             {product.tags?.includes('hot-selling') && (
+                <Badge variant="destructive" className="absolute top-2 left-2 z-10">Hot Selling</Badge>
+            )}
             <Image
               src={product.imageUrl || "https://picsum.photos/400/400"}
               alt={product.name}
@@ -34,7 +37,7 @@ export function ProductCard({ product }: { product: Product }) {
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
             />
-            <div className="absolute top-2 right-2 z-10 flex flex-col gap-2">
+            <div className="absolute top-2 right-2 z-10">
                 <Button 
                     variant="secondary" 
                     size="icon" 
@@ -45,15 +48,24 @@ export function ProductCard({ product }: { product: Product }) {
                     <Heart className={`w-4 h-4 ${inWishlist ? 'text-red-500 fill-red-500' : 'text-foreground'}`}/>
                 </Button>
             </div>
-             <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/20 via-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <AddToCartButton product={product} size="sm" variant="secondary" className="w-full" />
-            </div>
         </div>
         <CardContent className="p-4 flex-grow flex flex-col">
             <h3 className="font-semibold text-base text-foreground truncate flex-grow">{product.name}</h3>
-            <p className="text-primary font-bold text-lg mt-2">₹{product.price.toFixed(2)}</p>
+            <div className="flex items-center gap-2 mt-2">
+              {product.discountedPrice ? (
+                <>
+                  <p className="text-primary font-bold text-lg">Rs.{product.price.toFixed(2)}</p>
+                  <p className="text-muted-foreground line-through text-sm">Rs.{product.discountedPrice.toFixed(2)}</p>
+                </>
+              ) : (
+                <p className="text-primary font-bold text-lg">Rs.{product.price.toFixed(2)}</p>
+              )}
+            </div>
         </CardContent>
       </Link>
+      <div className="p-4 pt-0">
+        <AddToCartButton product={product} size="sm" className="w-full" />
+      </div>
     </Card>
   );
 }

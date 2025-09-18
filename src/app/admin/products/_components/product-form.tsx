@@ -25,6 +25,7 @@ const productSchema = z.object({
   name: z.string().min(3, 'Product name must be at least 3 characters.'),
   description: z.string().min(10, 'Description must be at least 10 characters.'),
   price: z.coerce.number().min(0, 'Price must be a positive number.'),
+  discountedPrice: z.coerce.number().optional(),
   stock: z.coerce.number().int().min(0, 'Stock must be a non-negative integer.'),
   category: z.string().min(1, 'Please select a category.'),
   sku: z.string().optional(),
@@ -52,6 +53,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
       name: product?.name || '',
       description: product?.description || '',
       price: product?.price || 0,
+      discountedPrice: product?.discountedPrice || undefined,
       stock: product?.stock || 0,
       category: product?.category || '',
       sku: product?.sku || '',
@@ -190,10 +192,24 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                             name="price"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Price (₹)</FormLabel>
+                                    <FormLabel>Price (Rs.)</FormLabel>
                                     <FormControl>
                                         <Input type="number" placeholder="e.g. 1200" {...field} />
                                     </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="discountedPrice"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Discounted Price (Rs.)</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="e.g. 1000" {...field} />
+                                    </FormControl>
+                                    <FormDescription>Optional: a promotional price.</FormDescription>
                                     <FormMessage />
                                 </FormItem>
                             )}
