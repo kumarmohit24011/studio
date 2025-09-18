@@ -158,7 +158,7 @@ export function Header({ categories = [] }: HeaderProps) {
                 <span className="sr-only">Open menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-full max-w-sm p-0 flex flex-col bg-background">
+            <SheetContent side="left" className="w-[80%] max-w-sm p-0 flex flex-col bg-background">
                 <div className="flex justify-between items-center p-4 border-b">
                      <Link href="/" className="text-2xl font-headline font-bold text-primary tracking-wider" onClick={() => setMobileMenuOpen(false)}>
                         REDBOW
