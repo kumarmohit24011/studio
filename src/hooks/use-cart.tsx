@@ -114,6 +114,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const removeFromCart = (productId: string) => {
     const newCart = cart.filter(item => item.productId !== productId);
     updateCart(newCart);
+    toast({
+        title: "Item Removed",
+        description: "The item has been removed from your cart."
+    });
   };
 
   const updateQuantity = (productId: string, quantity: number) => {
