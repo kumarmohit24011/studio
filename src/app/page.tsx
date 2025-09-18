@@ -16,12 +16,15 @@ export default async function Home() {
   const newArrivals = await getNewArrivals(5);
   const trendingProducts = await getTrendingProducts(5);
   const siteContent = await getSiteContent();
-  const categories = await getAllCategories();
+  const allCategories = await getAllCategories();
+  // Filter out categories that are not featured or have no image
+  const categories = allCategories.filter(c => c.isFeatured && c.imageUrl);
+
   const { heroSection, promoBanner1, promoBanner2 } = siteContent;
 
   return (
     <div className="flex flex-col min-h-screen">
-      <section className="relative h-[50vh] md:h-[75vh] flex items-center justify-start text-white bg-black">
+      <section className="relative h-[40vh] md:h-[60vh] flex items-center justify-start text-white bg-black">
         {heroSection.imageUrl && (
           <Image
             src={heroSection.imageUrl}

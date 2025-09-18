@@ -16,8 +16,10 @@ export function FooterNewsletterForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+    console.log('Subscribing email:', email);
 
     const result = await addSubscriber(email);
+    console.log('Subscription result:', result);
 
     if (result.success) {
       toast({
