@@ -1,8 +1,6 @@
 
 import admin from 'firebase-admin';
 
-let adminApp: admin.app.App;
-
 // This function initializes the Firebase Admin SDK.
 // It's designed to be run only in a server-side environment.
 function initializeAdminApp() {
@@ -13,9 +11,9 @@ function initializeAdminApp() {
   const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_REDBOW_24723;
   
   if (!serviceAccountString) {
-    // Gracefully fail in environments where the secret is not set.
-    // This allows the app to build and run locally without crashing.
-    console.warn("Firebase Admin SDK not initialized: FIREBASE_SERVICE_ACCOUNT_REDBOW_24723 is not set.");
+    // This will cause an error in environments that need it, which is the correct behavior.
+    // We log a warning for easier debugging during development if the env var is missing.
+    console.warn("Firebase Admin SDK service account not found in environment variables. Server-side features requiring admin privileges will fail.");
     return null;
   }
 
@@ -32,12 +30,11 @@ function initializeAdminApp() {
   }
 }
 
-// Initialize and export immediately. This code will only run on the server.
-adminApp = initializeAdminApp()!;
-
-const adminAuth = adminApp ? adminApp.auth() : null;
-const adminDb = adminApp ? adminApp.firestore() : null;
-const adminStorage = adminApp ? adminApp.storage() : null;
+// Initialize and export. This code will only run on the server.
+const adminApp = initializeAdminApp();
+const adminAuth = adminApp ? admin.auth() : null;
+const adminDb = adminApp ? admin.firestore() : null;
+const adminStorage = adminApp ? admin.storage() : null;
 
 
 export { adminApp, adminAuth, adminDb, adminStorage };

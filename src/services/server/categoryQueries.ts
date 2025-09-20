@@ -1,6 +1,4 @@
 
-'use server';
-
 import { adminDb } from '@/lib/firebase-admin';
 import { Category } from '@/lib/types';
 import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';

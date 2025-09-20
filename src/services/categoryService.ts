@@ -2,7 +2,7 @@
 'use client';
 import { db, storage } from '@/lib/firebase';
 import { Category } from '@/lib/types';
-import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc, writeBatch, query, where, Firestore } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { triggerCacheRevalidation } from '@/lib/cache-client';
 

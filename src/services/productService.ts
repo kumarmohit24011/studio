@@ -1,12 +1,12 @@
 
+'use client';
 import { db, storage } from '@/lib/firebase';
 import { Product } from '@/lib/types';
 import { collection, getDocs, query, where, limit, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc, orderBy, getCountFromServer, writeBatch, documentId } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { triggerCacheRevalidation } from '@/lib/cache-client';
 
-// This file should only contain functions that are safe to be used on the client-side.
-// Functions requiring the admin SDK should be in `src/services/server/productQueries.ts`.
+// This file only contains functions that are safe to be used on the client-side.
 
 const toPlainObject = (product: any): Product => {
     if (!product) return product;
@@ -20,7 +20,21 @@ const toPlainObject = (product: any): Product => {
     return plainProduct;
 };
 
-// This version is safe for client-side use.
+// Client-side version to get all products for admin pages
+export const getAllProductsClient = async (): Promise<Product[]> => {
+    try {
+        const productsCol = collection(db, 'products');
+        const snapshot = await getDocs(productsCol);
+        if (snapshot.empty) {
+            return [];
+        }
+        return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+        console.error("Error fetching products on client: ", error);
+        throw new Error(`Failed to fetch products: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+};
+
 export const getProductsByIds = async (ids: string[]): Promise<Product[]> => {
     if (ids.length === 0) {
         return [];
@@ -28,7 +42,6 @@ export const getProductsByIds = async (ids: string[]): Promise<Product[]> => {
     try {
         const products: Product[] = [];
         // Firestore 'in' query is limited to 30 items in a single query.
-        // We chunk the IDs to handle more than 30.
         for (let i = 0; i < ids.length; i += 30) {
             const chunk = ids.slice(i, i + 30);
             const productsRef = collection(db, 'products');
@@ -44,7 +57,6 @@ export const getProductsByIds = async (ids: string[]): Promise<Product[]> => {
     }
 }
 
-// This version is safe for client-side use.
 export const getProductById = async (id: string): Promise<Product | null> => {
     try {
         const docRef = doc(db, 'products', id);
@@ -134,15 +146,12 @@ export const deleteProduct = async (id: string, imageUrlsToDelete: string[] = []
                 return;
             }
             try {
-                // Correctly create a reference from the download URL
                 const imageRef = ref(storage, url);
                 await deleteObject(imageRef);
             } catch (error: any) {
                 if (error.code === 'storage/object-not-found') {
                     console.warn(`Image not found, skipping deletion: ${url}`);
                 } else if (error.code === 'storage/invalid-argument') {
-                    // This can happen if the URL is not a valid storage URL.
-                    // Let's try to extract the path.
                     try {
                         const path = new URL(url).pathname.split('/o/')[1];
                         const decodedPath = decodeURIComponent(path.split('?')[0]);

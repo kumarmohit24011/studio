@@ -1,5 +1,4 @@
 
-
 import { adminDb } from '@/lib/firebase-admin';
 import { Product } from '@/lib/types';
 import { collection, getDocs, query, where, limit, orderBy, getCountFromServer } from 'firebase/firestore';
@@ -137,5 +136,3 @@ export const getRecentProducts = async (count: number): Promise<Product[]> => {
         throw new Error(`Failed to fetch recent products: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 }
-
-    

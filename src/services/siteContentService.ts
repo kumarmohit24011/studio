@@ -1,8 +1,5 @@
 
 'use server';
-// This file should now only contain functions that are safe to be used in client components,
-// primarily those that perform mutations (updates) via server actions.
-// Read operations (getters) that might be used on the server should be in a separate file.
 
 import { db, storage } from '@/lib/firebase';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
