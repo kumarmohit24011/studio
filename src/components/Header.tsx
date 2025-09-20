@@ -139,6 +139,12 @@ export function Header({ categories = [] }: HeaderProps) {
                 <span className="sr-only">Wishlist</span>
               </Link>
             </Button>
+            <Button variant="ghost" size="icon" asChild>
+                <a href="https://www.instagram.com/redbow.jewels" target="_blank" rel="noopener noreferrer" className="relative hidden md:inline-flex">
+                    <span className="text-xl">📷</span>
+                    <span className="sr-only">Instagram</span>
+                </a>
+            </Button>
           <Button variant="ghost" size="icon" asChild>
             <Link href="/cart" className="relative" prefetch={true}>
               <span className="text-xl">🛒</span>
@@ -176,6 +182,10 @@ export function Header({ categories = [] }: HeaderProps) {
                     {React.Children.map(navLinks.props.children, child => 
                         child.type === Link ? React.cloneElement(child, { onClick: () => setMobileMenuOpen(false) }) : child
                     )}
+                     <a href="https://www.instagram.com/redbow.jewels" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>
+                        <span className="text-xl">📷</span>
+                        <span>Instagram</span>
+                    </a>
                 </nav>
                  <div className="mt-auto border-t p-4">
                     {renderAuthComponent()}
