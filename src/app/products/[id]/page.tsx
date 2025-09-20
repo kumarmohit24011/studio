@@ -30,7 +30,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                 <Separator />
                 <div className="py-12">
                     <h2 className="text-3xl font-headline text-center mb-8">You Might Also Like</h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
                         {relatedProducts.map((relatedProduct) => (
                             <ProductCard key={relatedProduct.id} product={relatedProduct} />
                         ))}

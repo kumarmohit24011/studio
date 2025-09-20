@@ -22,15 +22,26 @@ export function ProductDetailsClient({ product, relatedProducts }: { product: Pr
   return (
     <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start">
       {/* Image Gallery */}
-      <div className="flex flex-col-reverse md:flex-row gap-4 sticky top-24">
+      <div className="grid gap-4 items-start">
+        <div className="relative aspect-square w-full rounded-lg overflow-hidden border">
+            <Image
+                src={mainImage}
+                alt={product.name}
+                data-ai-hint="jewelry product"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority
+            />
+        </div>
         {allImages.length > 1 && (
-             <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0">
+             <div className="grid grid-cols-5 gap-3">
                 {allImages.map((img, index) => (
                     <button 
                         key={index} 
                         onClick={() => setMainImage(img)} 
                         className={cn(
-                            "relative aspect-square rounded-lg overflow-hidden border-2 w-16 h-16 md:w-24 md:h-24 flex-shrink-0",
+                            "relative aspect-square rounded-lg overflow-hidden border-2",
                             mainImage === img ? 'border-primary' : 'border-transparent hover:border-muted-foreground/50 transition-colors'
                         )}
                     >
@@ -45,17 +56,6 @@ export function ProductDetailsClient({ product, relatedProducts }: { product: Pr
                 ))}
             </div>
         )}
-        <div className="relative aspect-square w-full rounded-lg overflow-hidden border">
-            <Image
-                src={mainImage}
-                alt={product.name}
-                data-ai-hint="jewelry product"
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
-                priority
-            />
-        </div>
       </div>
 
       {/* Product Information */}
