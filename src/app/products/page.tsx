@@ -1,5 +1,6 @@
 
-import { getAllProducts, searchProducts } from "@/services/productService";
+import { getAllProducts } from "@/services/server/productQueries";
+import { searchProducts } from "@/app/products/_actions/search-action";
 import { getAllCategories } from "@/services/categoryService";
 import type { Product, Category } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";

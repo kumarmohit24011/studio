@@ -1,8 +1,7 @@
 
 import { adminDb } from '@/lib/firebase-admin';
-import { db } from '@/lib/firebase';
 import { Product } from '@/lib/types';
-import { collection, getDocs, query, where, limit, orderBy, Firestore } from 'firebase/firestore';
+import { collection, getDocs, query, where, limit, orderBy } from 'firebase/firestore';
 
 const toPlainObject = (product: any): Product => {
     if (!product) return product;
@@ -16,16 +15,31 @@ const toPlainObject = (product: any): Product => {
     return plainProduct;
 };
 
-// This function now fetches directly from Firebase to avoid caching issues.
-export const getNewArrivals = async (count: number): Promise<Product[]> => {
-    const firestore = adminDb || db;
-    if (!firestore) {
-        console.error("Error fetching new arrivals: Firestore is not initialized on the server.");
+export const getAllProducts = async (): Promise<Product[]> => {
+    if (!adminDb) {
+        console.error("Error fetching all products: Firestore admin is not initialized.");
         return [];
     }
     try {
-        const productsRef = collection(firestore, 'products');
-        // Query for products that are published and have the 'new' tag.
+        const productsCol = collection(adminDb, 'products');
+        const snapshot = await getDocs(productsCol);
+        if (snapshot.empty) {
+            return [];
+        }
+        return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+        console.error("Error fetching products: ", error);
+        throw new Error(`Failed to fetch products: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+};
+
+export const getNewArrivals = async (count: number): Promise<Product[]> => {
+    if (!adminDb) {
+        console.error("Error fetching new arrivals: Firestore admin is not initialized.");
+        return [];
+    }
+    try {
+        const productsRef = collection(adminDb, 'products');
         const q = query(
             productsRef, 
             where("isPublished", "==", true), 
@@ -48,15 +62,13 @@ export const getNewArrivals = async (count: number): Promise<Product[]> => {
     }
 };
 
-// This function now fetches directly from Firebase to avoid caching issues.
 export const getTrendingProducts = async (count: number): Promise<Product[]> => {
-    const firestore = adminDb || db;
-    if (!firestore) {
-        console.error("Error fetching trending products: Firestore is not initialized on the server.");
+    if (!adminDb) {
+        console.error("Error fetching trending products: Firestore admin is not initialized.");
         return [];
     }
     try {
-        const productsRef = collection(firestore, 'products');
+        const productsRef = collection(adminDb, 'products');
         const q = query(productsRef, where("tags", "array-contains", "popular"), where("isPublished", "==", true), limit(count));
         const snapshot = await getDocs(q);
         if (snapshot.empty) {
@@ -65,6 +77,25 @@ export const getTrendingProducts = async (count: number): Promise<Product[]> => 
         return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
     } catch (error) {
         console.error("Error fetching trending products: ", error);
+        return [];
+    }
+};
+
+export const getProductsByCategory = async (category: string): Promise<Product[]> => {
+    if (!adminDb) {
+        console.error(`Error fetching products for category ${category}: Firestore admin is not initialized.`);
+        return [];
+    }
+    try {
+        const productsRef = collection(adminDb, 'products');
+        const q = query(productsRef, where("category", "==", category), where("isPublished", "==", true));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) {
+            return [];
+        }
+        return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+        console.error(`Error fetching products for category ${category}: `, error);
         return [];
     }
 };

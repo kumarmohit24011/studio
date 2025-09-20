@@ -1,5 +1,6 @@
 
-import { getProductById, getProductsByCategory } from "@/services/productService";
+import { getProductById } from "@/services/productService";
+import { getProductsByCategory } from "@/services/server/productQueries";
 import { notFound } from "next/navigation";
 import type { Product } from "@/lib/types";
 import { ProductDetailsClient } from "./_components/product-details-client";

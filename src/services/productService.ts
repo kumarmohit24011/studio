@@ -5,6 +5,9 @@ import { collection, getDocs, query, where, limit, doc, getDoc, addDoc, serverTi
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { triggerCacheRevalidation } from '@/lib/cache-client';
 
+// This file should only contain functions that are safe to be used on the client-side.
+// Functions requiring the admin SDK should be in `src/services/server/productQueries.ts`.
+
 const toPlainObject = (product: any): Product => {
     if (!product) return product;
     const plainProduct = { ...product };
@@ -17,21 +20,7 @@ const toPlainObject = (product: any): Product => {
     return plainProduct;
 };
 
-
-export const getAllProducts = async (): Promise<Product[]> => {
-    try {
-        const productsCol = collection(db, 'products');
-        const snapshot = await getDocs(productsCol);
-        if (snapshot.empty) {
-            return [];
-        }
-        return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
-    } catch (error) {
-        console.error("Error fetching products: ", error);
-        throw new Error(`Failed to fetch products: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-};
-
+// This version is safe for client-side use.
 export const getProductsByIds = async (ids: string[]): Promise<Product[]> => {
     if (ids.length === 0) {
         return [];
@@ -55,19 +44,7 @@ export const getProductsByIds = async (ids: string[]): Promise<Product[]> => {
     }
 }
 
-
-export const getTotalProducts = async (): Promise<number> => {
-    try {
-        const productsCol = collection(db, 'products');
-        const snapshot = await getCountFromServer(productsCol);
-        return snapshot.data().count;
-    } catch (error) {
-        console.error("Error fetching product count: ", error);
-        throw new Error(`Failed to fetch product count: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-};
-
-
+// This version is safe for client-side use.
 export const getProductById = async (id: string): Promise<Product | null> => {
     try {
         const docRef = doc(db, 'products', id);
@@ -79,36 +56,6 @@ export const getProductById = async (id: string): Promise<Product | null> => {
     } catch (error) {
         console.error(`Error fetching product by id ${id}: `, error);
         return null;
-    }
-};
-
-export const getRecentProducts = async (count: number): Promise<Product[]> => {
-    try {
-        const productsRef = collection(db, 'products');
-        const q = query(productsRef, orderBy("createdAt", "desc"), limit(count));
-        const snapshot = await getDocs(q);
-        if (snapshot.empty) {
-            return [];
-        }
-        return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() } as Product));
-    } catch (error) {
-        console.error("Error fetching recent products: ", error);
-        throw new Error(`Failed to fetch recent products: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-}
-
-export const getProductsByCategory = async (category: string): Promise<Product[]> => {
-    try {
-        const productsRef = collection(db, 'products');
-        const q = query(productsRef, where("category", "==", category), where("isPublished", "==", true));
-        const snapshot = await getDocs(q);
-        if (snapshot.empty) {
-            return [];
-        }
-        return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
-    } catch (error) {
-        console.error(`Error fetching products for category ${category}: `, error);
-        return [];
     }
 };
 
@@ -254,55 +201,6 @@ export const deleteMultipleProducts = async (productsToDelete: Product[]): Promi
     }
 };
 
-export const searchProducts = async (searchTerm: string): Promise<Product[]> => {
-    try {
-        if (!searchTerm.trim()) {
-            return [];
-        }
-
-        // Get all published products and filter on the client side
-        // Firestore doesn't support full-text search, so we'll do client-side filtering
-        const productsRef = collection(db, 'products');
-        const q = query(productsRef, where("isPublished", "==", true));
-        const snapshot = await getDocs(q);
-        
-        if (snapshot.empty) {
-            return [];
-        }
-
-        const products = snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
-        const searchTermLower = searchTerm.toLowerCase().trim();
-        
-        // Filter products that match the search term
-        const filteredProducts = products.filter(product => {
-            const nameMatch = product.name?.toLowerCase().includes(searchTermLower);
-            const descriptionMatch = product.description?.toLowerCase().includes(searchTermLower);
-            const categoryMatch = product.category?.toLowerCase().includes(searchTermLower);
-            const skuMatch = product.sku?.toLowerCase().includes(searchTermLower);
-            const tagsMatch = product.tags?.some(tag => tag.toLowerCase().includes(searchTermLower));
-            
-            return nameMatch || descriptionMatch || categoryMatch || skuMatch || tagsMatch;
-        });
-
-        // Sort results by relevance (name matches first, then description, etc.)
-        return filteredProducts.sort((a, b) => {
-            const aNameMatch = a.name?.toLowerCase().includes(searchTermLower) ? 1 : 0;
-            const bNameMatch = b.name?.toLowerCase().includes(searchTermLower) ? 1 : 0;
-            
-            if (aNameMatch !== bNameMatch) {
-                return bNameMatch - aNameMatch; // Name matches first
-            }
-            
-            // If both or neither match name, sort by creation date (newest first)
-            const aDate = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-            const bDate = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-            return bDate - aDate;
-        });
-    } catch (error) {
-        console.error("Error searching products:", error);
-        return [];
-    }
-};
 
 export const updateProductStatus = async (
     productId: string, 
@@ -352,5 +250,3 @@ export const updateProductStatus = async (
         throw error;
     }
 };
-
-    

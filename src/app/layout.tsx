@@ -8,7 +8,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import Script from "next/script";
 import { Providers } from "@/components/providers";
-import { getFeaturedCategories } from "@/services/categoryService";
+import { getFeaturedCategories } from "@/services/server/categoryQueries";
 import type { Category } from "@/lib/types";
 
 const fontBody = Inter({
