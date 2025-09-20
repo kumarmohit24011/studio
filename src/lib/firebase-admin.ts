@@ -9,10 +9,11 @@ const getAdminApp = (): admin.app.App => {
   }
 
   try {
+    // Correctly prioritize the specific environment variable from the deployment workflow
     const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_REDBOW_24723 || process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON || process.env.FIREBASE_SERVICE_ACCOUNT;
     
     if (!serviceAccountString) {
-      throw new Error('Firebase service account credentials are not set. Please set GOOGLE_APPLICATION_CREDENTIALS_JSON or FIREBASE_SERVICE_ACCOUNT.');
+      throw new Error('Firebase service account credentials are not set. Please set FIREBASE_SERVICE_ACCOUNT_REDBOW_24723.');
     }
 
     const serviceAccount = JSON.parse(serviceAccountString);
