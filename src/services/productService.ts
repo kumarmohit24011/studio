@@ -82,21 +82,6 @@ export const getProductById = async (id: string): Promise<Product | null> => {
     }
 };
 
-export const getNewArrivals = async (count: number): Promise<Product[]> => {
-    try {
-        const productsRef = collection(db, 'products');
-        const q = query(productsRef, where("isNewArrival", "==", true), where("isPublished", "==", true), limit(count));
-        const snapshot = await getDocs(q);
-        if (snapshot.empty) {
-            return [];
-        }
-        return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
-    } catch (error) {
-        console.error("Error fetching new arrivals: ", error);
-        return [];
-    }
-};
-
 export const getRecentProducts = async (count: number): Promise<Product[]> => {
     try {
         const productsRef = collection(db, 'products');
@@ -111,21 +96,6 @@ export const getRecentProducts = async (count: number): Promise<Product[]> => {
         throw new Error(`Failed to fetch recent products: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 }
-
-export const getTrendingProducts = async (count: number): Promise<Product[]> => {
-    try {
-        const productsRef = collection(db, 'products');
-        const q = query(productsRef, where("tags", "array-contains", "popular"), where("isPublished", "==", true), limit(count));
-        const snapshot = await getDocs(q);
-        if (snapshot.empty) {
-            return [];
-        }
-        return snapshot.docs.map(doc => toPlainObject({ id: doc.id, ...doc.data() }));
-    } catch (error) {
-        console.error("Error fetching trending products: ", error);
-        return [];
-    }
-};
 
 export const getProductsByCategory = async (category: string): Promise<Product[]> => {
     try {
@@ -382,3 +352,5 @@ export const updateProductStatus = async (
         throw error;
     }
 };
+
+    

@@ -1,20 +1,17 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getSiteContent, type SiteContent } from "@/services/siteContentService";
+import { getSiteContent } from "@/services/server/siteContentQueries";
 import { HeroForm } from "./_components/hero-form";
 
 // Disable static generation to avoid prerendering Firebase data during build
 export const dynamic = 'force-dynamic';
 
 export default async function AdminHeroPage() {
-  const siteContent: SiteContent = await getSiteContent();
+  const siteContent = await getSiteContent();
 
-  // Convert Firestore Timestamp to a serializable format with validation
   const plainHeroData = {
     ...siteContent.heroSection,
-    updatedAt: (siteContent.heroSection.updatedAt?.seconds && !isNaN(siteContent.heroSection.updatedAt.seconds)) 
-      ? new Date(siteContent.heroSection.updatedAt.seconds * 1000).toISOString() 
-      : new Date().toISOString(), // Fallback to current date if updatedAt is invalid
+    updatedAt: siteContent.heroSection.updatedAt,
   };
 
 

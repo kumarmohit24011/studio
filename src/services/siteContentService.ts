@@ -1,4 +1,8 @@
 
+'use server';
+// This file should now only contain functions that are safe to be used in client components,
+// primarily those that perform mutations (updates) via server actions.
+// Read operations (getters) that might be used on the server should be in a separate file.
 
 import { db, storage } from '@/lib/firebase';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -48,82 +52,6 @@ export type PlainSiteContent = {
 
 
 const siteContentRef = doc(db, 'siteContent', 'global');
-
-const defaultPromoBanner: PromoBannerData = {
-    headline: 'Festive Discounts',
-    subtitle: 'Up to 30% off on select necklaces',
-    buttonText: 'Shop Now',
-    buttonLink: '/products?category=Necklaces',
-    imageUrl: 'https://picsum.photos/600/400',
-    updatedAt: new Date()
-};
-
-const defaultData: SiteContent = {
-    heroSection: {
-        headline: 'Timeless Elegance, Redefined',
-        subtitle: 'Discover our exclusive collection of handcrafted jewelry.',
-        buttonText: 'Shop Now',
-        buttonLink: '/products',
-        imageUrl: 'https://picsum.photos/1800/1000',
-        updatedAt: new Date()
-    },
-    promoBanner1: defaultPromoBanner,
-    promoBanner2: {
-        ...defaultPromoBanner,
-        headline: 'Limited Time Offer',
-        subtitle: 'Buy one, get one 50% off on wedding rings',
-        buttonLink: '/products?category=Rings',
-        imageUrl: 'https://picsum.photos/600/400?grayscale',
-    },
-    shippingSettings: {
-        defaultFee: 50,
-        freeShippingThreshold: 1000,
-        updatedAt: new Date()
-    }
-};
-
-const toPlainObject = (data: any): any => {
-    if (!data) return null;
-    const plain = { ...data };
-    if (plain.updatedAt?.seconds) {
-        plain.updatedAt = new Date(plain.updatedAt.seconds * 1000).toISOString();
-    }
-    return plain;
-};
-
-export const getSiteContent = async (): Promise<SiteContent> => {
-    try {
-        const docSnap = await getDoc(siteContentRef);
-        if (docSnap.exists()) {
-            const data = docSnap.data() as SiteContent;
-            // Ensure all fields have default values if they are missing and are serializable
-            return {
-                heroSection: toPlainObject(data.heroSection || defaultData.heroSection),
-                promoBanner1: toPlainObject(data.promoBanner1 || defaultData.promoBanner1),
-                promoBanner2: toPlainObject(data.promoBanner2 || defaultData.promoBanner2),
-                shippingSettings: toPlainObject(data.shippingSettings || defaultData.shippingSettings),
-            };
-        } else {
-            // Return default data instead of trying to create the document on server-side
-            console.log("Site content document doesn't exist, returning defaults.");
-            return {
-                heroSection: toPlainObject(defaultData.heroSection),
-                promoBanner1: toPlainObject(defaultData.promoBanner1),
-                promoBanner2: toPlainObject(defaultData.promoBanner2),
-                shippingSettings: toPlainObject(defaultData.shippingSettings),
-            };
-        }
-    } catch (error) {
-        console.error("Error fetching site content, returning defaults: ", error);
-         const plainDefaultData = {
-            heroSection: toPlainObject(defaultData.heroSection),
-            promoBanner1: toPlainObject(defaultData.promoBanner1),
-            promoBanner2: toPlainObject(defaultData.promoBanner2),
-            shippingSettings: toPlainObject(defaultData.shippingSettings),
-        };
-        return plainDefaultData as SiteContent;
-    }
-};
 
 
 export const updateHeroSection = async (data: Omit<HeroSectionData, 'imageUrl' | 'updatedAt'>, imageFile?: File): Promise<void> => {

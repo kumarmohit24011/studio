@@ -1,16 +1,15 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSiteContent, type SiteContent, type PlainShippingSettingsData } from "@/services/siteContentService";
+import { getSiteContent as getSiteContentServer } from "@/services/server/siteContentQueries";
 import { ShippingSettingsForm } from "./_components/shipping-settings-form";
 
 // Disable static generation to avoid prerendering Firebase data during build
 export const dynamic = 'force-dynamic';
 
 export default async function AdminSettingsPage() {
-  const siteContent: SiteContent = await getSiteContent();
+  const siteContent: SiteContent = await getSiteContentServer();
 
-  // The getSiteContent service now returns a serializable object, so we can use it directly.
-  // We add a check to ensure updatedAt is a string before passing it down.
   const plainShippingSettings: PlainShippingSettingsData = {
     ...siteContent.shippingSettings,
     updatedAt: typeof siteContent.shippingSettings.updatedAt === 'string' 
