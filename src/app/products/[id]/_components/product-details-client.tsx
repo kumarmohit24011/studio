@@ -22,7 +22,7 @@ export function ProductDetailsClient({ product, relatedProducts }: { product: Pr
   return (
     <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start">
       {/* Image Gallery */}
-      <div className="grid gap-4 items-start">
+      <div className="grid gap-4 items-start md:sticky top-24">
         <div className="relative aspect-square w-full rounded-lg overflow-hidden border">
             <Image
                 src={mainImage}
@@ -74,7 +74,16 @@ export function ProductDetailsClient({ product, relatedProducts }: { product: Pr
           <h1 className="text-3xl md:text-4xl font-headline font-bold">{product.name}</h1>
         </div>
 
-        <p className="text-2xl md:text-3xl font-semibold text-primary">₹{product.price.toFixed(2)}</p>
+        <div className="flex items-baseline gap-4">
+            {product.discountedPrice && product.discountedPrice < product.price ? (
+                <>
+                    <p className="text-2xl md:text-3xl font-bold text-primary">₹{product.price.toFixed(2)}</p>
+                    <p className="text-xl text-muted-foreground line-through">₹{product.discountedPrice.toFixed(2)}</p>
+                </>
+            ) : (
+                <p className="text-2xl md:text-3xl font-bold text-primary">₹{product.price.toFixed(2)}</p>
+            )}
+        </div>
         
         <p className="text-muted-foreground text-base leading-relaxed">{product.description}</p>
         
