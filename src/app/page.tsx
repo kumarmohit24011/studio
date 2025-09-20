@@ -29,7 +29,7 @@ export default async function Home() {
           <Image
             src={heroSection.imageUrl}
             alt="Elegant jewelry on a dark background"
-            data-ai-hint="jewelry dark"
+            data-ai-hint="lifestyle jewelry"
             fill
             className="object-cover opacity-50"
             priority

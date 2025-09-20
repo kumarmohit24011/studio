@@ -1,42 +1,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { adminAuth } from './lib/firebase-admin'; // Import directly
+import { adminAuth } from './lib/firebase-admin';
 
-async function handleApiCors(request: NextRequest) {
-    const origin = request.headers.get('origin');
-    const allowedOrigins = process.env.NODE_ENV === 'development' 
-      ? ['http://localhost:5000', 'https://replit.dev', 'https://repl.co'] 
-      : (process.env.ALLOWED_ORIGINS?.split(',') || [
-          'https://redbow-24723.web.app', 
-          'https://redbow-24723.firebaseapp.com'
-        ]);
-
-    if (request.method === 'OPTIONS') {
-      const response = new NextResponse(null, { status: 204 });
-      if (origin && allowedOrigins.some(allowed => origin.includes(allowed))) {
-        response.headers.set('Access-Control-Allow-Origin', origin);
-      }
-      response.headers.set('Access-Control-Allow-Credentials', 'true');
-      response.headers.set('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-      response.headers.set('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization');
-      response.headers.set('Access-Control-Max-Age', '86400');
-      return response;
-    }
-
-    const response = NextResponse.next();
-    if (origin && allowedOrigins.some(allowed => origin.includes(allowed))) {
-      response.headers.set('Access-Control-Allow-Origin', origin);
-      response.headers.set('Access-Control-Allow-Credentials', 'true');
-    }
-    return response;
-}
+// This middleware is now much simpler. It only handles route protection.
+// CORS handling might be needed depending on your API usage, but we remove it for now to simplify.
 
 export async function middleware(request: NextRequest) {
-  // CORS handling can be simplified or removed depending on whether you call APIs from external origins
-  if (request.nextUrl.pathname.startsWith('/api/')) {
-    return handleApiCors(request);
-  }
 
   // Protect admin routes
   if (request.nextUrl.pathname.startsWith('/admin')) {
@@ -48,12 +18,16 @@ export async function middleware(request: NextRequest) {
       }
 
       try {
+          if(!adminAuth) {
+             throw new Error("Auth is not initialized");
+          }
           // Verify session cookie with the initialized Firebase Admin SDK
           await adminAuth.verifySessionCookie(sessionCookie, true);
           return NextResponse.next();
       } catch (error) {
-          console.error("Session cookie verification failed:", error);
+          console.warn("Admin route protection: Session cookie verification failed:", error);
           const response = NextResponse.redirect(new URL('/login', request.url));
+          // Clear the invalid session cookie
           response.cookies.delete('__session');
           return response;
       }
@@ -63,5 +37,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/api/:path*', '/admin/:path*'],
+  // We only match the admin routes now.
+  // API routes using server actions don't need to be matched here.
+  matcher: ['/admin/:path*'],
 };

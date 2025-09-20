@@ -17,7 +17,7 @@ const toPlainObject = (product: any): Product => {
 
 export const getAllProducts = async (): Promise<Product[]> => {
     if (!adminDb) {
-        console.error("Error fetching all products: Firestore admin is not initialized.");
+        console.warn("Skipping getAllProducts: Firestore admin is not initialized.");
         return [];
     }
     try {
@@ -35,7 +35,7 @@ export const getAllProducts = async (): Promise<Product[]> => {
 
 export const getNewArrivals = async (count: number): Promise<Product[]> => {
     if (!adminDb) {
-        console.error("Error fetching new arrivals: Firestore admin is not initialized.");
+        console.warn("Skipping getNewArrivals: Firestore admin is not initialized.");
         return [];
     }
     try {
@@ -64,7 +64,7 @@ export const getNewArrivals = async (count: number): Promise<Product[]> => {
 
 export const getTrendingProducts = async (count: number): Promise<Product[]> => {
     if (!adminDb) {
-        console.error("Error fetching trending products: Firestore admin is not initialized.");
+        console.warn("Skipping getTrendingProducts: Firestore admin is not initialized.");
         return [];
     }
     try {
@@ -83,7 +83,7 @@ export const getTrendingProducts = async (count: number): Promise<Product[]> => 
 
 export const getProductsByCategory = async (category: string): Promise<Product[]> => {
     if (!adminDb) {
-        console.error(`Error fetching products for category ${category}: Firestore admin is not initialized.`);
+        console.warn("Skipping getProductsByCategory: Firestore admin is not initialized.");
         return [];
     }
     try {
@@ -103,7 +103,7 @@ export const getProductsByCategory = async (category: string): Promise<Product[]
 
 export const getTotalProducts = async (): Promise<number> => {
     if (!adminDb) {
-        console.error("Error fetching total products: Firestore admin is not initialized.");
+        console.warn("Skipping getTotalProducts: Firestore admin is not initialized.");
         return 0;
     }
     try {
@@ -117,8 +117,8 @@ export const getTotalProducts = async (): Promise<number> => {
 };
 
 export const getRecentProducts = async (count: number): Promise<Product[]> => {
-     if (!adminDb) {
-        console.error("Error fetching recent products: Firestore admin is not initialized.");
+    if (!adminDb) {
+        console.warn("Skipping getRecentProducts: Firestore admin is not initialized.");
         return [];
     }
     try {

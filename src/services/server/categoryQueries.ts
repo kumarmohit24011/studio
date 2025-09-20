@@ -14,7 +14,7 @@ const toPlainObject = (category: any): Category => {
 
 export const getFeaturedCategories = async (): Promise<Category[]> => {
     if (!adminDb) {
-        console.error("Error fetching featured categories: Firestore admin is not initialized.");
+        console.warn("Skipping getFeaturedCategories: Firestore admin is not initialized.");
         return [];
     }
     try {
@@ -33,7 +33,7 @@ export const getFeaturedCategories = async (): Promise<Category[]> => {
 
 export const getAllCategories = async (): Promise<Category[]> => {
     if (!adminDb) {
-        console.error("Error fetching all categories: Firestore admin is not initialized.");
+        console.warn("Skipping getAllCategories: Firestore admin is not initialized.");
         return [];
     }
     try {

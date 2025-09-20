@@ -9,7 +9,7 @@ const defaultPromoBanner: PromoBannerData = {
     subtitle: 'Up to 30% off on select necklaces',
     buttonText: 'Shop Now',
     buttonLink: '/products?category=Necklaces',
-    imageUrl: 'https://picsum.photos/600/400',
+    imageUrl: 'https://picsum.photos/seed/promo1/600/400',
     updatedAt: new Date()
 };
 
@@ -19,7 +19,7 @@ const defaultData: SiteContent = {
         subtitle: 'Discover our exclusive collection of handcrafted jewelry.',
         buttonText: 'Shop Now',
         buttonLink: '/products',
-        imageUrl: 'https://picsum.photos/1800/1000',
+        imageUrl: 'https://picsum.photos/seed/hero/1800/1000',
         updatedAt: new Date()
     },
     promoBanner1: defaultPromoBanner,
@@ -28,7 +28,7 @@ const defaultData: SiteContent = {
         headline: 'Limited Time Offer',
         subtitle: 'Buy one, get one 50% off on wedding rings',
         buttonLink: '/products?category=Rings',
-        imageUrl: 'https://picsum.photos/600/400?grayscale',
+        imageUrl: 'https://picsum.photos/seed/promo2/600/400',
     },
     shippingSettings: {
         defaultFee: 50,
@@ -47,18 +47,22 @@ const toPlainObject = (data: any): any => {
     return plain;
 };
 
+const returnDefaultData = () => {
+    return {
+        heroSection: toPlainObject(defaultData.heroSection),
+        promoBanner1: toPlainObject(defaultData.promoBanner1),
+        promoBanner2: toPlainObject(defaultData.promoBanner2),
+        shippingSettings: toPlainObject(defaultData.shippingSettings),
+    };
+}
+
+
 export const getSiteContent = async (): Promise<SiteContent> => {
-    const firestore = adminDb;
-    if (!firestore) {
-        console.error("Error fetching site content: Firestore is not initialized. Returning defaults.");
-        return {
-            heroSection: toPlainObject(defaultData.heroSection),
-            promoBanner1: toPlainObject(defaultData.promoBanner1),
-            promoBanner2: toPlainObject(defaultData.promoBanner2),
-            shippingSettings: toPlainObject(defaultData.shippingSettings),
-        };
+    if (!adminDb) {
+        console.warn("Skipping getSiteContent: Firestore admin is not initialized. Returning default data.");
+        return returnDefaultData();
     }
-    const siteContentRef = doc(firestore, 'siteContent', 'global');
+    const siteContentRef = doc(adminDb, 'siteContent', 'global');
     
     try {
         const docSnap = await getDoc(siteContentRef);
@@ -74,20 +78,10 @@ export const getSiteContent = async (): Promise<SiteContent> => {
         } else {
             console.log("Site content document doesn't exist, returning defaults.");
             // Return defaults with serialized dates
-            return {
-                heroSection: toPlainObject(defaultData.heroSection),
-                promoBanner1: toPlainObject(defaultData.promoBanner1),
-                promoBanner2: toPlainObject(defaultData.promoBanner2),
-                shippingSettings: toPlainObject(defaultData.shippingSettings),
-            };
+            return returnDefaultData();
         }
     } catch (error) {
         console.error("Error fetching site content, returning defaults: ", error);
-        return {
-            heroSection: toPlainObject(defaultData.heroSection),
-            promoBanner1: toPlainObject(defaultData.promoBanner1),
-            promoBanner2: toPlainObject(defaultData.promoBanner2),
-            shippingSettings: toPlainObject(defaultData.shippingSettings),
-        };
+        return returnDefaultData();
     }
 };
