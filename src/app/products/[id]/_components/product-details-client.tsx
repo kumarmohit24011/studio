@@ -75,14 +75,14 @@ export function ProductDetailsClient({ product, relatedProducts }: { product: Pr
         </div>
 
         <div className="flex items-baseline gap-4">
-            {product.discountedPrice && product.discountedPrice < product.price ? (
-                <>
-                    <p className="text-2xl md:text-3xl font-bold text-primary">₹{product.discountedPrice.toFixed(2)}</p>
-                    <p className="text-xl text-muted-foreground line-through">₹{product.price.toFixed(2)}</p>
-                </>
-            ) : (
-                <p className="text-2xl md:text-3xl font-bold text-primary">₹{product.price.toFixed(2)}</p>
-            )}
+          {product.discountedPrice && product.discountedPrice > 0 && product.discountedPrice < product.price ? (
+            <>
+              <p className="text-2xl md:text-3xl font-bold text-primary">₹{product.discountedPrice.toFixed(2)}</p>
+              <p className="text-xl text-muted-foreground line-through">₹{product.price.toFixed(2)}</p>
+            </>
+          ) : (
+            <p className="text-2xl md:text-3xl font-bold text-primary">₹{product.price.toFixed(2)}</p>
+          )}
         </div>
         
         <Separator />
