@@ -1,7 +1,7 @@
 
 import { getAllProducts } from "@/services/server/productQueries";
 import { searchProducts } from "@/app/products/_actions/search-action";
-import { getAllCategories } from "@/services/categoryService";
+import { getAllCategories } from "@/services/server/categoryQueries";
 import type { Product, Category } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProductView } from "./_components/product-view";

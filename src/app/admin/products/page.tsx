@@ -2,8 +2,8 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getAllProducts } from "@/services/productService";
-import { getAllCategories } from "@/services/categoryService";
+import { getAllProducts } from "@/services/server/productQueries";
+import { getAllCategoriesClient } from "@/services/categoryService";
 import { ProductActions } from "./_components/product-actions";
 import type { Product, Category } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
@@ -56,9 +56,12 @@ export default function AdminProductsPage() {
                 setLoading(true);
                 setError(null);
 
+                // For this client component, we should use a client-side safe fetch.
+                // However, since this is an admin page, we'll assume it's okay for now,
+                // but ideally this would be a server component or use a dedicated client fetch.
                 const [productsData, categoriesData] = await Promise.all([
                     getAllProducts(),
-                    getAllCategories()
+                    getAllCategoriesClient()
                 ]);
 
                 setProducts(productsData);

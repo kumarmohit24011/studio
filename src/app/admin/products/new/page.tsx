@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProductForm } from "../_components/product-form";
-import { getAllCategories } from "@/services/categoryService";
+import { getAllCategories } from "@/services/server/categoryQueries";
 import type { Category } from "@/lib/types";
 
 export default async function NewProductPage() {

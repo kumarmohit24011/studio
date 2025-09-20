@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { getNewArrivals, getTrendingProducts } from "@/services/server/productQueries";
 import { getSiteContent } from "@/services/server/siteContentQueries";
-import { getAllCategories } from "@/services/categoryService";
+import { getAllCategories } from "@/services/server/categoryQueries";
 import type { Product, Category } from "@/lib/types";
 import Image from "next/image";
 import Link from "next/link";

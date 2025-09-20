@@ -1,4 +1,5 @@
 
+'use client';
 import { db, storage } from '@/lib/firebase';
 import { Category } from '@/lib/types';
 import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc, writeBatch, query, where, Firestore } from 'firebase/firestore';
@@ -7,30 +8,6 @@ import { triggerCacheRevalidation } from '@/lib/cache-client';
 
 // This file is now safe to be used on both client and server,
 // as it does not directly import the Firebase Admin SDK.
-
-export const getAllCategories = async (): Promise<Category[]> => {
-    try {
-        const categoriesCol = collection(db, 'categories');
-        const snapshot = await getDocs(categoriesCol);
-        if (snapshot.empty) {
-            return [];
-        }
-        return snapshot.docs
-            .map(doc => {
-                const data = doc.data();
-                return {
-                    id: doc.id,
-                    ...data,
-                    createdAt: data.createdAt?.seconds ? new Date(data.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
-                } as Category
-            })
-            .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-    } catch (error) {
-        console.error("Error fetching categories: ", error);
-        throw new Error(`Failed to fetch categories: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-};
-
 
 export const getCategoryById = async (id: string): Promise<Category | null> => {
     try {
@@ -122,3 +99,27 @@ export const deleteCategory = async (id: string): Promise<void> => {
         throw error;
     }
 }
+
+// Client-side specific version of getAllCategories for admin panels etc.
+export const getAllCategoriesClient = async (): Promise<Category[]> => {
+    try {
+        const categoriesCol = collection(db, 'categories');
+        const snapshot = await getDocs(categoriesCol);
+        if (snapshot.empty) {
+            return [];
+        }
+        return snapshot.docs
+            .map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    ...data,
+                    createdAt: data.createdAt?.seconds ? new Date(data.createdAt.seconds * 1000).toISOString() : new Date().toISOString(),
+                } as Category
+            })
+            .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    } catch (error) {
+        console.error("Error fetching categories on client: ", error);
+        throw new Error(`Failed to fetch categories: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+};

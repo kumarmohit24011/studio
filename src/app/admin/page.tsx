@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -7,8 +8,8 @@ import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getAllOrders } from "@/services/orderService";
 import { getRecentCustomers, getTotalCustomers } from "@/services/userService";
-import { getAllProducts, getRecentProducts, getTotalProducts } from "@/services/productService";
-import { getAllCategories } from "@/services/categoryService";
+import { getRecentProducts, getTotalProducts } from "@/services/server/productQueries";
+import { getAllCategories } from "@/services/server/categoryQueries";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
@@ -356,3 +357,5 @@ export default function AdminDashboard() {
         </div>
     );
 }
+
+    

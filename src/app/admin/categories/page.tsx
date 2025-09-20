@@ -2,7 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getAllCategories } from "@/services/categoryService";
+import { getAllCategoriesClient } from "@/services/categoryService";
 import { CategoryActions } from "./_components/actions";
 import type { Category } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
@@ -57,7 +57,7 @@ export default function AdminCategoriesPage() {
                 setLoading(true);
                 setError(null);
 
-                const categoriesData = await getAllCategories();
+                const categoriesData = await getAllCategoriesClient();
                 setCategories(categoriesData);
             } catch (err) {
                 console.error('Error fetching categories data:', err);

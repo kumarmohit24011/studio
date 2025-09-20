@@ -1,8 +1,8 @@
 
 'use server';
 
-import { getAllProducts, getProductsByCategory } from '@/services/server/productQueries';
-import { getAllCategories } from '@/services/categoryService';
+import { getAllProducts } from '@/services/server/productQueries';
+import { getAllCategories } from '@/services/server/categoryQueries';
 import type { Product, Category } from '@/lib/types';
 
 

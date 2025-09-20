@@ -1,7 +1,8 @@
 
+
 import { adminDb } from '@/lib/firebase-admin';
 import { Product } from '@/lib/types';
-import { collection, getDocs, query, where, limit, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, where, limit, orderBy, getCountFromServer } from 'firebase/firestore';
 
 const toPlainObject = (product: any): Product => {
     if (!product) return product;
@@ -99,3 +100,42 @@ export const getProductsByCategory = async (category: string): Promise<Product[]
         return [];
     }
 };
+
+
+export const getTotalProducts = async (): Promise<number> => {
+    if (!adminDb) {
+        console.error("Error fetching total products: Firestore admin is not initialized.");
+        return 0;
+    }
+    try {
+        const productsCol = collection(adminDb, 'products');
+        const snapshot = await getCountFromServer(productsCol);
+        return snapshot.data().count;
+    } catch (error) {
+        console.error("Error fetching product count: ", error);
+        throw new Error(`Failed to fetch product count: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+};
+
+export const getRecentProducts = async (count: number): Promise<Product[]> => {
+     if (!adminDb) {
+        console.error("Error fetching recent products: Firestore admin is not initialized.");
+        return [];
+    }
+    try {
+        const productsRef = collection(adminDb, 'products');
+        const q = query(productsRef, orderBy("createdAt", "desc"), limit(count));
+        const snapshot = await getDocs(q);
+        
+        if (snapshot.empty) {
+            return [];
+        }
+
+        return snapshot.docs.map(doc => toPlainObject( {id: doc.id, ...doc.data()} as Product));
+    } catch (error) {
+        console.error("Error fetching recent products: ", error);
+        throw new Error(`Failed to fetch recent products: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+}
+
+    

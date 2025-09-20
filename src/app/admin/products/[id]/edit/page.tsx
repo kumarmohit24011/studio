@@ -2,7 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProductForm } from "../../_components/product-form";
 import { getProductById } from "@/services/productService";
-import { getAllCategories } from "@/services/categoryService";
+import { getAllCategories } from "@/services/server/categoryQueries";
 import { notFound } from "next/navigation";
 import type { Product, Category } from "@/lib/types";
 
