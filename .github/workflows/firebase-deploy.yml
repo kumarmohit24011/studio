@@ -45,3 +45,4 @@ jobs:
             --only hosting,firestore:rules,firestore:indexes,storage:rules \
             --project redbow-24723 \
             --non-interactive
+
