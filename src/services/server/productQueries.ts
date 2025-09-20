@@ -1,8 +1,8 @@
 
-'use server';
-import { db } from '@/lib/firebase';
+import { adminDb } from '@/lib/firebase-admin';
+import { db } from '@/lib/firebase'; // Client-side fallback
 import { Product } from '@/lib/types';
-import { collection, getDocs, query, where, limit, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, where, limit, orderBy, Firestore } from 'firebase/firestore';
 
 const toPlainObject = (product: any): Product => {
     if (!product) return product;
@@ -18,8 +18,13 @@ const toPlainObject = (product: any): Product => {
 
 // This function now fetches directly from Firebase to avoid caching issues.
 export const getNewArrivals = async (count: number): Promise<Product[]> => {
+    const firestore = adminDb || db; // Use admin DB if available, otherwise client DB
+    if (!firestore) {
+        console.error("Error fetching new arrivals: Firestore is not initialized.");
+        return [];
+    }
     try {
-        const productsRef = collection(db, 'products');
+        const productsRef = collection(firestore as Firestore, 'products');
         // Query for products that are published and have the 'new' tag.
         const q = query(
             productsRef, 
@@ -45,8 +50,13 @@ export const getNewArrivals = async (count: number): Promise<Product[]> => {
 
 // This function now fetches directly from Firebase to avoid caching issues.
 export const getTrendingProducts = async (count: number): Promise<Product[]> => {
+    const firestore = adminDb || db; // Use admin DB if available, otherwise client DB
+    if (!firestore) {
+        console.error("Error fetching trending products: Firestore is not initialized.");
+        return [];
+    }
     try {
-        const productsRef = collection(db, 'products');
+        const productsRef = collection(firestore as Firestore, 'products');
         const q = query(productsRef, where("tags", "array-contains", "popular"), where("isPublished", "==", true), limit(count));
         const snapshot = await getDocs(q);
         if (snapshot.empty) {
@@ -58,5 +68,3 @@ export const getTrendingProducts = async (count: number): Promise<Product[]> => 
         return [];
     }
 };
-
-    

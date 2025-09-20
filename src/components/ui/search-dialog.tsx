@@ -17,8 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { searchProducts } from "@/services/productService";
-import { searchCategories } from "@/services/categoryService";
+import { searchProductsAndCategories } from "@/app/products/_actions/search-action";
 import type { Product, Category } from "@/lib/types";
 
 interface SearchDialogProps {
@@ -46,11 +45,7 @@ export function SearchDialog({ children, onResultClick }: SearchDialogProps) {
     setHasSearched(true);
     
     try {
-      const [productResults, categoryResults] = await Promise.all([
-        searchProducts(term),
-        searchCategories(term),
-      ]);
-      
+      const { products: productResults, categories: categoryResults } = await searchProductsAndCategories(term);
       setProducts(productResults);
       setCategories(categoryResults);
     } catch (error) {

@@ -1,5 +1,6 @@
 
 import { db, storage } from '@/lib/firebase';
+import { adminDb } from '@/lib/firebase-admin';
 import { Category } from '@/lib/types';
 import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc, writeBatch, query, where } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -7,7 +8,9 @@ import { triggerCacheRevalidation } from '@/lib/cache-client';
 
 export const getAllCategories = async (): Promise<Category[]> => {
     try {
-        const categoriesCol = collection(db, 'categories');
+        const firestore = adminDb || db;
+        if (!firestore) throw new Error("Firestore is not initialized.");
+        const categoriesCol = collection(firestore, 'categories');
         const snapshot = await getDocs(categoriesCol);
         if (snapshot.empty) {
             return [];
@@ -29,8 +32,13 @@ export const getAllCategories = async (): Promise<Category[]> => {
 };
 
 export const getFeaturedCategories = async (): Promise<Category[]> => {
+    const firestore = adminDb || db; // Use admin DB if available, otherwise client DB
+    if (!firestore) {
+        console.error("Error fetching featured categories: Firestore is not initialized.");
+        return [];
+    }
     try {
-        const categoriesCol = collection(db, 'categories');
+        const categoriesCol = collection(firestore, 'categories');
         const q = query(categoriesCol, where("isFeatured", "==", true));
         const snapshot = await getDocs(q);
         if (snapshot.empty) {
@@ -55,7 +63,9 @@ export const getFeaturedCategories = async (): Promise<Category[]> => {
 
 export const getCategoryById = async (id: string): Promise<Category | null> => {
     try {
-        const docRef = doc(db, 'categories', id);
+        const firestore = adminDb || db;
+        if (!firestore) throw new Error("Firestore is not initialized.");
+        const docRef = doc(firestore, 'categories', id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             return { id: docSnap.id, ...docSnap.data() } as Category;
