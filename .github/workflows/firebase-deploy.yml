@@ -34,19 +34,6 @@ jobs:
           NEXT_PUBLIC_RAZORPAY_KEY_ID: ${{ secrets.NEXT_PUBLIC_RAZORPAY_KEY_ID }}
           FIREBASE_SERVICE_ACCOUNT_REDBOW_24723: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_REDBOW_24723 }}
 
-      - name: Create production environment file
-        run: |
-          echo "NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}" > .env.production
-          echo "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}" >> .env.production
-          echo "NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}" >> .env.production
-          echo "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}" >> .env.production
-          echo "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}" >> .env.production
-          echo "NEXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}" >> .env.production
-          echo "NEXT_PUBLIC_ADMIN_EMAILS=${{ secrets.NEXT_PUBLIC_ADMIN_EMAILS }}" >> .env.production
-          echo "NEXT_PUBLIC_RAZORPAY_KEY_ID=${{ secrets.NEXT_PUBLIC_RAZORPAY_KEY_ID }}" >> .env.production
-          echo "ALLOWED_ORIGINS=${{ secrets.ALLOWED_ORIGINS || 'https://redbow-24723.web.app,https://redbow-24723.firebaseapp.com' }}" >> .env.production
-          echo "FIREBASE_SERVICE_ACCOUNT_REDBOW_24723=${{ secrets.FIREBASE_SERVICE_ACCOUNT_REDBOW_24723 }}" >> .env.production
-
       - name: Install Firebase Tools
         run: npm install -g firebase-tools
 
@@ -58,4 +45,5 @@ jobs:
             --non-interactive
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-          FIREBASE_SERVICE_ACCOUNT_REDBOW_24723: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_REDBOW_24723 }}
+          GCLOUD_PROJECT: redbow-24723
+
