@@ -172,7 +172,7 @@ export function Header({ categories = [] }: HeaderProps) {
                     </Link>
                 </SheetHeader>
                 <div className="p-4">
-                  <SearchDialog>
+                  <SearchDialog onResultClick={() => setMobileMenuOpen(false)}>
                     <Button variant="outline" className="w-full justify-start">
                       <span className="mr-2">🔍</span>
                       Search products & categories...

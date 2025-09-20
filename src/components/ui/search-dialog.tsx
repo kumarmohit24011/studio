@@ -23,9 +23,10 @@ import type { Product, Category } from "@/lib/types";
 
 interface SearchDialogProps {
   children?: React.ReactNode;
+  onResultClick?: () => void;
 }
 
-export function SearchDialog({ children }: SearchDialogProps) {
+export function SearchDialog({ children, onResultClick }: SearchDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
@@ -76,6 +77,7 @@ export function SearchDialog({ children }: SearchDialogProps) {
     setProducts([]);
     setCategories([]);
     setHasSearched(false);
+    onResultClick?.();
   };
 
   const totalResults = products.length + categories.length;
