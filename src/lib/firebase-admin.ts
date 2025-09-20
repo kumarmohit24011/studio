@@ -1,58 +1,43 @@
 
 import admin from 'firebase-admin';
 
-// A flag to ensure we only initialize once
-let adminApp: admin.app.App | null = null;
+let adminApp: admin.app.App;
 
-const getAdminApp = (): admin.app.App | null => {
-  // If we're clearly in a browser environment, don't even try.
-  if (typeof window !== 'undefined') {
-    return null;
+// This function initializes the Firebase Admin SDK.
+// It's designed to be run only in a server-side environment.
+function initializeAdminApp() {
+  if (admin.apps.length > 0) {
+    return admin.apps[0]!;
   }
   
-  // If the app is already initialized, return it
-  if (adminApp) {
-    return adminApp;
-  }
-
-  // Check if we're in a server-side environment with credentials.
-  const isProductionEnvironment = !!process.env.CI || !!process.env.VERCEL || !!process.env.FIREBASE_CONFIG;
   const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_REDBOW_24723;
   
-  if (!isProductionEnvironment) {
-    console.warn("[Firebase Admin] Not in a known production/CI environment. Skipping Admin SDK initialization.");
+  if (!serviceAccountString) {
+    // Gracefully fail in environments where the secret is not set.
+    // This allows the app to build and run locally without crashing.
+    console.warn("Firebase Admin SDK not initialized: FIREBASE_SERVICE_ACCOUNT_REDBOW_24723 is not set.");
     return null;
   }
 
-  if (admin.apps.length > 0) {
-    adminApp = admin.apps[0]!;
-    return adminApp;
-  }
-  
   try {
-    if (!serviceAccountString) {
-      throw new Error('Firebase service account credentials are not set in the environment variable FIREBASE_SERVICE_ACCOUNT_REDBOW_24723.');
-    }
-
     const serviceAccount = JSON.parse(serviceAccountString);
 
-    adminApp = admin.initializeApp({
+    return admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
       storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
     });
-    
-    return adminApp;
-
   } catch (error) {
     console.error(`Firebase admin initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    throw new Error(`Firebase admin initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    return null;
   }
-};
+}
 
-// Initialize and export immediately
-const app = getAdminApp();
-const adminAuth = app ? app.auth() : null;
-const adminDb = app ? app.firestore() : null;
-const adminStorage = app ? app.storage() : null;
+// Initialize and export immediately. This code will only run on the server.
+adminApp = initializeAdminApp()!;
 
-export { app as adminApp, adminAuth, adminDb, adminStorage };
+const adminAuth = adminApp ? adminApp.auth() : null;
+const adminDb = adminApp ? adminApp.firestore() : null;
+const adminStorage = adminApp ? adminApp.storage() : null;
+
+
+export { adminApp, adminAuth, adminDb, adminStorage };

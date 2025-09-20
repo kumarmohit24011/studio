@@ -1,6 +1,6 @@
 
 import { adminDb } from '@/lib/firebase-admin';
-import { db } from '@/lib/firebase'; // Client-side fallback
+import { db } from '@/lib/firebase';
 import { doc, getDoc, Firestore } from 'firebase/firestore';
 import { SiteContent, PromoBannerData, HeroSectionData, ShippingSettingsData } from '../siteContentService';
 
@@ -49,7 +49,7 @@ const toPlainObject = (data: any): any => {
 };
 
 export const getSiteContent = async (): Promise<SiteContent> => {
-    const firestore = adminDb || db; // Use admin DB if available, otherwise client DB
+    const firestore = adminDb || db;
     if (!firestore) {
         console.error("Error fetching site content: Firestore is not initialized. Returning defaults.");
         return {
@@ -59,7 +59,7 @@ export const getSiteContent = async (): Promise<SiteContent> => {
             shippingSettings: toPlainObject(defaultData.shippingSettings),
         };
     }
-    const siteContentRef = doc(firestore as Firestore, 'siteContent', 'global');
+    const siteContentRef = doc(firestore, 'siteContent', 'global');
     
     try {
         const docSnap = await getDoc(siteContentRef);

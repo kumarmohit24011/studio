@@ -1,6 +1,6 @@
 
 import { adminDb } from '@/lib/firebase-admin';
-import { db } from '@/lib/firebase'; // Client-side fallback
+import { db } from '@/lib/firebase';
 import { Product } from '@/lib/types';
 import { collection, getDocs, query, where, limit, orderBy, Firestore } from 'firebase/firestore';
 
@@ -18,13 +18,13 @@ const toPlainObject = (product: any): Product => {
 
 // This function now fetches directly from Firebase to avoid caching issues.
 export const getNewArrivals = async (count: number): Promise<Product[]> => {
-    const firestore = adminDb || db; // Use admin DB if available, otherwise client DB
+    const firestore = adminDb || db;
     if (!firestore) {
-        console.error("Error fetching new arrivals: Firestore is not initialized.");
+        console.error("Error fetching new arrivals: Firestore is not initialized on the server.");
         return [];
     }
     try {
-        const productsRef = collection(firestore as Firestore, 'products');
+        const productsRef = collection(firestore, 'products');
         // Query for products that are published and have the 'new' tag.
         const q = query(
             productsRef, 
@@ -50,13 +50,13 @@ export const getNewArrivals = async (count: number): Promise<Product[]> => {
 
 // This function now fetches directly from Firebase to avoid caching issues.
 export const getTrendingProducts = async (count: number): Promise<Product[]> => {
-    const firestore = adminDb || db; // Use admin DB if available, otherwise client DB
+    const firestore = adminDb || db;
     if (!firestore) {
-        console.error("Error fetching trending products: Firestore is not initialized.");
+        console.error("Error fetching trending products: Firestore is not initialized on the server.");
         return [];
     }
     try {
-        const productsRef = collection(firestore as Firestore, 'products');
+        const productsRef = collection(firestore, 'products');
         const q = query(productsRef, where("tags", "array-contains", "popular"), where("isPublished", "==", true), limit(count));
         const snapshot = await getDocs(q);
         if (snapshot.empty) {

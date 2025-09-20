@@ -2,7 +2,7 @@
 import { db, storage } from '@/lib/firebase';
 import { adminDb } from '@/lib/firebase-admin';
 import { Category } from '@/lib/types';
-import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc, writeBatch, query, where } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc, writeBatch, query, where, Firestore } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { triggerCacheRevalidation } from '@/lib/cache-client';
 
@@ -32,7 +32,7 @@ export const getAllCategories = async (): Promise<Category[]> => {
 };
 
 export const getFeaturedCategories = async (): Promise<Category[]> => {
-    const firestore = adminDb || db; // Use admin DB if available, otherwise client DB
+    const firestore = adminDb || db;
     if (!firestore) {
         console.error("Error fetching featured categories: Firestore is not initialized.");
         return [];
