@@ -9,12 +9,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { getAllOrders } from "@/services/orderService";
 import { getRecentCustomers, getTotalCustomers } from "@/services/userService";
 import { getRecentProducts, getTotalProducts } from "@/services/server/productQueries";
-import { getAllCategories } from "@/services/server/categoryQueries";
+import { getAllCategoriesClient } from "@/services/categoryService";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useState } from "react";
-import type { UserProfile, Product, Order } from "@/lib/types";
+import type { UserProfile, Product, Order, Category } from "@/lib/types";
 
 function DashboardSkeleton() {
     return (
@@ -117,7 +117,7 @@ export default function AdminDashboard() {
                     getRecentProducts(5),
                     getTotalCustomers(),
                     getTotalProducts(),
-                    getAllCategories()
+                    getAllCategoriesClient()
                 ]);
 
                 const totalRevenue = recentOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
@@ -357,5 +357,3 @@ export default function AdminDashboard() {
         </div>
     );
 }
-
-    
