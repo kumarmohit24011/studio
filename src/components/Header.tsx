@@ -18,7 +18,7 @@ import { Skeleton } from "./ui/skeleton";
 import { SearchDialog } from "./ui/search-dialog";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
-import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 import React from "react";
 import type { Category } from "@/lib/types";
 
@@ -165,11 +165,12 @@ export function Header({ categories = [] }: HeaderProps) {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-[80%] max-w-sm p-0 flex flex-col bg-background">
-                <div className="flex justify-between items-center p-4 border-b">
-                     <Link href="/" className="text-2xl font-headline font-bold text-primary tracking-wider" onClick={() => setMobileMenuOpen(false)}>
+                <SheetHeader className="p-4 border-b">
+                    <SheetTitle className="sr-only">Mobile Menu</SheetTitle>
+                    <Link href="/" className="text-2xl font-headline font-bold text-primary tracking-wider text-left" onClick={() => setMobileMenuOpen(false)}>
                         REDBOW
                     </Link>
-                </div>
+                </SheetHeader>
                 <div className="p-4">
                   <SearchDialog>
                     <Button variant="outline" className="w-full justify-start">
