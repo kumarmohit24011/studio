@@ -9,7 +9,7 @@ const getAdminApp = (): admin.app.App => {
   }
 
   try {
-    // Correctly prioritize the specific environment variable from the deployment workflow
+    // This is the specific environment variable name set in the project's deployment workflow and apphosting.yaml
     const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_REDBOW_24723;
     
     if (!serviceAccountString) {
@@ -23,7 +23,6 @@ const getAdminApp = (): admin.app.App => {
       storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
     });
   } catch (error) {
-    console.error('Firebase admin initialization error:', error);
     // In case of error, we must not proceed.
     // Re-throwing the error to make it visible during development.
     throw new Error(`Firebase admin initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
