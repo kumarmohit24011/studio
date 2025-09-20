@@ -77,15 +77,13 @@ export function ProductDetailsClient({ product, relatedProducts }: { product: Pr
         <div className="flex items-baseline gap-4">
             {product.discountedPrice && product.discountedPrice < product.price ? (
                 <>
-                    <p className="text-2xl md:text-3xl font-bold text-primary">₹{product.price.toFixed(2)}</p>
-                    <p className="text-xl text-muted-foreground line-through">₹{product.discountedPrice.toFixed(2)}</p>
+                    <p className="text-2xl md:text-3xl font-bold text-primary">₹{product.discountedPrice.toFixed(2)}</p>
+                    <p className="text-xl text-muted-foreground line-through">₹{product.price.toFixed(2)}</p>
                 </>
             ) : (
                 <p className="text-2xl md:text-3xl font-bold text-primary">₹{product.price.toFixed(2)}</p>
             )}
         </div>
-        
-        <p className="text-muted-foreground text-base leading-relaxed">{product.description}</p>
         
         <Separator />
 
@@ -103,6 +101,9 @@ export function ProductDetailsClient({ product, relatedProducts }: { product: Pr
           </p>
           {product.sku && <p>SKU: {product.sku}</p>}
         </div>
+
+        <p className="text-muted-foreground text-base leading-relaxed pt-4 border-t">{product.description}</p>
+        
       </div>
     </div>
   );
