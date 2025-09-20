@@ -124,14 +124,16 @@ export function Header({ categories = [] }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="hidden md:inline-flex">
-            <SearchDialog>
-              <Button variant="ghost" size="icon">
-                <span className="text-xl">🔍</span>
-                <span className="sr-only">Search</span>
-              </Button>
-            </SearchDialog>
-          </div>
+          {isClient && (
+            <div className="hidden md:inline-flex">
+              <SearchDialog onResultClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" size="icon">
+                  <span className="text-xl">🔍</span>
+                  <span className="sr-only">Search</span>
+                </Button>
+              </SearchDialog>
+            </div>
+          )}
            <Button variant="ghost" size="icon" asChild className="hidden md:inline-flex">
               <Link href="/account?tab=wishlist" className="relative" prefetch={true}>
                 <span className="text-xl">❤️</span>
@@ -171,14 +173,16 @@ export function Header({ categories = [] }: HeaderProps) {
                         REDBOW
                     </Link>
                 </SheetHeader>
-                <div className="p-4">
-                  <SearchDialog onResultClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="outline" className="w-full justify-start">
-                      <span className="mr-2">🔍</span>
-                      Search products & categories...
-                    </Button>
-                  </SearchDialog>
-                </div>
+                {isClient && (
+                  <div className="p-4">
+                    <SearchDialog onResultClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="outline" className="w-full justify-start">
+                        <span className="mr-2">🔍</span>
+                        Search products & categories...
+                      </Button>
+                    </SearchDialog>
+                  </div>
+                )}
                 <nav className="flex flex-col gap-4 p-4 text-lg">
                     {React.Children.map(navLinks.props.children, child => 
                         child.type === Link ? React.cloneElement(child, { onClick: () => setMobileMenuOpen(false) }) : child
